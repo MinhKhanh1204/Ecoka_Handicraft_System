@@ -1,4 +1,4 @@
-namespace ProductAPI.DTOs
+namespace ProductAPI.Admin.DTOs
 {
     public class ReadCategoryDto
     {

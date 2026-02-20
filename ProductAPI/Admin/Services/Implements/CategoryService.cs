@@ -1,8 +1,8 @@
-using ProductAPI.DTOs;
+using ProductAPI.Admin.DTOs;
 using ProductAPI.Mappers;
 using ProductAPI.Repositories;
 
-namespace ProductAPI.Services.Implements
+namespace ProductAPI.Admin.Services.Implements
 {
     public class CategoryService : ICategoryService
     {

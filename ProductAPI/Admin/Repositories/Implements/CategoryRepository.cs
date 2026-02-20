@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 
-namespace ProductAPI.Repositories.Implements
+namespace ProductAPI.Admin.Repositories.Implements
 {
     public class CategoryRepository : ICategoryRepository
     {

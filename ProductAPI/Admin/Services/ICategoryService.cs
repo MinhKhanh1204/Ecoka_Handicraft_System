@@ -1,4 +1,4 @@
-using ProductAPI.DTOs;
+using ProductAPI.Admin.DTOs;
 
 public interface ICategoryService
 {

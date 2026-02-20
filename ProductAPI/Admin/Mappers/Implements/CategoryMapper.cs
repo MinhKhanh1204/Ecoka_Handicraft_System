@@ -1,4 +1,4 @@
-using ProductAPI.DTOs;
+using ProductAPI.Admin.DTOs;
 using ProductAPI.Models;
 
 public class CategoryMapper : ICategoryMapper

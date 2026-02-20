@@ -8,6 +8,8 @@ using ProductAPI.Mappers.Implements;
 using ProductAPI.Mappers;
 using ProductAPI.CustomFormatter;
 using ProductAPI.Middlewares;
+using ProductAPI.Admin.Repositories.Implements;
+using ProductAPI.Admin.Services.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 

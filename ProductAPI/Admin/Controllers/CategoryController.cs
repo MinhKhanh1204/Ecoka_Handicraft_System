@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using ProductAPI.Admin.DTOs;
 using ProductAPI.CustomFormatter;
-using ProductAPI.DTOs;
 using ProductAPI.Services;
 
-namespace ProductAPI.Controllers
+namespace ProductAPI.Admin.Controllers
 {
     [ApiController]
     [Route("api/categories")]
+    [Tags("AdminCategoryAPI")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _service;
