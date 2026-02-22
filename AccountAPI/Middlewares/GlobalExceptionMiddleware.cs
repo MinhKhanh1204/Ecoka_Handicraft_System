@@ -34,6 +34,10 @@ namespace AccountAPI.Middlewares
             HttpContext context,
             Exception exception)
         {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             context.Response.ContentType = "application/json";
 
             ApiResponse<object> response = exception switch
@@ -62,7 +66,7 @@ namespace AccountAPI.Middlewares
             context.Response.StatusCode = response.StatusCode;
 
             return context.Response.WriteAsync(
-                JsonSerializer.Serialize(response));
+                JsonSerializer.Serialize(response, options));
         }
     }
 }

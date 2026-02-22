@@ -7,11 +7,18 @@ namespace AccountAPI.Models
         public DBContext(DbContextOptions<DBContext> options)
             : base(options) { }
         public DbSet<Account> Accounts => Set<Account>();
+        public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Account - Customer (1-1 Shared Key)
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Customer)
+                .WithOne(c => c.Account)
+                .HasForeignKey<Customer>(c => c.CustomerID);
+
             modelBuilder.Entity<UserRole>()
                 .HasKey(x => new { x.AccountID, x.RoleID });
 
