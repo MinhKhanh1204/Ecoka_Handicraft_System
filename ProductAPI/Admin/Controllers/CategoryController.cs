@@ -6,7 +6,7 @@ using ProductAPI.Services;
 namespace ProductAPI.Admin.Controllers
 {
     [ApiController]
-    [Route("api/categories")]
+    [Route("api/admin/categories")]
     [Tags("AdminCategoryAPI")]
     public class CategoryController : ControllerBase
     {
@@ -21,6 +21,18 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> GetAll()
         {
             var categories = await _service.GetAllAsync();
+            return Ok(ApiResponse<List<ReadCategoryDto>>
+                .SuccessResponse(categories));
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest(ApiResponse<List<ReadCategoryDto>>
+                    .Fail("Keyword is required", 404));
+
+            var categories = await _service.SearchAsync(keyword);
             return Ok(ApiResponse<List<ReadCategoryDto>>
                 .SuccessResponse(categories));
         }

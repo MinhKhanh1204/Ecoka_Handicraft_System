@@ -14,13 +14,23 @@ namespace ProductAPI.Admin.Repositories.Implements
 
         public async Task<List<Category>> GetAllAsync()
         {
-            return await _context.Categories.ToListAsync();
+            return await _context.Categories
+                .Where(c => c.Status != "Deleted")
+                .ToListAsync();
         }
 
         public async Task<Category?> GetByIdAsync(int id)
         {
             return await _context.Categories
-                .FirstOrDefaultAsync(c => c.CategoryID == id);
+                .FirstOrDefaultAsync(c => c.CategoryID == id && c.Status != "Deleted");
+        }
+
+        public async Task<List<Category>> SearchAsync(string keyword)
+        {
+            return await _context.Categories
+                .Where(c => c.Status != "Deleted" && 
+                    (c.CategoryName.Contains(keyword)))
+                .ToListAsync();
         }
 
         public async Task AddAsync(Category category)
@@ -35,7 +45,9 @@ namespace ProductAPI.Admin.Repositories.Implements
 
         public void Delete(Category category)
         {
-            _context.Categories.Remove(category);
+            // Soft delete: update the status instead of removing
+            category.Status = "Deleted";
+            _context.Categories.Update(category);
         }
 
         public async Task<bool> SaveChangesAsync()

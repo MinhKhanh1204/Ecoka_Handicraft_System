@@ -21,6 +21,12 @@ namespace ProductAPI.Admin.Services.Implements
             return categories.Select(c => _mapper.ToDto(c)).ToList();
         }
 
+        public async Task<List<ReadCategoryDto>> SearchAsync(string keyword)
+        {
+            var categories = await _repo.SearchAsync(keyword);
+            return categories.Select(c => _mapper.ToDto(c)).ToList();
+        }
+
         public async Task<ReadCategoryDto?> GetByIdAsync(int id)
         {
             var category = await _repo.GetByIdAsync(id);

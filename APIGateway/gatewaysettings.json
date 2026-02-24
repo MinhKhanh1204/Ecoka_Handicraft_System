@@ -41,7 +41,7 @@
         },
 
         {
-            "DownstreamPathTemplate": "/api/categories/{everything}",
+            "DownstreamPathTemplate": "/api/admin/categories/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
@@ -50,12 +50,7 @@
                 }
             ],
             "UpstreamPathTemplate": "/categories/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ]
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         }
     ],
         "GlobalConfiguration": {
