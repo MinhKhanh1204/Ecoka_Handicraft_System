@@ -1,0 +1,70 @@
+﻿@model MVCApplication.Models.Order
+
+<div class="row mb-4">
+
+    <div class="col-md-6">
+        <h4 class="fw-bold">#@Model.OrderID</h4>
+        <p class="text-muted">
+            @Model.OrderDate?.ToString("dd MMM yyyy HH:mm")
+        </p>
+    </div>
+
+    <div class="col-md-6 text-md-end">
+        <h4 class="fw-bold text-success">
+            @Model.TotalAmount?.ToString("N0") $
+        </h4>
+        <span class="badge bg-info text-dark">
+            @Model.PaymentStatus
+        </span>
+        <span class="badge bg-warning text-dark">
+            @Model.ShippingStatus
+        </span>
+    </div>
+
+</div>
+
+<hr />
+
+<h5 class="fw-bold mb-3">🛍 Order Items</h5>
+
+<div class="row g-3">
+
+    @foreach (var item in Model.OrderItems)
+    {
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+
+                @* <img src="@item.ProductImage"
+                     class="card-img-top rounded-top-4"
+                     style="height:200px; object-fit:cover;" /> *@
+
+                <div class="card-body">
+
+                    @* <h6 class="fw-bold">@item.ProductName</h6> *@
+
+                    <p class="text-muted mb-1">
+                        Quantity: @item.Quantity
+                    </p>
+
+                    <p class="fw-bold text-primary">
+                        @* @item.UnitPrice.ToString("N0") $ *@
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+<hr class="my-4" />
+
+<h6 class="fw-bold">📦 Shipping Address</h6>
+<p>@Model.ShippingAddress</p>
+
+@if (!string.IsNullOrEmpty(Model.Note))
+{
+    <div class="alert alert-light border rounded-3">
+        <strong>Note:</strong> @Model.Note
+    </div>
+}

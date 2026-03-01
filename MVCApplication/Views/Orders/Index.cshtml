@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div class="container py-5">
+    <h2 class="mb-4">My Orders</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            You have no orders yet.
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var order in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm h-100 border-0">
+
+                    <!-- Header -->
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>#@order.OrderID</strong>
+                        <span class="badge bg-primary">
+                            @order.PaymentStatus
+                        </span>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="card-body">
+
+                        <p class="mb-1">
+                            <strong>Date:</strong>
+                            @order.OrderDate?.ToString("dd/MM/yyyy")
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Shipping:</strong>
+                            <span class="badge bg-warning text-dark">
+                                @order.ShippingStatus
+                            </span>
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Address:</strong>
+                            @order.ShippingAddress
+                        </p>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="text-danger mb-0">
+                                @order.TotalAmount?.ToString("N0") $
+                            </h5>
+
+                            <button class="btn btn-sm btn-primary"
+                                    onclick="showOrderDetail('@order.OrderID')">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    @if (order.ShippingStatus == "Pending")
+                    {
+                        <div class="card-footer bg-white text-end border-0">
+                            <form asp-action="Cancel" method="post">
+                                <input type="hidden" name="id" value="@order.OrderID" />
+                                <button class="btn btn-sm btn-danger">
+                                    Cancel
+                                </button>
+                            </form>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="orderDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+
+            <div class="modal-header bg-dark text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    🧾 Order Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4" id="orderDetailContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-dark"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    async function showOrderDetail(orderId) {
+
+        const modal = new bootstrap.Modal(
+            document.getElementById('orderDetailModal'));
+
+        modal.show();
+
+        document.getElementById("orderDetailContent").innerHTML =
+            `<div class="text-center py-5">
+                <div class="spinner-border text-dark"></div>
+             </div>`;
+
+        const response = await fetch(`/Orders/Details/${orderId}`);
+
+        if (!response.ok) {
+            document.getElementById("orderDetailContent").innerHTML =
+                `<div class="alert alert-danger">
+                    Failed to load order details
+                 </div>`;
+            return;
+        }
+
+        const html = await response.text();
+        document.getElementById("orderDetailContent").innerHTML = html;
+    }
+</script>
