@@ -60,6 +60,18 @@
             "UpstreamPathTemplate": "/feedbacks/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         }
+        {
+            "DownstreamPathTemplate": "/odata/feedbacks/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7242
+                }
+            ],
+            "UpstreamPathTemplate": "/odata/feedbacks/{everything}",
+            "UpstreamHttpMethod": [ "GET" ]
+        }
     ],
     "GlobalConfiguration": {
         "BaseUrl": "https://localhost:5000"

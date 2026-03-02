@@ -10,10 +10,10 @@ namespace FeedbackAPI.Models
         public int FeedbackID { get; set; }
 
         [Required]
-        public string CustomerID { get; set; } = null!;
+        public int  CustomerID { get; set; } 
 
         [Required]
-        public string ProductID { get; set; } = null!;
+        public int  ProductID { get; set; } 
 
         [Range(1, 5)]
         public int Rating { get; set; }

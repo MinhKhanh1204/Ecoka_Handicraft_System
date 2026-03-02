@@ -10,8 +10,8 @@ namespace FeedbackAPI.Repositories
 
         // ===== FILTER =====
         Task<IEnumerable<Feedback>> FilterAsync(
-            string? customerId,
-            string? productId,
+            int? customerId,
+            int? productId,
             int? minRating,
             int? maxRating,
             string? status,

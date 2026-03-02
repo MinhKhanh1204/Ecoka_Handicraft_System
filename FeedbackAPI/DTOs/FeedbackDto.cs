@@ -5,8 +5,8 @@ namespace FeedbackAPI.DTOs
     public class FeedbackReadDto
     {
         public int FeedbackID { get; set; }
-        public string? CustomerID { get; set; }
-        public string? ProductID { get; set; }
+        public int? CustomerID { get; set; }
+        public int? ProductID { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -18,10 +18,10 @@ namespace FeedbackAPI.DTOs
     public class FeedbackCreateDto
     {
         [Required]
-        public string CustomerID { get; set; } = null!;
+        public int CustomerID { get; set; } 
 
         [Required]
-        public string ProductID { get; set; } = null!;
+        public int ProductID { get; set; } 
 
         [Required]
         [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
@@ -42,8 +42,8 @@ namespace FeedbackAPI.DTOs
 
     public class FeedbackFilterDto
     {
-        public string? CustomerID { get; set; }
-        public string? ProductID { get; set; }
+        public int? CustomerID { get; set; }
+        public int? ProductID { get; set; }
         public int? MinRating { get; set; }
         public int? MaxRating { get; set; }
         public string? Status { get; set; }

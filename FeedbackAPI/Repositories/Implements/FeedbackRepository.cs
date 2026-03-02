@@ -17,7 +17,6 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<IEnumerable<Feedback>> GetAllAsync()
         {
             return await _context.Feedbacks
-                .Include(f => f.Replies)
                 .OrderByDescending(f => f.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
@@ -26,7 +25,6 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<Feedback?> GetByIdAsync(int feedbackId)
         {
             return await _context.Feedbacks
-                .Include(f => f.Replies)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.FeedbackID == feedbackId);
         }
@@ -34,21 +32,21 @@ namespace FeedbackAPI.Repositories.Implements
         // ================= FILTER =================
 
         public async Task<IEnumerable<Feedback>> FilterAsync(
-            string? customerId,
-            string? productId,
+            int? customerId,
+            int? productId,
             int? minRating,
             int? maxRating,
             string? status,
             DateTime? from,
             DateTime? to)
         {
-            var query = _context.Feedbacks.Include(f => f.Replies).AsQueryable();
+            var query = _context.Feedbacks.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(customerId))
-                query = query.Where(f => f.CustomerID == customerId);
+            if (customerId.HasValue)
+                query = query.Where(f => f.CustomerID == customerId.Value);
 
-            if (!string.IsNullOrWhiteSpace(productId))
-                query = query.Where(f => f.ProductID == productId);
+            if (productId.HasValue)
+                query = query.Where(f => f.ProductID == productId.Value);
 
             if (minRating.HasValue)
                 query = query.Where(f => f.Rating >= minRating.Value);
