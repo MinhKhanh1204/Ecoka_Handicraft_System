@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MVCApplication.Models;
 using MVCApplication.Services;
@@ -53,10 +54,22 @@ namespace MVCApplication.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(2)
                 });
 
-            return RedirectToAction("Index", "Home");
-        }
+			return RedirectToAction("RedirectByRole", "Account");
+		}
 
-        [HttpPost]
+		[Authorize]
+		public IActionResult RedirectByRole()
+		{
+			if (User.IsInRole("Admin"))
+				return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+			if (User.IsInRole("Staff"))
+				return RedirectToAction("Index", "Dashboard", new { area = "Staff" });
+
+			return RedirectToAction("Index", "Home");
+		}
+
+		[HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)

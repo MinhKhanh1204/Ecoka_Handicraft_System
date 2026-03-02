@@ -65,8 +65,8 @@ builder.Services
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
 
             NameClaimType = "username",
-            RoleClaimType = "role"
-        };
+            RoleClaimType = ClaimTypes.Role
+		};
     });
 
 builder.Services.AddAuthorization();
