@@ -1,33 +1,35 @@
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Models;
-
-public class CategoryMapper : ICategoryMapper
+namespace ProductAPI.Admin.Mappers.Implements
 {
-    public ReadCategoryDto ToDto(Category category)
+    public class CategoryMapper : ICategoryMapper
     {
-        return new ReadCategoryDto
+        public ReadCategoryDto ToDto(Category category)
         {
-            CategoryID = category.CategoryID,
-            CategoryName = category.CategoryName,
-            Description = category.Description,
-            Status = category.Status
-        };
-    }
+            return new ReadCategoryDto
+            {
+                CategoryID = category.CategoryID,
+                CategoryName = category.CategoryName,
+                Description = category.Description,
+                Status = category.Status
+            };
+        }
 
-    public Category ToEntity(CategoryCreateDto dto)
-    {
-        return new Category
+        public Category ToEntity(CategoryCreateDto dto)
         {
-            CategoryName = dto.CategoryName,
-            Description = dto.Description,
-            Status = dto.Status
-        };
-    }
+            return new Category
+            {
+                CategoryName = dto.CategoryName,
+                Description = dto.Description,
+                Status = dto.Status
+            };
+        }
 
-    public void UpdateEntity(CategoryUpdateDto dto, Category entity)
-    {
-        entity.CategoryName = dto.CategoryName;
-        entity.Description = dto.Description;
-        entity.Status = dto.Status;
+        public void UpdateEntity(CategoryUpdateDto dto, Category entity)
+        {
+            entity.CategoryName = dto.CategoryName;
+            entity.Description = dto.Description;
+            entity.Status = dto.Status;
+        }
     }
 }

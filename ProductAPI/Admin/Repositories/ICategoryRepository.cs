@@ -1,12 +1,14 @@
 using ProductAPI.Models;
-
-public interface ICategoryRepository
+namespace ProductAPI.Admin.Repositories
 {
-    Task<List<Category>> GetAllAsync();
-    Task<Category?> GetByIdAsync(int id);
-    Task<List<Category>> SearchAsync(string keyword);
-    Task AddAsync(Category category);
-    void Update(Category category);
-    void Delete(Category category);
-    Task<bool> SaveChangesAsync();
+    public interface ICategoryRepository
+    {
+        Task<List<Category>> GetAllAsync();
+        Task<Category?> GetByIdAsync(int id);
+        Task<List<Category>> SearchAsync(string keyword);
+        Task AddAsync(Category category);
+        void Update(Category category);
+        void Delete(Category category);
+        Task<bool> SaveChangesAsync();
+    }
 }

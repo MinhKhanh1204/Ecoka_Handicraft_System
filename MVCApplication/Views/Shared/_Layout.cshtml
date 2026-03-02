@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - Fruitables</title>
+    <title>@ViewData["Title"] - Ecoka Handicraft System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Google Fonts -->
@@ -21,6 +21,7 @@
     <!-- Bootstrap -->
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <!-- Custom CSS -->
     <link href="~/css/style.css" rel="stylesheet" />
 </head>
@@ -56,9 +57,40 @@
                             <i class="fa fa-shopping-bag fa-2x"></i>
                         </a>
 
-                        <a asp-controller="Account" asp-action="Login" class="my-auto">
-                            <i class="fas fa-user fa-2x"></i>
-                        </a>
+                        <!-- User Dropdown -->
+                        <div class="dropdown my-auto">
+                            <a href="#"
+                               class="my-auto"
+                               id="userDropdown"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="fas fa-user fa-2x"></i>
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end"
+                                aria-labelledby="userDropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Hello, @User.Identity.Name</a>
+                                    </li>
+
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                                    </li>
+                                }else{
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Login">Login</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+
                     </div>
                 </div>
             </nav>
@@ -96,6 +128,57 @@
     <script src="~/js/main.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    @if (TempData["success"] != null)
+    {
+        <script src="~/js/jquery-2.1.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+        <script type="text/javascript">
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": true,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+            toastr.success('@TempData["success"]');
+        </script>
+    }
+    @if (TempData["error"] != null)
+    {
+        <script src="~/assets/js/jquery-2.1.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+        <script type="text/javascript">
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": true,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+            toastr.error('@TempData["error"]');
+        </script>
+    }
 
 </body>
 </html>

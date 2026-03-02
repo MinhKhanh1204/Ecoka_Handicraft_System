@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 
-namespace ProductAPI.admin.Repositories.Implements
+namespace ProductAPI.Admin.Repositories.Implements
 {
     public class ProductAdminRepository : IProductAdminRepository
     {
@@ -14,8 +14,7 @@ namespace ProductAPI.admin.Repositories.Implements
 
         public IQueryable<Product> GetQueryable()
         {
-            return _context.Products
-                .AsQueryable();
+            return _context.Products;
         }
 
         public async Task<Product?> GetByIdAsync(string id)
@@ -24,15 +23,6 @@ namespace ProductAPI.admin.Repositories.Implements
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.ProductID == id);
-        }
-
-        public async Task<List<Product>> GetByStatusAsync(string status)
-        {
-            return await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .Where(p => p.Status == status)
-                .ToListAsync();
         }
 
         public async Task AddAsync(Product product)
