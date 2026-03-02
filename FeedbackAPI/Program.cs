@@ -5,7 +5,6 @@ using FeedbackAPI.Repositories;
 using FeedbackAPI.Repositories.Implements;
 using FeedbackAPI.Services;
 using FeedbackAPI.Services.Implements;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -19,6 +18,8 @@ builder.Services.AddDbContext<DBContext>(opt =>
 // Register application services
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IFeedbackReplyRepository, FeedbackReplyRepository>();
+builder.Services.AddScoped<IFeedbackReplyService, FeedbackReplyService>();
 
 var app = builder.Build();
 

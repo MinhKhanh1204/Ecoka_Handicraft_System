@@ -17,6 +17,7 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<IEnumerable<Feedback>> GetAllAsync()
         {
             return await _context.Feedbacks
+                .Include(f => f.Replies)
                 .OrderByDescending(f => f.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
@@ -25,6 +26,7 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<Feedback?> GetByIdAsync(int feedbackId)
         {
             return await _context.Feedbacks
+                .Include(f => f.Replies)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.FeedbackID == feedbackId);
         }
@@ -41,7 +43,7 @@ namespace FeedbackAPI.Repositories.Implements
             DateTime? from,
             DateTime? to)
         {
-            var query = _context.Feedbacks.AsQueryable();
+            var query = _context.Feedbacks.Include(f => f.Replies).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(customerId))
                 query = query.Where(f => f.CustomerID == customerId);

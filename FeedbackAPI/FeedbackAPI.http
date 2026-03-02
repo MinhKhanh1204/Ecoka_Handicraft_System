@@ -1,5 +1,7 @@
 @FeedbackAPI_HostAddress = http://localhost:5271
 
+# ==================== FEEDBACKS ====================
+
 GET {{FeedbackAPI_HostAddress}}/api/feedbacks
 Accept: application/json
 
@@ -39,6 +41,42 @@ Content-Type: application/json
 ###
 
 DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1
+Accept: application/json
+
+###
+
+# ==================== FEEDBACK REPLIES ====================
+
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies
+Accept: application/json
+
+###
+
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
+Accept: application/json
+
+###
+
+POST {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies
+Content-Type: application/json
+
+{
+  "staffID": "STAFF001",
+  "replyContent": "Thank you for your feedback!"
+}
+
+###
+
+PUT {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
+Content-Type: application/json
+
+{
+  "replyContent": "Updated reply content"
+}
+
+###
+
+DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
 Accept: application/json
 
 ###

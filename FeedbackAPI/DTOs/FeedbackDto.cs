@@ -13,6 +13,7 @@ namespace FeedbackAPI.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
+        public List<FeedbackReplyReadDto>? Replies { get; set; }
     }
 
     public class FeedbackCreateDto
@@ -52,5 +53,33 @@ namespace FeedbackAPI.DTOs
         public string? Status { get; set; }
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
+    }
+
+    // ========================
+    // FeedbackReply DTOs
+    // ========================
+
+    public class FeedbackReplyReadDto
+    {
+        public int ReplyID { get; set; }
+        public int FeedbackID { get; set; }
+        public string? StaffID { get; set; }
+        public string? ReplyContent { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class FeedbackReplyCreateDto
+    {
+        [Required]
+        public string StaffID { get; set; } = null!;
+
+        [Required]
+        public string ReplyContent { get; set; } = null!;
+    }
+
+    public class FeedbackReplyUpdateDto
+    {
+        public string? ReplyContent { get; set; }
     }
 }
