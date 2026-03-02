@@ -34,6 +34,9 @@ namespace MVCApplication.Services.Implements
 
         public async Task<IEnumerable<Feedback>> FilterAsync(FeedbackFilterDto filter)
         {
+            if (filter == null)
+                return Enumerable.Empty<Feedback>();
+
             var q = new Dictionary<string, string?>();
 
             if (!string.IsNullOrWhiteSpace(filter.CustomerID))
@@ -67,7 +70,7 @@ namespace MVCApplication.Services.Implements
             var response = await _http.PostAsJsonAsync("/feedbacks", dto);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Feedback>()
-                   ?? throw new InvalidOperationException("Empty response from feedback API");
+                   ?? throw new InvalidOperationException("Feedback creation returned null response");
         }
 
         public async Task<Feedback?> UpdateAsync(int feedbackId, FeedbackUpdateDto dto)
