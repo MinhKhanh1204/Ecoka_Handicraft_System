@@ -44,7 +44,6 @@ namespace FeedbackAPI.Services.Implements
             var feedbacks = await _repo.FilterAsync(
                 filter.CustomerID,
                 filter.ProductID,
-                filter.OrderID,
                 filter.MinRating,
                 filter.MaxRating,
                 filter.Status,

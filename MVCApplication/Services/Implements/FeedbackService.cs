@@ -43,8 +43,6 @@ namespace MVCApplication.Services.Implements
                 q["CustomerID"] = filter.CustomerID;
             if (!string.IsNullOrWhiteSpace(filter.ProductID))
                 q["ProductID"] = filter.ProductID;
-            if (!string.IsNullOrWhiteSpace(filter.OrderID))
-                q["OrderID"] = filter.OrderID;
             if (filter.MinRating.HasValue)
                 q["MinRating"] = filter.MinRating.Value.ToString();
             if (filter.MaxRating.HasValue)
