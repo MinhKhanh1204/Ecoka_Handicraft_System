@@ -4,7 +4,7 @@
 @model RegisterViewModel
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Contact</h1>
+    <h1 class="text-center text-white display-6">Register</h1>
     <ol class="breadcrumb justify-content-center mb-0">
         <li class="breadcrumb-item"><a href="#">Home</a></li>
         <li class="breadcrumb-item active text-white">Register</li>
@@ -23,32 +23,32 @@
                         <!-- Username -->
                         <input asp-for="Username"
                                class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Username" />
+                               placeholder="Username*" required/>
                         <span asp-validation-for="Username" class="text-danger"></span>
 
                         <!-- Email -->
                         <input asp-for="Email"
                                class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Email" />
+                               placeholder="Email*" required />
                         <span asp-validation-for="Email" class="text-danger"></span>
 
                         <!-- Password -->
                         <input asp-for="Password"
                                type="password"
                                class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Password" />
+                               placeholder="Password*" required />
                         <span asp-validation-for="Password" class="text-danger"></span>
 
                         <!-- Avatar -->
                         <label class="form-label">Avatar</label>
                         <input asp-for="Avatar"
                                type="file"
-                               class="w-100 form-control border-0 py-3 mb-3" />
+                               class="w-100 form-control border-0 py-3 mb-3 bg-white" />
 
                         <!-- Full Name -->
                         <input asp-for="FullName"
                                class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Full Name" />
+                               placeholder="Full Name*" required />
                         <span asp-validation-for="FullName" class="text-danger"></span>
 
                         <!-- Date of Birth -->
@@ -59,7 +59,7 @@
 
                         <!-- Gender -->
                         <select asp-for="Gender"
-                                class="w-100 form-control border-0 py-3 mb-3">
+                                class="w-100 form-control border-0 py-3 mb-3 bg-white">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>

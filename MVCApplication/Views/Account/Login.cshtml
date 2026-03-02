@@ -4,7 +4,7 @@
 @model LoginViewModel
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Contact</h1>
+    <h1 class="text-center text-white display-6">Login</h1>
     <ol class="breadcrumb justify-content-center mb-0">
         <li class="breadcrumb-item"><a href="#">Home</a></li>
         <li class="breadcrumb-item active text-white">Login</li>
@@ -25,7 +25,7 @@
                         <input asp-for="Password" type="password" class="w-100 form-control border-0 py-3 mb-4" placeholder="Enter Your Password">
                         <span asp-validation-for="Password" style="color:red"></span>
                         <button class="w-100 btn form-control border-secondary py-3 bg-white text-primary " type="submit">Login</button>
-                        <a class="w-100 btn form-control border-secondary py-3 bg-white text-primary " type="button" href="/Account/Register">Register</a>
+                        <a class="w-100 btn form-control py-3 bg-primary text-white" style="margin-top: 10px" href="/Account/Register">Register</a>
                     </form>
                 </div>
                 <div class="col-lg-5">
