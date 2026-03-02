@@ -1,3 +1,5 @@
+using MVCApplication.Areas.Admin.Services;
+using MVCApplication.Areas.Admin.Services.Implements;
 using MVCApplication.Services;
 using MVCApplication.Services.Implements;
 
@@ -6,10 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
 builder.Services.AddHttpClient<IOrderService, OrderService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
+builder.Services.AddHttpClient<ICategoryService, CategoryService>(client =>
 {
     client.BaseAddress = new Uri(gatewayBase);
 });

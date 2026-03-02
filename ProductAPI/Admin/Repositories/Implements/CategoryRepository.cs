@@ -14,22 +14,20 @@ namespace ProductAPI.Admin.Repositories.Implements
 
         public async Task<List<Category>> GetAllAsync()
         {
-            return await _context.Categories
-                .Where(c => c.Status != "Deleted")
-                .ToListAsync();
+            // Trả về cả Category đã Deleted để Admin UI có thể sửa kích hoạt lại
+            return await _context.Categories.ToListAsync();
         }
 
         public async Task<Category?> GetByIdAsync(int id)
         {
             return await _context.Categories
-                .FirstOrDefaultAsync(c => c.CategoryID == id && c.Status != "Deleted");
+                .FirstOrDefaultAsync(c => c.CategoryID == id);
         }
 
         public async Task<List<Category>> SearchAsync(string keyword)
         {
             return await _context.Categories
-                .Where(c => c.Status != "Deleted" && 
-                    (c.CategoryName.Contains(keyword)))
+                .Where(c => c.CategoryName.Contains(keyword))
                 .ToListAsync();
         }
 
