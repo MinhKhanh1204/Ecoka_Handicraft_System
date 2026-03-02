@@ -28,7 +28,5 @@ namespace FeedbackAPI.Models
 
         public string Status { get; set; } = "Active";
 
-        // Navigation
-        public ICollection<FeedbackReply> Replies { get; set; } = new List<FeedbackReply>();
     }
 }

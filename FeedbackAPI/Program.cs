@@ -16,7 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 // ========================
 var edmBuilder = new ODataConventionModelBuilder();
 edmBuilder.EntitySet<Feedback>("feedbacks");
-edmBuilder.EntitySet<FeedbackReply>("feedbackreplies");
 
 // ========================
 // CORS (for AJAX clients)
@@ -69,8 +68,6 @@ builder.Services.AddDbContext<DBContext>(opt =>
 // ========================
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-builder.Services.AddScoped<IFeedbackReplyRepository, FeedbackReplyRepository>();
-builder.Services.AddScoped<IFeedbackReplyService, FeedbackReplyService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,4 @@
-@FeedbackAPI_HostAddress = http://localhost:5271
+@FeedbackAPI_HostAddress = https://localhost:5271
 
 # ==================================================
 # FEEDBACKS  (REST — CRUD + Filter)
@@ -48,43 +48,6 @@ DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1
 ###
 
 # ==================================================
-# FEEDBACK REPLIES  (REST — CRUD)
-# ==================================================
-
-GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies
-Accept: application/json
-
-###
-
-GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
-Accept: application/json
-
-###
-
-POST {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies
-Content-Type: application/json
-
-{
-  "staffID": "STAFF001",
-  "replyContent": "Thank you for your feedback!"
-}
-
-###
-
-PUT {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
-Content-Type: application/json
-
-{
-  "replyContent": "Updated reply content"
-}
-
-###
-
-DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
-
-###
-
-# ==================================================
 # ODATA  (query with $filter / $orderby / $select / $top / $skip / $count)
 # ==================================================
 
@@ -118,12 +81,6 @@ Accept: application/json
 
 ###
 
-# All feedback replies (OData)
-GET {{FeedbackAPI_HostAddress}}/odata/feedbackreplies?$filter=FeedbackID eq 1
-Accept: application/json
-
-###
-
 # ==================================================
 # SIGNALR  (connect via JavaScript client)
 # Hub endpoint: ws://localhost:5271/hubs/feedback
@@ -140,9 +97,4 @@ Accept: application/json
 #   connection.on("FeedbackUpdated", (feedback) => console.log("Updated:", feedback));
 #   connection.on("FeedbackDeleted", (id) => console.log("Deleted ID:", id));
 #
-#   // Subscribe to feedback reply group
-#   await connection.invoke("JoinFeedbackGroup", 1);
-#   connection.on("ReplyCreated", (reply) => console.log("New reply:", reply));
-#   connection.on("ReplyUpdated", (reply) => console.log("Updated reply:", reply));
-#   connection.on("ReplyDeleted", (id) => console.log("Deleted reply ID:", id));
 # ==================================================

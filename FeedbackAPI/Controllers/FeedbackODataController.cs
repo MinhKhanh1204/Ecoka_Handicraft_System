@@ -38,7 +38,7 @@ namespace FeedbackAPI.Controllers
             AllowedQueryOptions.Count)]
         public IQueryable<Feedback> GetFeedbacks()
         {
-            return _context.Feedbacks.Include(f => f.Replies).AsNoTracking();
+            return _context.Feedbacks.AsNoTracking();
         }
 
         [HttpGet("feedbacks({feedbackId})")]
@@ -46,26 +46,11 @@ namespace FeedbackAPI.Controllers
         public IActionResult GetFeedback([FromRoute] int feedbackId)
         {
             var feedback = _context.Feedbacks
-                .Include(f => f.Replies)
                 .AsNoTracking()
                 .Where(f => f.FeedbackID == feedbackId);
 
             return Ok(feedback.FirstOrDefault());
         }
 
-        // ================= FEEDBACK REPLIES =================
-
-        [HttpGet("feedbackreplies")]
-        [EnableQuery(MaxTop = 100, AllowedQueryOptions =
-            AllowedQueryOptions.Filter |
-            AllowedQueryOptions.OrderBy |
-            AllowedQueryOptions.Select |
-            AllowedQueryOptions.Top |
-            AllowedQueryOptions.Skip |
-            AllowedQueryOptions.Count)]
-        public IQueryable<FeedbackReply> GetFeedbackReplies()
-        {
-            return _context.FeedbackReplies.AsNoTracking();
-        }
     }
 }
