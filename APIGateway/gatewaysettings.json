@@ -10,15 +10,6 @@
                 }
             ],
             "UpstreamPathTemplate": "/auth/{everything}",
-<<<<<<< HEAD
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ]
-        },
-=======
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
         {
@@ -32,10 +23,18 @@
             ],
             "UpstreamPathTemplate": "/products/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
-            //"AuthenticationOptions": {
-            //  "AuthenticationProviderKey": "Bearer",
-            //  "AllowedScopes": []
-            //}
+        },
+        {
+            "DownstreamPathTemplate": "/api/admin/categories/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7109
+                }
+            ],
+            "UpstreamPathTemplate": "/categories/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
         {
             "DownstreamPathTemplate": "/api/customer/orders/{everything}",
@@ -48,50 +47,21 @@
             ],
             "UpstreamPathTemplate": "/customer/orders/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
-        }
-    ],
-  "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:5000"
-  }
-}
->>>>>>> origin/haont/feature/order
-
-        {
-            "DownstreamPathTemplate": "/api/products/{everything}",
-            "DownstreamScheme": "https",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 7109
-                }
-            ],
-            "UpstreamPathTemplate": "/products/{everything}",
-            "UpstreamHttpMethod": [
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE"
-            ]
-            //"AuthenticationOptions": {
-            //  "AuthenticationProviderKey": "Bearer",
-            //  "AllowedScopes": []
-            //}
         },
-
         {
-            "DownstreamPathTemplate": "/api/admin/categories/{everything}",
+            "DownstreamPathTemplate": "/api/feedbacks/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
                     "Host": "localhost",
-                    "Port": 7109
+                    "Port": 7242
                 }
             ],
-            "UpstreamPathTemplate": "/categories/{everything}",
+            "UpstreamPathTemplate": "/feedbacks/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         }
     ],
-        "GlobalConfiguration": {
+    "GlobalConfiguration": {
         "BaseUrl": "https://localhost:5000"
     }
 }
