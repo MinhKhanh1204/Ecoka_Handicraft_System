@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+@model RegisterViewModel
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Register</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item active text-white">Register</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+<!-- Start -->
+<div class="container-fluid contact py-5">
+    <div class="container py-5">
+        <div class="p-5 bg-light rounded">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <form asp-action="Register" asp-controller="Account"
+                          method="post" enctype="multipart/form-data">
+
+                        <!-- Username -->
+                        <input asp-for="Username"
+                               class="w-100 form-control border-0 py-3 mb-3"
+                               placeholder="Username*" required/>
+                        <span asp-validation-for="Username" class="text-danger"></span>
+
+                        <!-- Email -->
+                        <input asp-for="Email"
+                               class="w-100 form-control border-0 py-3 mb-3"
+                               placeholder="Email*" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+
+                        <!-- Password -->
+                        <input asp-for="Password"
+                               type="password"
+                               class="w-100 form-control border-0 py-3 mb-3"
+                               placeholder="Password*" required />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+
+                        <!-- Avatar -->
+                        <label class="form-label">Avatar</label>
+                        <input asp-for="Avatar"
+                               type="file"
+                               class="w-100 form-control border-0 py-3 mb-3 bg-white" />
+
+                        <!-- Full Name -->
+                        <input asp-for="FullName"
+                               class="w-100 form-control border-0 py-3 mb-3"
+                               placeholder="Full Name*" required />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+
+                        <!-- Date of Birth -->
+                        <label class="form-label">Date of Birth</label>
+                        <input asp-for="DateOfBirth"
+                               type="date"
+                               class="w-100 form-control border-0 py-3 mb-3" />
+
+                        <!-- Gender -->
+                        <select asp-for="Gender"
+                                class="w-100 form-control border-0 py-3 mb-3 bg-white">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <!-- Phone -->
+                        <input asp-for="Phone"
+                               class="w-100 form-control border-0 py-3 mb-3"
+                               placeholder="Phone" />
+
+                        <!-- Address -->
+                        <input asp-for="Address"
+                               class="w-100 form-control border-0 py-3 mb-4"
+                               placeholder="Address" />
+
+                        <!-- Submit -->
+                        <button class="w-100 btn form-control border-secondary py-3 bg-white text-primary"
+                                type="submit">
+                            Register
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-5">
+                    <div class="d-flex p-4 rounded mb-4 bg-white">
+                        <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
+                        <div>
+                            <h4>Address</h4>
+                            <p class="mb-2">123 Street New York.USA</p>
+                        </div>
+                    </div>
+                    <div class="d-flex p-4 rounded mb-4 bg-white">
+                        <i class="fas fa-envelope fa-2x text-primary me-4"></i>
+                        <div>
+                            <h4>Mail Us</h4>
+                            <p class="mb-2">info@example.com</p>
+                        </div>
+                    </div>
+                    <div class="d-flex p-4 rounded bg-white">
+                        <i class="fa fa-phone-alt fa-2x text-primary me-4"></i>
+                        <div>
+                            <h4>Telephone</h4>
+                            <p class="mb-2">(+012) 3456 7890</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

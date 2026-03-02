@@ -1,0 +1,89 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using MVCApplication.Models;
+using MVCApplication.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+
+namespace MVCApplication.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly IAccountService _accountService;
+
+        public AccountController(IAccountService accountService)
+        {
+            _accountService = accountService;
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.LoginAsync(model);
+
+            if (result == null || string.IsNullOrEmpty(result.AccessToken))
+            {
+                TempData["error"] = "Email hoặc Password không đúng";
+                return View(model);
+            }
+
+            // Store JWT in HttpOnly
+            Response.Cookies.Append("AccessToken",
+                result.AccessToken,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(2)
+                });
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.RegisterAsync(model);
+
+            if (!result)
+            {
+                TempData["error"] = "Username/Email đã tồn tại hoặc đăng ký thất bại";
+                return View(model);
+            }
+
+            TempData["success"] = "Đăng ký thành công. Vui lòng đăng nhập.";
+
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("AccessToken");
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+    }
+}

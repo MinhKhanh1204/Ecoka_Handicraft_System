@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
-using ProductAPI.CustomFormatter;
-using ProductAPI.Services;
+using ProductAPI.Admin.Services;
 
 namespace ProductAPI.Admin.Controllers
 {
@@ -21,20 +20,17 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> GetAll()
         {
             var categories = await _service.GetAllAsync();
-            return Ok(ApiResponse<List<ReadCategoryDto>>
-                .SuccessResponse(categories));
+            return Ok(categories);
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest(ApiResponse<List<ReadCategoryDto>>
-                    .Fail("Keyword is required", 404));
+                return BadRequest("Keyword is required");
 
             var categories = await _service.SearchAsync(keyword);
-            return Ok(ApiResponse<List<ReadCategoryDto>>
-                .SuccessResponse(categories));
+            return Ok(categories);
         }
 
         [HttpGet("{id}")]
@@ -43,11 +39,9 @@ namespace ProductAPI.Admin.Controllers
             var category = await _service.GetByIdAsync(id);
 
             if (category == null)
-                return NotFound(ApiResponse<ReadCategoryDto>
-                    .Fail("Category not found", 404));
+                return NotFound("Category not found");
 
-            return Ok(ApiResponse<ReadCategoryDto>
-                .SuccessResponse(category));
+            return Ok(category);
         }
 
         [HttpPost]
@@ -59,8 +53,7 @@ namespace ProductAPI.Admin.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = category.CategoryID },
-                ApiResponse<ReadCategoryDto>
-                .SuccessResponse(category, "Created successfully"));
+                category);
         }
 
         [HttpPut("{id}")]
@@ -71,11 +64,9 @@ namespace ProductAPI.Admin.Controllers
             var result = await _service.UpdateAsync(id, dto);
 
             if (!result)
-                return NotFound(ApiResponse<bool>
-                    .Fail("Category not found", 404));
+                return NotFound("Category not found");
 
-            return Ok(ApiResponse<bool>
-                .SuccessResponse(true, "Updated successfully"));
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -84,11 +75,10 @@ namespace ProductAPI.Admin.Controllers
             var result = await _service.DeleteAsync(id);
 
             if (!result)
-                return NotFound(ApiResponse<bool>
-                    .Fail("Category not found", 404));
+                return NotFound("Category not found");
 
-            return Ok(ApiResponse<bool>
-                .SuccessResponse(true, "Deleted successfully"));
+            // Soft delete đã được thực hiện trong Repository (Status = "Deleted")
+            return NoContent();
         }
     }
 }
