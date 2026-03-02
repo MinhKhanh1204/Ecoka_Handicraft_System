@@ -1,9 +1,11 @@
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Models;
-
-public interface ICategoryMapper
+namespace ProductAPI.Admin.Mappers
 {
-    ReadCategoryDto ToDto(Category category);
-    Category ToEntity(CategoryCreateDto dto);
-    void UpdateEntity(CategoryUpdateDto dto, Category entity);
+    public interface ICategoryMapper
+    {
+        ReadCategoryDto ToDto(Category category);
+        Category ToEntity(CategoryCreateDto dto);
+        void UpdateEntity(CategoryUpdateDto dto, Category entity);
+    }
 }

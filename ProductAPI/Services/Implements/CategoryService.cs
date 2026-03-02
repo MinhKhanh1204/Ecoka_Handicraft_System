@@ -1,6 +1,5 @@
 ﻿using ProductAPI.DTOs;
 using ProductAPI.Mappers;
-using ProductAPI.Models;
 using ProductAPI.Repositories;
 
 namespace ProductAPI.Services.Implements
