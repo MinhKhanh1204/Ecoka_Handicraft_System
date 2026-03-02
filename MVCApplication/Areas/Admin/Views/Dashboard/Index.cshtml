@@ -1,0 +1,258 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="pagetitle">
+    <h1>Dashboard Statistics</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Admin">Home</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+    <div class="row">
+
+        <!-- ================= REVENUE CHART ================= -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Revenue by Month</h5>
+                        <form method="get" class="d-flex align-items-center">
+                            <select class="form-select form-select-sm w-auto" name="year" id="revenueYearFilter">
+                                @{
+                                    var currentYear = DateTime.Now.Year;
+                                    for (int y = currentYear - 3; y <= currentYear; y++)
+                                    {
+                                        <option value="@y" selected="@(y == currentYear ? "selected" : null)">@y</option>
+                                    }
+                                }
+                            </select>
+                        </form>
+                    </div>
+                    <canvas id="revenueChart" style="height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ORDERS CHART ================= -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Orders by Month</h5>
+                        <form method="get" class="d-flex align-items-center">
+                            <select class="form-select form-select-sm w-auto" name="year" id="orderYearFilter">
+                                @{
+                                    var currentYear2 = DateTime.Now.Year;
+                                    for (int y = currentYear2 - 3; y <= currentYear2; y++)
+                                    {
+                                        <option value="@y" selected="@(y == currentYear2 ? "selected" : null)">@y</option>
+                                    }
+                                }
+                            </select>
+                        </form>
+                    </div>
+                    <canvas id="orderChart" style="height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FEEDBACK PIE CHART ================= -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Feedback Statistics</h5>
+                    <canvas id="feedbackChart" style="height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= EMPLOYEE SALES CHART ================= -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Top 10 Employee Sales Performance</h5>
+                    <canvas id="employeeChart" style="height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LOYAL CUSTOMER CHART ================= -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Top 10 Loyal Customers</h5>
+                    <canvas id="customerChart" style="height: 400px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    <style>
+        /* Giữ kích thước biểu đồ luôn cố định */
+        #revenueChart, #orderChart, #feedbackChart, #employeeChart, #customerChart {
+            height: 350px !important;
+            width: 100% !important;
+        }
+        /* Khách hàng biểu đồ lớn hơn */
+        #customerChart {
+            height: 400px !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @* <script>
+        async function fetchData(url) {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Fetch error");
+            return await res.json();
+        }
+
+        let revenueChart, orderChart;
+
+        async function loadCharts(year) {
+            const data = await fetchData(`/Admin/Dashboard/GetMonthlyData?year=${year}`);
+            const months = data.map(x => x.monthName || x.month);
+            const revenues = data.map(x => x.totalRevenue || x.revenue);
+            const orders = data.map(x => x.totalOrders || x.orders);
+
+            // Giữ kích thước canvas khi vẽ lại
+            const revenueCanvas = document.getElementById('revenueChart');
+            const orderCanvas = document.getElementById('orderChart');
+            const revenueParent = revenueCanvas.parentNode;
+            const orderParent = orderCanvas.parentNode;
+
+            // Clone canvas để reset Chart.js size
+            const newRevenueCanvas = revenueCanvas.cloneNode(true);
+            const newOrderCanvas = orderCanvas.cloneNode(true);
+            revenueParent.replaceChild(newRevenueCanvas, revenueCanvas);
+            orderParent.replaceChild(newOrderCanvas, orderCanvas);
+
+            // Revenue Chart
+            revenueChart = new Chart(newRevenueCanvas, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: `Revenue ${year}`,
+                        data: revenues,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: '#4bc0c0',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Giữ kích thước theo CSS
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Orders Chart
+            orderChart = new Chart(newOrderCanvas, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: `Orders ${year}`,
+                        data: orders,
+                        borderColor: '#ff9f40',
+                        backgroundColor: 'rgba(255, 159, 64, 0.3)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const currentYear = new Date().getFullYear();
+            const revenueSelect = document.getElementById("revenueYearFilter");
+            const orderSelect = document.getElementById("orderYearFilter");
+
+            await loadCharts(currentYear);
+
+            revenueSelect.addEventListener("change", async (e) => {
+                await loadCharts(e.target.value);
+            });
+
+            orderSelect.addEventListener("change", async (e) => {
+                await loadCharts(e.target.value);
+            });
+        });
+
+        // Feedback chart
+        const feedbackCtx = document.getElementById('feedbackChart');
+        new Chart(feedbackCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Feedbacks.Select(f => f.Type))),
+                datasets: [{
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Feedbacks.Select(f => f.Count))),
+                    backgroundColor: ['#2ecc71', '#e74c3c'],
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Employee chart
+        const empCtx = document.getElementById('employeeChart');
+        new Chart(empCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopEmployees.Select(e => e.EmployeeName))),
+                datasets: [{
+                    label: 'Revenue (VNĐ)',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopEmployees.Select(e => e.TotalRevenue))),
+                    backgroundColor: '#3498db'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+
+        // Loyal customer chart
+        const custCtx = document.getElementById('customerChart');
+        new Chart(custCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoyalCustomers.Select(c => c.CustomerName))),
+                datasets: [{
+                    label: 'Total Spent (VNĐ)',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoyalCustomers.Select(c => c.TotalSpent))),
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: '#9966ff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    </script> *@
+}
+
+
