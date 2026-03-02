@@ -25,5 +25,12 @@ namespace ProductAPI.Controllers
             var products = _service.GetAllProducts();
             return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products));
         }
-	}
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductDetail(string id)
+        {
+            var result = await _service.GetProductDetailAsync(id);
+            return Ok(ApiResponse<ProductDetailResponseDto>.SuccessResponse(result));
+        }
+    }
 }

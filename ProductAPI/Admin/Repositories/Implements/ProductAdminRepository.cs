@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 
-namespace ProductAPI.admin.Repositories.Implements
+namespace ProductAPI.Admin.Repositories.Implements
 {
     public class ProductAdminRepository : IProductAdminRepository
     {

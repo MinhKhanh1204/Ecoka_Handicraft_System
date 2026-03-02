@@ -1,6 +1,6 @@
 ﻿using ProductAPI.Models;
 
-namespace ProductAPI.admin.Repositories
+namespace ProductAPI.Admin.Repositories
 {
     public interface IProductAdminRepository
     {

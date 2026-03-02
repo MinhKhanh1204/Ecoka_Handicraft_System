@@ -1,6 +1,6 @@
-﻿using ProductAPI.admin.DTOs;
+﻿using ProductAPI.Admin.DTOs;
 
-namespace ProductAPI.admin.Services
+namespace ProductAPI.Admin.Services
 {
     public interface IProductAdminService
     {

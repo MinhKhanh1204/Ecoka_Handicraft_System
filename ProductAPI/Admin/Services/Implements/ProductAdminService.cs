@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductAPI.admin.DTOs;
-using ProductAPI.admin.Repositories;
-using ProductAPI.admin.Services;
+using ProductAPI.Admin.DTOs;
+using ProductAPI.Admin.Repositories;
+using ProductAPI.Admin.Services;
 using ProductAPI.Models;
 
-namespace ProductAPI.admin.Services.Implements
+namespace ProductAPI.Admin.Services.Implements
 {
     public class ProductAdminService : IProductAdminService
     {

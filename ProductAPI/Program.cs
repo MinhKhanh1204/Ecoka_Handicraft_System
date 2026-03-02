@@ -1,11 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using ProductAPI.admin.Repositories;
-using ProductAPI.admin.Repositories.Implements;
-using ProductAPI.admin.Services;
-using ProductAPI.admin.Services.Implements;
+using ProductAPI.Admin.Repositories;
 using ProductAPI.Admin.Repositories.Implements;
+using ProductAPI.Admin.Services;
 using ProductAPI.Admin.Services.Implements;
-using ProductAPI.CustomFormatter;
 using ProductAPI.Mappers;
 using ProductAPI.Mappers.Implements;
 using ProductAPI.Middlewares;
@@ -27,8 +24,12 @@ builder.Services.AddScoped<IProductMapper, ProductMapper>();
 builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<IProductAdminRepository, ProductAdminRepository>();
 
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ProductAPI.Admin.Repositories.ICategoryRepository, ProductAPI.Admin.Repositories.Implements.CategoryRepository>();
+builder.Services.AddScoped<ProductAPI.Admin.Services.ICategoryService, ProductAPI.Admin.Services.Implements.CategoryService>();
+builder.Services.AddScoped<ProductAPI.Admin.Mappers.ICategoryMapper, ProductAPI.Admin.Mappers.Implements.CategoryMapper>();
+
+builder.Services.AddScoped<ProductAPI.Repositories.ICategoryRepository, ProductAPI.Repositories.Implements.CategoryRepository>();
+builder.Services.AddScoped<ProductAPI.Services.ICategoryService, ProductAPI.Services.Implements.CategoryService>();
 builder.Services.AddScoped<ICategoryMapper, CategoryMapper>();
 
 // Add services to the container.
@@ -44,11 +45,11 @@ var app = builder.Build();
 app.UseGlobalExceptionMiddleware();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 

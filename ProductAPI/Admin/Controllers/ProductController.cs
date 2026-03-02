@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductAPI.admin.DTOs;
-using ProductAPI.admin.Services;
+using ProductAPI.Admin.DTOs;
+using ProductAPI.Admin.Services;
 
-namespace ProductAPI.admin.Controllers
+namespace ProductAPI.Admin.Controllers
 {
     [Route("api/admin/products")]
     [ApiController]
