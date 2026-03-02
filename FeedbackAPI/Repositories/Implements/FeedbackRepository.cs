@@ -36,7 +36,6 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<IEnumerable<Feedback>> FilterAsync(
             string? customerId,
             string? productId,
-            string? orderId,
             int? minRating,
             int? maxRating,
             string? status,
@@ -50,9 +49,6 @@ namespace FeedbackAPI.Repositories.Implements
 
             if (!string.IsNullOrWhiteSpace(productId))
                 query = query.Where(f => f.ProductID == productId);
-
-            if (!string.IsNullOrWhiteSpace(orderId))
-                query = query.Where(f => f.OrderID == orderId);
 
             if (minRating.HasValue)
                 query = query.Where(f => f.Rating >= minRating.Value);

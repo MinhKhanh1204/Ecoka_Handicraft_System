@@ -15,8 +15,6 @@ namespace FeedbackAPI.Models
         [Required]
         public string ProductID { get; set; } = null!;
 
-        public string? OrderID { get; set; }
-
         [Range(1, 5)]
         public int Rating { get; set; }
 

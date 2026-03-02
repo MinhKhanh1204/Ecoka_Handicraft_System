@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FeedbackAPI.DTOs
+namespace MVCApplication.Models
 {
-    public class FeedbackReadDto
+    public class Feedback
     {
         public int FeedbackID { get; set; }
         public string? CustomerID { get; set; }
@@ -12,7 +12,6 @@ namespace FeedbackAPI.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
-        
     }
 
     public class FeedbackCreateDto
@@ -50,5 +49,4 @@ namespace FeedbackAPI.DTOs
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
     }
-
 }
