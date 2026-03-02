@@ -1,0 +1,44 @@
+@FeedbackAPI_HostAddress = http://localhost:5271
+
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks
+Accept: application/json
+
+###
+
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1
+Accept: application/json
+
+###
+
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks/filter?productId=P001&minRating=4
+Accept: application/json
+
+###
+
+POST {{FeedbackAPI_HostAddress}}/api/feedbacks
+Content-Type: application/json
+
+{
+  "customerID": "CUS001",
+  "productID": "P001",
+  "orderID": "ORD001",
+  "rating": 5,
+  "comment": "Great product!"
+}
+
+###
+
+PUT {{FeedbackAPI_HostAddress}}/api/feedbacks/1
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Updated comment"
+}
+
+###
+
+DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1
+Accept: application/json
+
+###
