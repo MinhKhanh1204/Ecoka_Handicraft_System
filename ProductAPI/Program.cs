@@ -1,13 +1,19 @@
 using Microsoft.EntityFrameworkCore;
-using ProductAPI.Repositories.Implements;
-using ProductAPI.Repositories;
-using ProductAPI.Services.Implements;
-using ProductAPI.Services;
-using ProductAPI.Models;
-using ProductAPI.Mappers.Implements;
-using ProductAPI.Mappers;
+using ProductAPI.admin.Repositories;
+using ProductAPI.admin.Repositories.Implements;
+using ProductAPI.admin.Services;
+using ProductAPI.admin.Services.Implements;
+using ProductAPI.Admin.Repositories.Implements;
+using ProductAPI.Admin.Services.Implements;
 using ProductAPI.CustomFormatter;
+using ProductAPI.Mappers;
+using ProductAPI.Mappers.Implements;
 using ProductAPI.Middlewares;
+using ProductAPI.Models;
+using ProductAPI.Repositories;
+using ProductAPI.Repositories.Implements;
+using ProductAPI.Services;
+using ProductAPI.Services.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +23,13 @@ builder.Services.AddDbContext<DBContext>(opt =>
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductMapper, ProductMapper>();
+
+builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
+builder.Services.AddScoped<IProductAdminRepository, ProductAdminRepository>();
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryMapper, CategoryMapper>();
 
 // Add services to the container.
 
