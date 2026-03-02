@@ -125,5 +125,12 @@ namespace FeedbackAPI.Repositories.Implements
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task DeleteEntityAsync(Feedback feedback)
+        {
+            _context.Feedbacks.Attach(feedback);
+            _context.Feedbacks.Remove(feedback);
+            await _context.SaveChangesAsync();
+        }
     }
 }

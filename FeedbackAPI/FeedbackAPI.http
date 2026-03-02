@@ -1,6 +1,8 @@
 @FeedbackAPI_HostAddress = http://localhost:5271
 
-# ==================== FEEDBACKS ====================
+# ==================================================
+# FEEDBACKS  (REST — CRUD + Filter)
+# ==================================================
 
 GET {{FeedbackAPI_HostAddress}}/api/feedbacks
 Accept: application/json
@@ -12,7 +14,8 @@ Accept: application/json
 
 ###
 
-GET {{FeedbackAPI_HostAddress}}/api/feedbacks/filter?productId=P001&minRating=4
+# Custom filter: productId, minRating, date range, status
+GET {{FeedbackAPI_HostAddress}}/api/feedbacks/filter?productId=P001&minRating=4&status=Active
 Accept: application/json
 
 ###
@@ -41,11 +44,12 @@ Content-Type: application/json
 ###
 
 DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1
-Accept: application/json
 
 ###
 
-# ==================== FEEDBACK REPLIES ====================
+# ==================================================
+# FEEDBACK REPLIES  (REST — CRUD)
+# ==================================================
 
 GET {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies
 Accept: application/json
@@ -77,6 +81,68 @@ Content-Type: application/json
 ###
 
 DELETE {{FeedbackAPI_HostAddress}}/api/feedbacks/1/replies/1
+
+###
+
+# ==================================================
+# ODATA  (query with $filter / $orderby / $select / $top / $skip / $count)
+# ==================================================
+
+# All feedbacks (OData)
+GET {{FeedbackAPI_HostAddress}}/odata/feedbacks
 Accept: application/json
 
 ###
+
+# Filter by ProductID
+GET {{FeedbackAPI_HostAddress}}/odata/feedbacks?$filter=ProductID eq 'P001'
+Accept: application/json
+
+###
+
+# Filter by Rating >= 4 and order by CreatedAt desc
+GET {{FeedbackAPI_HostAddress}}/odata/feedbacks?$filter=Rating ge 4&$orderby=CreatedAt desc
+Accept: application/json
+
+###
+
+# Paging + count
+GET {{FeedbackAPI_HostAddress}}/odata/feedbacks?$top=10&$skip=0&$count=true
+Accept: application/json
+
+###
+
+# Select specific fields only
+GET {{FeedbackAPI_HostAddress}}/odata/feedbacks?$select=FeedbackID,CustomerID,Rating,Comment
+Accept: application/json
+
+###
+
+# All feedback replies (OData)
+GET {{FeedbackAPI_HostAddress}}/odata/feedbackreplies?$filter=FeedbackID eq 1
+Accept: application/json
+
+###
+
+# ==================================================
+# SIGNALR  (connect via JavaScript client)
+# Hub endpoint: ws://localhost:5271/hubs/feedback
+#
+# Client-side JS example:
+#   const connection = new signalR.HubConnectionBuilder()
+#       .withUrl("/hubs/feedback")
+#       .build();
+#
+#   // Subscribe to product group (feedback events)
+#   await connection.start();
+#   await connection.invoke("JoinProductGroup", "P001");
+#   connection.on("FeedbackCreated", (feedback) => console.log("New:", feedback));
+#   connection.on("FeedbackUpdated", (feedback) => console.log("Updated:", feedback));
+#   connection.on("FeedbackDeleted", (id) => console.log("Deleted ID:", id));
+#
+#   // Subscribe to feedback reply group
+#   await connection.invoke("JoinFeedbackGroup", 1);
+#   connection.on("ReplyCreated", (reply) => console.log("New reply:", reply));
+#   connection.on("ReplyUpdated", (reply) => console.log("Updated reply:", reply));
+#   connection.on("ReplyDeleted", (id) => console.log("Deleted reply ID:", id));
+# ==================================================

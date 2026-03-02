@@ -9,5 +9,6 @@ namespace FeedbackAPI.Repositories
         Task<FeedbackReply> CreateAsync(int feedbackId, FeedbackReply reply);
         Task<FeedbackReply?> UpdateAsync(int replyId, FeedbackReply updatedData);
         Task<bool> DeleteAsync(int replyId);
+        Task DeleteEntityAsync(FeedbackReply reply);
     }
 }

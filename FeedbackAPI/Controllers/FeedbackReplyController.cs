@@ -54,6 +54,10 @@ namespace FeedbackAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // Verify reply belongs to this feedback before updating
+            var existing = await _service.GetByIdAsync(replyId);
+            if (existing == null || existing.FeedbackID != feedbackId) return NotFound();
+
             var updated = await _service.UpdateAsync(replyId, dto);
             if (updated == null) return NotFound();
 
@@ -64,6 +68,10 @@ namespace FeedbackAPI.Controllers
         [HttpDelete("{replyId:int}")]
         public async Task<IActionResult> Delete(int feedbackId, int replyId)
         {
+            // Verify reply belongs to this feedback before deleting
+            var existing = await _service.GetByIdAsync(replyId);
+            if (existing == null || existing.FeedbackID != feedbackId) return NotFound();
+
             var result = await _service.DeleteAsync(replyId);
             if (!result) return NotFound();
 

@@ -64,5 +64,12 @@ namespace FeedbackAPI.Repositories.Implements
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task DeleteEntityAsync(FeedbackReply reply)
+        {
+            _context.FeedbackReplies.Attach(reply);
+            _context.FeedbackReplies.Remove(reply);
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -27,5 +27,6 @@ namespace FeedbackAPI.Repositories
 
         // ===== DELETE =====
         Task<bool> DeleteAsync(int feedbackId);
+        Task DeleteEntityAsync(Feedback feedback);
     }
 }

@@ -1,5 +1,7 @@
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using FeedbackAPI.DTOs;
+using FeedbackAPI.Hubs;
 using FeedbackAPI.Models;
 using FeedbackAPI.Repositories;
 
@@ -9,11 +11,16 @@ namespace FeedbackAPI.Services.Implements
     {
         private readonly IFeedbackRepository _repo;
         private readonly IMapper _mapper;
+        private readonly IHubContext<FeedbackHub> _hub;
 
-        public FeedbackService(IFeedbackRepository repo, IMapper mapper)
+        public FeedbackService(
+            IFeedbackRepository repo,
+            IMapper mapper,
+            IHubContext<FeedbackHub> hub)
         {
             _repo = repo;
             _mapper = mapper;
+            _hub = hub;
         }
 
         // ================= READ =================
@@ -53,7 +60,14 @@ namespace FeedbackAPI.Services.Implements
         {
             var entity = _mapper.Map<Feedback>(dto);
             var created = await _repo.CreateAsync(entity);
-            return _mapper.Map<FeedbackReadDto>(created);
+            var result = _mapper.Map<FeedbackReadDto>(created);
+
+            // Notify all clients watching this product
+            await _hub.Clients
+                .Group($"product_{result.ProductID}")
+                .SendAsync("FeedbackCreated", result);
+
+            return result;
         }
 
         // ================= UPDATE =================
@@ -61,13 +75,33 @@ namespace FeedbackAPI.Services.Implements
         public async Task<FeedbackReadDto?> UpdateAsync(int feedbackId, FeedbackUpdateDto dto)
         {
             var updatedData = _mapper.Map<Feedback>(dto);
-            var result = await _repo.UpdateAsync(feedbackId, updatedData);
-            return result == null ? null : _mapper.Map<FeedbackReadDto>(result);
+            var entity = await _repo.UpdateAsync(feedbackId, updatedData);
+            if (entity == null) return null;
+
+            var result = _mapper.Map<FeedbackReadDto>(entity);
+
+            await _hub.Clients
+                .Group($"product_{result.ProductID}")
+                .SendAsync("FeedbackUpdated", result);
+
+            return result;
         }
 
         // ================= DELETE =================
 
-        public Task<bool> DeleteAsync(int feedbackId)
-            => _repo.DeleteAsync(feedbackId);
+        public async Task<bool> DeleteAsync(int feedbackId)
+        {
+            // Fetch once — reuse for both SignalR broadcast and the actual delete
+            var existing = await _repo.GetByIdAsync(feedbackId);
+            if (existing == null) return false;
+
+            await _repo.DeleteEntityAsync(existing);
+
+            await _hub.Clients
+                .Group($"product_{existing.ProductID}")
+                .SendAsync("FeedbackDeleted", feedbackId);
+
+            return true;
+        }
     }
 }
