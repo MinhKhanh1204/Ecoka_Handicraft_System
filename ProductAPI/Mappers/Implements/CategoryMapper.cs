@@ -1,7 +1,7 @@
 ﻿using ProductAPI.DTOs;
 using ProductAPI.Models;
 
-namespace ProductAPI.Mappers.Implements
+namespace ProductAPI.Admin.Mappers.Implements
 {
     public class CategoryMapper : ICategoryMapper
     {

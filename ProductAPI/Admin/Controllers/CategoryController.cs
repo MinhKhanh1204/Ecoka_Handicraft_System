@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
-using ProductAPI.Admin.Services;
+using ProductAPI.Services;
 
 namespace ProductAPI.Admin.Controllers
 {

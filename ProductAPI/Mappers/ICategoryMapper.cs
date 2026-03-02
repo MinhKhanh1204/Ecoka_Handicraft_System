@@ -1,7 +1,7 @@
 ﻿using ProductAPI.DTOs;
 using ProductAPI.Models;
 
-namespace ProductAPI.Mappers
+namespace ProductAPI.Admin.Mappers
 {
     public interface ICategoryMapper
     {
