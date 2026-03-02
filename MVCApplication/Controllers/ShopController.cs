@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MVCApplication.Models;
 using MVCApplication.Services;
 
 namespace MVCApplication.Controllers
@@ -13,15 +14,26 @@ namespace MVCApplication.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> IndexAsync()
         {
-            return View();
-        }
+			var vm = new ProductListViewModel
+			{
+				Products = await _productService.GetAllProductsAsync(),
+				Categories = await _productService.GetAllCategoriesAsync()
+			};
+
+			return View(vm);
+		}
 
         [HttpGet]
-        public IActionResult Detail()
+        public async Task<IActionResult> DetailAsync(string id)
         {
-            return View();
-        }
+			var product = await _productService.GetProductDetailAsync(id);
+
+			if (product == null)
+				return NotFound();
+
+			return View(product);
+		}
     }
 }
