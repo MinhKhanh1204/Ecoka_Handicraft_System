@@ -30,7 +30,7 @@ namespace AccountAPI.Controllers
         [FromForm] RegisterCustomerRequestDto request)
         {
             await _service.RegisterCustomerAsync(request);
-            return Ok(ApiResponse<object>.SuccessResponse(null, "Register successfully"));
+            return Ok(ApiResponse<object>.SuccessResponse(new object(), "Register successfully"));
         }
     }
 

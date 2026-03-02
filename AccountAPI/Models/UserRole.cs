@@ -5,7 +5,7 @@ namespace AccountAPI.Models
     [Table("USER_ROLE")]
     public class UserRole
     {
-        public string AccountID { get; set; }
+        public required string AccountID { get; set; }
         public int RoleID { get; set; }
 
         public string Status { get; set; } = null!;

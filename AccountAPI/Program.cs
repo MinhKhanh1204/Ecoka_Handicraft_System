@@ -13,6 +13,14 @@ using System.Text.Json;
 using CloudinaryDotNet;
 using Microsoft.Extensions.Options;
 
+// Admin Customer Management
+using AccountAPI.Admin.Repositories;
+using AccountAPI.Admin.Repositories.Implements;
+using AccountAPI.Admin.Services;
+using AccountAPI.Admin.Services.Implements;
+using AccountAPI.Admin.Mappers;
+using AccountAPI.Admin.Mappers.Implements;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DBContext>(opt =>
@@ -22,6 +30,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountMapper, AccountMapper>();
 builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+// Admin Customer Management
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ICustomerMapper, CustomerMapper>();
 
 // Add services to the container.
 

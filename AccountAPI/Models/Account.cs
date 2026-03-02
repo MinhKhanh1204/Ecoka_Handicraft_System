@@ -7,7 +7,7 @@ namespace AccountAPI.Models
     public class Account
     {
         [Key]
-        public string AccountID { get; set; }
+        public required string AccountID { get; set; }
 
         [Required]
         public string Username { get; set; } = null!;
