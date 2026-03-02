@@ -14,6 +14,16 @@ builder.Services.AddHttpClient<IOrderService, OrderService>(client =>
     client.BaseAddress = new Uri(gatewayBase);
 });
 
+builder.Services.AddHttpClient<ICategoryAdminService, CategoryAdminService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
+
+builder.Services.AddHttpClient<IProductAdminService, ProductAdminService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
