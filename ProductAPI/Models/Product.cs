@@ -28,6 +28,6 @@ namespace ProductAPI.Models
 		public string Status { get; set; }
 
 		public Category Category { get; set; } = null!;
-		public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
-	}
+        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+    }
 }

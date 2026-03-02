@@ -8,6 +8,8 @@ namespace ProductAPI.admin.Repositories
 
         Task<Product?> GetByIdAsync(string id);
 
+        Task<List<Product>> GetByStatusAsync(string status);
+
         Task AddAsync(Product product);
 
         void Update(Product product);
