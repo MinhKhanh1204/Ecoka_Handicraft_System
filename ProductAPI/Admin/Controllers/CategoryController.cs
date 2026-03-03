@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Services;
+using ProductAPI.CustomFormatter;
 
 namespace ProductAPI.Admin.Controllers
 {
@@ -20,17 +21,20 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> GetAll()
         {
             var categories = await _service.GetAllAsync();
-            return Ok(categories);
+            return Ok(ApiResponse<List<ReadCategoryDto>>
+                .SuccessResponse(categories));
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest("Keyword is required");
+                return BadRequest(ApiResponse<List<ReadCategoryDto>>
+                    .Fail("Keyword is required", 404));
 
             var categories = await _service.SearchAsync(keyword);
-            return Ok(categories);
+            return Ok(ApiResponse<List<ReadCategoryDto>>
+                .SuccessResponse(categories));
         }
 
         [HttpGet("{id}")]
@@ -39,9 +43,11 @@ namespace ProductAPI.Admin.Controllers
             var category = await _service.GetByIdAsync(id);
 
             if (category == null)
-                return NotFound("Category not found");
+                return NotFound(ApiResponse<ReadCategoryDto>
+                    .Fail("Category not found", 404));
 
-            return Ok(category);
+            return Ok(ApiResponse<ReadCategoryDto>
+                .SuccessResponse(category));
         }
 
         [HttpPost]
@@ -53,7 +59,8 @@ namespace ProductAPI.Admin.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = category.CategoryID },
-                category);
+                ApiResponse<ReadCategoryDto>
+                    .SuccessResponse(category, "Created successfully"));
         }
 
         [HttpPut("{id}")]
@@ -64,9 +71,11 @@ namespace ProductAPI.Admin.Controllers
             var result = await _service.UpdateAsync(id, dto);
 
             if (!result)
-                return NotFound("Category not found");
+                return NotFound(ApiResponse<bool>
+                    .Fail("Category not found", 404));
 
-            return NoContent();
+            return Ok(ApiResponse<bool>
+                .SuccessResponse(true, "Updated successfully"));
         }
 
         [HttpDelete("{id}")]
@@ -75,10 +84,11 @@ namespace ProductAPI.Admin.Controllers
             var result = await _service.DeleteAsync(id);
 
             if (!result)
-                return NotFound("Category not found");
+                return NotFound(ApiResponse<bool>
+                    .Fail("Category not found", 404));
 
-            // Soft delete đã được thực hiện trong Repository (Status = "Deleted")
-            return NoContent();
+            return Ok(ApiResponse<bool>
+                .SuccessResponse(true, "Deleted successfully"));
         }
     }
 }

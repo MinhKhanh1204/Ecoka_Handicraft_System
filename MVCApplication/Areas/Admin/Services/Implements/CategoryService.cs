@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.WebUtilities;
 using MVCApplication.Areas.Admin.DTOs;
+using MVCApplication.CustomFormatter;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -15,27 +16,25 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         }
 
         private static readonly IReadOnlyList<ReadCategoryDto> EmptyList = Array.Empty<ReadCategoryDto>();
+        private const string BasePath = "/admin/categories";
 
-        // Hàm helper đơn giản (giống GetOrNullAsync trong OrderService)
-        private async Task<T?> GetOrNullAsync<T>(string uri) where T : class
+        private async Task<ApiResponse<T>?> ReadApiResponseAsync<T>(HttpResponseMessage resp)
         {
-            var resp = await _http.GetAsync(uri);
-            if (resp.StatusCode == HttpStatusCode.NotFound)
+            if (resp.Content == null)
                 return null;
 
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadFromJsonAsync<T>();
+            return await resp.Content.ReadFromJsonAsync<ApiResponse<T>>();
         }
 
         public async Task<IReadOnlyList<ReadCategoryDto>> GetAllAsync()
         {
-            var resp = await _http.GetAsync("/categories");
-
+            var resp = await _http.GetAsync(BasePath);
             if (!resp.IsSuccessStatusCode)
                 return EmptyList;
 
-            var data = await resp.Content.ReadFromJsonAsync<List<ReadCategoryDto>>();
-            return data?.AsReadOnly() ?? EmptyList;
+            var api = await ReadApiResponseAsync<List<ReadCategoryDto>>(resp);
+            var data = api?.Data ?? new List<ReadCategoryDto>();
+            return data.AsReadOnly();
         }
 
         public async Task<IReadOnlyList<ReadCategoryDto>> SearchAsync(string keyword)
@@ -43,49 +42,61 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             if (string.IsNullOrWhiteSpace(keyword))
                 return EmptyList;
 
-            var uri = QueryHelpers.AddQueryString("/categories/search", "keyword", keyword);
+            var uri = QueryHelpers.AddQueryString($"{BasePath}/search", "keyword", keyword);
             var resp = await _http.GetAsync(uri);
-
             if (!resp.IsSuccessStatusCode)
                 return EmptyList;
 
-            var data = await resp.Content.ReadFromJsonAsync<List<ReadCategoryDto>>();
-            return data?.AsReadOnly() ?? EmptyList;
+            var api = await ReadApiResponseAsync<List<ReadCategoryDto>>(resp);
+            var data = api?.Data ?? new List<ReadCategoryDto>();
+            return data.AsReadOnly();
         }
 
         public async Task<ReadCategoryDto?> GetByIdAsync(int id)
         {
-            return await GetOrNullAsync<ReadCategoryDto>($"/categories/{id}");
+            var resp = await _http.GetAsync($"{BasePath}/{id}");
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+                return null;
+
+            resp.EnsureSuccessStatusCode();
+            var api = await ReadApiResponseAsync<ReadCategoryDto>(resp);
+            return api?.Data;
         }
 
         public async Task<ReadCategoryDto?> CreateAsync(CategoryCreateDto dto)
         {
-            var resp = await _http.PostAsJsonAsync("/categories", dto);
-
+            var resp = await _http.PostAsJsonAsync(BasePath, dto);
             if (!resp.IsSuccessStatusCode)
                 return null;
 
-            return await resp.Content.ReadFromJsonAsync<ReadCategoryDto>();
+            var api = await ReadApiResponseAsync<ReadCategoryDto>(resp);
+            return api?.Data;
         }
 
         public async Task<bool> UpdateAsync(int id, CategoryUpdateDto dto)
         {
-            var resp = await _http.PutAsJsonAsync($"/categories/{id}", dto);
-
+            var resp = await _http.PutAsJsonAsync($"{BasePath}/{id}", dto);
             if (resp.StatusCode == HttpStatusCode.NotFound)
                 return false;
 
-            return resp.IsSuccessStatusCode;
+            if (!resp.IsSuccessStatusCode)
+                return false;
+
+            var api = await ReadApiResponseAsync<bool>(resp);
+            return api?.Data == true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var resp = await _http.DeleteAsync($"/categories/{id}");
-
+            var resp = await _http.DeleteAsync($"{BasePath}/{id}");
             if (resp.StatusCode == HttpStatusCode.NotFound)
                 return false;
 
-            return resp.IsSuccessStatusCode;
+            if (!resp.IsSuccessStatusCode)
+                return false;
+
+            var api = await ReadApiResponseAsync<bool>(resp);
+            return api?.Data == true;
         }
     }
 }
