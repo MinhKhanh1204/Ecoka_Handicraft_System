@@ -8,6 +8,7 @@ namespace MVCApplication.Areas.Admin.Controllers
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;
+        private const int PageSize = 10;
 
         public CustomersController(ICustomerService customerService)
         {
@@ -16,12 +17,44 @@ namespace MVCApplication.Areas.Admin.Controllers
 
         // GET: /Admin/Customers
         [HttpGet]
-        public async Task<IActionResult> Index(string? keyword, string? status)
+        public async Task<IActionResult> Index(string? keyword, string? status, string? sortBy, int page = 1)
         {
+            // Lấy danh sách từ API (đã có filter keyword/status)
             var customers = await _customerService.SearchAsync(keyword, status);
+            
+            // Lưu lại các tham số filter để hiển thị trên view
             ViewBag.Keyword = keyword;
             ViewBag.Status = status;
-            return View(customers);
+            ViewBag.SortBy = sortBy;
+            ViewBag.CurrentPage = page;
+
+            // Áp dụng sắp xếp
+            var sortedCustomers = sortBy switch
+            {
+                "id_asc" => customers.OrderBy(c => c.CustomerID),
+                "id_desc" => customers.OrderByDescending(c => c.CustomerID),
+                "newest" => customers.OrderByDescending(c => c.CreatedAt),
+                "oldest" => customers.OrderBy(c => c.CreatedAt),
+                _ => customers.OrderBy(c => c.CustomerID) // default: id tăng dần
+            };
+
+            // Tính phân trang
+            var totalCustomers = sortedCustomers.Count();
+            var totalPages = (int)Math.Ceiling(totalCustomers / (double)PageSize);
+            
+            // Đảm bảo page hợp lệ
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var pagedCustomers = sortedCustomers
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToList();
+
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCustomers = totalCustomers;
+
+            return View(pagedCustomers);
         }
 
         // GET: /Admin/Customers/Details/{id}
@@ -51,11 +84,16 @@ namespace MVCApplication.Areas.Admin.Controllers
             var result = await _customerService.UpdateStatusAsync(id, status);
             if (!result)
             {
-                TempData["Error"] = "Failed to update status";
+                TempData["ToastType"] = "error";
+                TempData["ToastMessage"] = "Failed to update status";
             }
             else
             {
-                TempData["Success"] = "Status updated successfully";
+                // Active = xanh lá, Inactive = đỏ
+                TempData["ToastType"] = status == "Active" ? "success" : "error";
+                TempData["ToastMessage"] = status == "Active" 
+                    ? $"Customer activated successfully" 
+                    : $"Customer deactivated successfully";
             }
             return RedirectToAction(nameof(Index));
         }

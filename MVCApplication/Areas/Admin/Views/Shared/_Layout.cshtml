@@ -50,7 +50,10 @@
   ======================================================== -->
 </head>
 
-<body>
+<body data-toast-type="@TempData["ToastType"]" data-toast-message="@TempData["ToastMessage"]">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
 
   <!-- ======= Header ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
@@ -223,6 +226,68 @@
 
   <!-- Template Main JS File -->
   <script src="~/admin/assets/js/main.js"></script>
+
+  <!-- Toast Notification Script -->
+  <script>
+    function showToast(message, type) {
+      if (!message || !type) return;
+      
+      const toastContainer = document.getElementById('toastContainer');
+      
+      // Xanh lá cho success, đỏ cho error
+      const bgColor = type === 'success' ? '#28a745' : '#dc3545';
+      
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        min-width: 300px;
+        background-color: ${bgColor};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.4s ease-in-out;
+        position: relative;
+      `;
+      
+      toast.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 14px; font-weight: 500;">${message}</span>
+          <button onclick="this.parentElement.parentElement.remove()" 
+                  style="background: none; border: none; color: white; cursor: pointer; font-size: 18px; padding: 0; margin-left: 12px; opacity: 0.8;">
+            &times;
+          </button>
+        </div>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      // Animation hiện ra (slide in + fade in)
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+      });
+      
+      // Tự biến mất sau đúng 5 giây
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 400);
+      }, 5000);
+    }
+
+    // Auto show toast from TempData
+    document.addEventListener('DOMContentLoaded', function() {
+      const toastType = document.body.dataset.toastType || '';
+      const toastMessage = document.body.dataset.toastMessage || '';
+      
+      if (toastType && toastMessage) {
+        showToast(toastMessage, toastType);
+      }
+    });
+  </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

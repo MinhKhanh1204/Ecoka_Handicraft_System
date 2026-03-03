@@ -3,6 +3,13 @@
 @{
     ViewData["Title"] = "Customer Management";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var totalCustomers = ViewBag.TotalCustomers ?? 0;
+    var pageSize = 10;
+    var startItem = (currentPage - 1) * pageSize + 1;
+    var endItem = Math.Min(currentPage * pageSize, totalCustomers);
 }
 
 <div class="container-fluid">
@@ -13,20 +20,29 @@
                     <h3 class="card-title">Customer Management</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Search Form -->
+                    <!-- Search & Sort Form -->
                     <form method="get" asp-action="Index" class="mb-4">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <input type="text" name="keyword" class="form-control" 
                                        placeholder="Search by name, username, email, phone..." 
                                        value="@ViewBag.Keyword" 
                                        maxlength="100" />
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <select name="status" class="form-control">
                                     <option value="">All Status</option>
                                     <option value="Active" selected="@(ViewBag.Status == "Active")">Active</option>
                                     <option value="Inactive" selected="@(ViewBag.Status == "Inactive")">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="sortBy" class="form-control">
+                                    <option value="">Sort By</option>
+                                    <option value="id_asc" selected="@(ViewBag.SortBy == "id_asc")">ID: Low to High</option>
+                                    <option value="id_desc" selected="@(ViewBag.SortBy == "id_desc")">ID: High to Low</option>
+                                    <option value="newest" selected="@(ViewBag.SortBy == "newest")">Newest First</option>
+                                    <option value="oldest" selected="@(ViewBag.SortBy == "oldest")">Oldest First</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -41,22 +57,6 @@
                             </div>
                         </div>
                     </form>
-
-                    <!-- Success/Error Messages -->
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            @TempData["Error"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
 
                     <!-- Customer Table -->
                     <div class="table-responsive">
@@ -144,6 +144,52 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    @if (totalPages > 1)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Showing @startItem to @endItem of @totalCustomers customers
+                            </div>
+                            <nav>
+                                <ul class="pagination mb-0">
+                                    <!-- Previous -->
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            keyword = ViewBag.Keyword, 
+                                            status = ViewBag.Status, 
+                                            sortBy = ViewBag.SortBy, 
+                                            page = currentPage - 1 
+                                        })">Previous</a>
+                                    </li>
+
+                                    <!-- Page Numbers -->
+                                    @for (int i = 1; i <= totalPages; i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { 
+                                                keyword = ViewBag.Keyword, 
+                                                status = ViewBag.Status, 
+                                                sortBy = ViewBag.SortBy, 
+                                                page = i 
+                                            })">@i</a>
+                                        </li>
+                                    }
+
+                                    <!-- Next -->
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            keyword = ViewBag.Keyword, 
+                                            status = ViewBag.Status, 
+                                            sortBy = ViewBag.SortBy, 
+                                            page = currentPage + 1 
+                                        })">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
