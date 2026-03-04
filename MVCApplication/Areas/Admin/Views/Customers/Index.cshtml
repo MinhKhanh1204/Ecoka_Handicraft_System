@@ -1,0 +1,197 @@
+@model IEnumerable<MVCApplication.Models.CustomerViewModel>
+
+@{
+    ViewData["Title"] = "Customer Management";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var totalCustomers = ViewBag.TotalCustomers ?? 0;
+    var pageSize = 10;
+    var startItem = (currentPage - 1) * pageSize + 1;
+    var endItem = Math.Min(currentPage * pageSize, totalCustomers);
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Customer Management</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Search & Sort Form -->
+                    <form method="get" asp-action="Index" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <input type="text" name="keyword" class="form-control" 
+                                       placeholder="Search by name, username, email, phone..." 
+                                       value="@ViewBag.Keyword" 
+                                       maxlength="100" />
+                            </div>
+                            <div class="col-md-2">
+                                <select name="status" class="form-control">
+                                    <option value="">All Status</option>
+                                    <option value="Active" selected="@(ViewBag.Status == "Active")">Active</option>
+                                    <option value="Inactive" selected="@(ViewBag.Status == "Inactive")">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="sortBy" class="form-control">
+                                    <option value="">Sort By</option>
+                                    <option value="id_asc" selected="@(ViewBag.SortBy == "id_asc")">ID: Low to High</option>
+                                    <option value="id_desc" selected="@(ViewBag.SortBy == "id_desc")">ID: High to Low</option>
+                                    <option value="newest" selected="@(ViewBag.SortBy == "newest")">Newest First</option>
+                                    <option value="oldest" selected="@(ViewBag.SortBy == "oldest")">Oldest First</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <a asp-action="Index" class="btn btn-secondary btn-block">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Customer Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                            No customers found.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    foreach (var customer in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@customer.CustomerID</strong>
+                                            </td>
+                                            <td>@customer.Username</td>
+                                            <td>@customer.FullName</td>
+                                            <td>@customer.Email</td>
+                                            <td>@customer.Phone</td>
+                                            <td>
+                                                @if (customer.Status == "Active")
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>@customer.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@customer.CustomerID" 
+                                                       class="btn btn-info btn-sm" title="Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    @if (customer.Status == "Active")
+                                                    {
+                                                        <form asp-action="UpdateStatus" asp-route-id="@customer.CustomerID" method="post" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="status" value="Inactive" />
+                                                            <button type="submit" class="btn btn-secondary btn-sm" 
+                                                                    title="Deactivate"
+                                                                    onclick="return confirm('Are you sure you want to deactivate this customer?');">
+                                                                <i class="bi bi-person-dash"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form asp-action="UpdateStatus" asp-route-id="@customer.CustomerID" method="post" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="status" value="Active" />
+                                                            <button type="submit" class="btn btn-success btn-sm" 
+                                                                    title="Activate"
+                                                                    onclick="return confirm('Are you sure you want to activate this customer?');">
+                                                                <i class="bi bi-person-check"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (totalPages > 1)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Showing @startItem to @endItem of @totalCustomers customers
+                            </div>
+                            <nav>
+                                <ul class="pagination mb-0">
+                                    <!-- Previous -->
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            keyword = ViewBag.Keyword, 
+                                            status = ViewBag.Status, 
+                                            sortBy = ViewBag.SortBy, 
+                                            page = currentPage - 1 
+                                        })">Previous</a>
+                                    </li>
+
+                                    <!-- Page Numbers -->
+                                    @for (int i = 1; i <= totalPages; i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("Index", new { 
+                                                keyword = ViewBag.Keyword, 
+                                                status = ViewBag.Status, 
+                                                sortBy = ViewBag.SortBy, 
+                                                page = i 
+                                            })">@i</a>
+                                        </li>
+                                    }
+
+                                    <!-- Next -->
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { 
+                                            keyword = ViewBag.Keyword, 
+                                            status = ViewBag.Status, 
+                                            sortBy = ViewBag.SortBy, 
+                                            page = currentPage + 1 
+                                        })">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

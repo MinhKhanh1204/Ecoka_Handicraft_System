@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MVCApplication.Models
+namespace MVCApplication.Models.DTOs
 {
     public class Order
     {

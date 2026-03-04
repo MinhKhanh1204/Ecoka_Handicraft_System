@@ -22,7 +22,7 @@ namespace MVCApplication.Services.Implements
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<LoginResponseDto>>();
+            var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<LoginResponseDto>>();
 
             return result?.Data;
         }

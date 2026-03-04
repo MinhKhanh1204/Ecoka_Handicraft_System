@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ namespace OrderAPI.Controllers
         public async Task<IActionResult> GetMyOrders()
         {
             // Lấy từ Claim (khuyên dùng)
-            var customerId = "CUS001";
+            var customerId = User.FindFirst("accountID")?.Value;
 
             // Hoặc từ Session
             // var customerId = HttpContext.Session.GetString("CustomerId");
@@ -46,7 +47,7 @@ namespace OrderAPI.Controllers
             [FromQuery] string? paymentStatus,
             [FromQuery] string? tabStatus)
         {
-            var customerId = User.FindFirst("sub")?.Value;
+            var customerId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrEmpty(customerId))
                 return Unauthorized();
 
@@ -101,7 +102,7 @@ namespace OrderAPI.Controllers
         public async Task<IActionResult> HasPurchased(
             [FromQuery] string productId)
         {
-            var customerId = "CUS001"; // sửa lại
+            var customerId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrEmpty(customerId))
                 return Unauthorized();
 

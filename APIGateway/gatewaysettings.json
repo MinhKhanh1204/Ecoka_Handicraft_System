@@ -1,9 +1,6 @@
 {
-  "Routes": [
-    {
-      "DownstreamPathTemplate": "/api/auth/{everything}",
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
+    "Routes": [
+
         {
             "DownstreamPathTemplate": "/api/auth/{everything}",
             "DownstreamScheme": "https",
@@ -16,6 +13,7 @@
             "UpstreamPathTemplate": "/auth/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/api/products/{everything}",
             "DownstreamScheme": "https",
@@ -28,6 +26,7 @@
             "UpstreamPathTemplate": "/products/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/api/categories/{everything}",
             "DownstreamScheme": "https",
@@ -40,6 +39,7 @@
             "UpstreamPathTemplate": "/categories/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/api/customer/orders/{everything}",
             "DownstreamScheme": "https",
@@ -52,6 +52,7 @@
             "UpstreamPathTemplate": "/customer/orders/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/api/admin/categories/{everything}",
             "DownstreamScheme": "https",
@@ -64,6 +65,7 @@
             "UpstreamPathTemplate": "/admin/categories/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/api/feedbacks/{everything}",
             "DownstreamScheme": "https",
@@ -76,6 +78,7 @@
             "UpstreamPathTemplate": "/feedbacks/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
+
         {
             "DownstreamPathTemplate": "/odata/feedbacks/{everything}",
             "DownstreamScheme": "https",
@@ -88,7 +91,23 @@
             "UpstreamPathTemplate": "/odata/feedbacks/{everything}",
             "UpstreamHttpMethod": [ "GET" ]
         }
-    ],
+      ],
+      "UpstreamPathTemplate": "/admin/categories/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/admin/customers/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7018
+                }
+            ],
+            "UpstreamPathTemplate": "/admin/customers/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    }
+  ],
     "GlobalConfiguration": {
         "BaseUrl": "https://localhost:5000"
     }
