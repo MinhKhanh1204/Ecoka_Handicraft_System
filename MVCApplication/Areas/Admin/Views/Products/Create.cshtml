@@ -23,7 +23,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Thông tin sản phẩm</h5>
 
-                    <form asp-action="Create" method="post" class="row g-3">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" class="row g-3">
                         <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
 
                         <div class="col-md-8">
@@ -71,24 +71,27 @@
                         </div>
 
                         <div class="col-12 mt-4">
-                            <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Link URL)</h6>
+                            <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Upload file hoặc Link URL)</h6>
                             <p class="text-muted small">Cung cấp ít nhất 1 ảnh. Ảnh đầu tiên được mặc định làm ảnh chính.</p>
                             
                             <div id="image-inputs">
                                 @for (int i = 0; i < 4; i++)
                                 {
-                                    <div class="row g-2 mb-2 align-items-center">
-                                        <div class="col-md-9">
-                                            <input name="Images[@i].ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                                    <div class="row g-2 mb-3 align-items-center">
+                                        <div class="col-md-5">
+                                            <label class="small">Chọn File</label>
+                                            <input type="file" name="Images[@i].ImageFile" class="form-control form-control-sm" accept="image/*" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="small">Hoặc dán URL</label>
+                                            <input name="Images[@i].ImageUrl" class="form-control form-control-sm" placeholder="https://example.com/image.jpg" />
                                         </div>
                                         <div class="col-md-3">
-                                            <div class="form-check">
+                                            <div class="form-check mt-3">
                                                 <input class="form-check-input" type="radio" name="mainImageIndex" value="@i" @(i == 0 ? "checked" : "")>
-                                                <label class="form-check-label">Ảnh chính</label>
+                                                <label class="form-check-label small">Ảnh chính</label>
                                             </div>
-                                            @* Ta sẽ map radio này sang IsMain trong code-behind hoặc script nếu cần, 
-                                               nhưng ở đây ta sẽ dùng script đơn giản xử lý trước khi submit *@
-                                            <input type="hidden" name="Images[@i].IsMain" id="isMain_@i" value="@(i == 0 ? "true" : "false")" />
+                                            <input type="hidden" name="Images[@i].IsMain" value="@(i == 0 ? "true" : "false")" />
                                         </div>
                                     </div>
                                 }
@@ -114,8 +117,9 @@
         // Cập nhật giá trị IsMain khi thay đổi radio button
         document.querySelectorAll('input[name="mainImageIndex"]').forEach((radio, index) => {
             radio.addEventListener('change', function() {
-                document.querySelectorAll('input[type="hidden"][name$=".IsMain"]').forEach((hidden, hIndex) => {
-                    hidden.value = (hIndex === index).toString();
+                // Lấy tất cả các input ẩn IsMain (bao gồm cả các input sinh ra theo chỉ số i)
+                document.querySelectorAll('input[type="hidden"][name^="Images["][name$="].IsMain"]').forEach((hidden, hIndex) => {
+                    hidden.value = (hIndex === index).toString().toLowerCase();
                 });
             });
         });

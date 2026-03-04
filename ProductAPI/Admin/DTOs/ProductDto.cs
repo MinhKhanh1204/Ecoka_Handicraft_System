@@ -47,7 +47,8 @@
 
     public class CreateProductImageDto
     {
-        public string ImageUrl { get; set; } = null!;
+        public string? ImageUrl { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public bool IsMain { get; set; }
     }
 
@@ -70,7 +71,8 @@
 
     public class UpdateProductImageDto
     {
-        public string ImageUrl { get; set; } = null!;
+        public string? ImageUrl { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public bool IsMain { get; set; }
     }
 }
