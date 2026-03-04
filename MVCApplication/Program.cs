@@ -17,6 +17,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();    
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
@@ -76,6 +77,14 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient<IOrderService, OrderService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
+builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
