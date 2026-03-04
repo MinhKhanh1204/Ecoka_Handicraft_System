@@ -14,11 +14,11 @@ namespace MVCApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetByProduct(int productId)
+        public async Task<IActionResult> GetByProduct(string productId)  // ← đổi sang string
         {
             var feedbacks = await _feedbackService.FilterAsync(new FeedbackFilterDto
             {
-                ProductID = productId,
+                ProductID = productId,    // ← giờ khớp string = string
                 Status = "Active"
             });
             return Json(feedbacks);
@@ -27,7 +27,6 @@ namespace MVCApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
         {
-            // Lấy username từ JWT token
             var username = User.FindFirst("username")?.Value;
             if (string.IsNullOrEmpty(username))
                 return Json(new { success = false, message = "Please login first" });

@@ -39,10 +39,10 @@ namespace MVCApplication.Services.Implements
 
             var q = new Dictionary<string, string?>();
 
-            if (filter.CustomerID.HasValue)
-                q["CustomerID"] = filter.CustomerID.Value.ToString();
-            if (filter.ProductID.HasValue)
-                q["ProductID"] = filter.ProductID.Value.ToString();
+            if (!string.IsNullOrWhiteSpace(filter.CustomerID))
+                q["CustomerID"] = filter.CustomerID;
+            if (!string.IsNullOrWhiteSpace(filter.ProductID))
+                q["ProductID"] = filter.ProductID;
             if (filter.MinRating.HasValue)
                 q["MinRating"] = filter.MinRating.Value.ToString();
             if (filter.MaxRating.HasValue)

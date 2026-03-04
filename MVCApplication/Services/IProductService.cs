@@ -1,4 +1,5 @@
-﻿using MVCApplication.Models.DTOs;
+﻿using MVCApplication.Models;
+using MVCApplication.Models.DTOs;
 
 namespace MVCApplication.Services
 {

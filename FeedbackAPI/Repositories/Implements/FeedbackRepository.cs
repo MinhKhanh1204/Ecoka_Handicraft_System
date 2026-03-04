@@ -32,21 +32,21 @@ namespace FeedbackAPI.Repositories.Implements
         // ================= FILTER =================
 
         public async Task<IEnumerable<Feedback>> FilterAsync(
-            int? customerId,
-            int? productId,
-            int? minRating,
-            int? maxRating,
-            string? status,
-            DateTime? from,
-            DateTime? to)
+    string? customerId,
+    string? productId,
+    int? minRating,
+    int? maxRating,
+    string? status,
+    DateTime? from,
+    DateTime? to)
         {
             var query = _context.Feedbacks.AsQueryable();
 
-            if (customerId.HasValue)
-                query = query.Where(f => f.CustomerID == customerId.Value);
+            if (!string.IsNullOrWhiteSpace(customerId))
+                query = query.Where(f => f.CustomerID == customerId);
 
-            if (productId.HasValue)
-                query = query.Where(f => f.ProductID == productId.Value);
+            if (!string.IsNullOrWhiteSpace(productId))
+                query = query.Where(f => f.ProductID == productId);
 
             if (minRating.HasValue)
                 query = query.Where(f => f.Rating >= minRating.Value);

@@ -137,7 +137,9 @@
 <!-- Single Product End -->
 @section Scripts {
     <script>
-        const productId = @Html.Raw(Model.ProductId != null ? Model.ProductId : "0");
+        // ProductID giờ là string "P001" — phải bọc trong quotes
+        const productId = '@Model.ProductId';
+        const customerID = '@User.FindFirst("accountID")?.Value';
 
         // ========== Load Feedbacks ==========
         async function loadFeedbacks() {
@@ -145,7 +147,6 @@
                 const res = await fetch(`/Feedback/GetByProduct?productId=${productId}`);
                 const feedbacks = await res.json();
 
-                // Cập nhật rating trung bình
                 const avg = feedbacks.length > 0
                     ? feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
                     : 0;
@@ -156,7 +157,6 @@
                 document.getElementById('review-count').textContent = `(${feedbacks.length} reviews)`;
                 document.getElementById('tab-review-count').textContent = `(${feedbacks.length})`;
 
-                // Render danh sách
                 if (feedbacks.length === 0) {
                     document.getElementById('feedback-list').innerHTML =
                         '<p class="text-muted">No reviews yet. Be the first to review!</p>';
@@ -179,7 +179,7 @@
                             <div>
                                 <p class="mb-2" style="font-size: 14px;">${date}</p>
                                 <div class="d-flex justify-content-between">
-                                    <h5>Customer #${fb.customerID}</h5>
+                                    <h5>${fb.customerID}</h5>
                                     <div class="d-flex mb-3">${stars}</div>
                                 </div>
                                 <p class="text-dark">${fb.comment || ''}</p>
@@ -209,12 +209,17 @@
         document.getElementById('btnSubmitFeedback').addEventListener('click', async function () {
             const comment = document.getElementById('feedbackComment').value.trim();
 
+            if (!customerID) {
+                alert('Please login to leave a review!');
+                window.location.href = '/Account/Login';
+                return;
+            }
             if (selectedRating === 0) { alert('Please select a rating!'); return; }
             if (!comment) { alert('Please write a review!'); return; }
 
             const dto = {
-                customerID: 1,          
-                productID: productId,
+                customerID: customerID,     // "CUS001" từ JWT
+                productID: productId,       // "P001" từ Model
                 rating: selectedRating,
                 comment: comment
             };
@@ -232,7 +237,7 @@
                     selectedRating = 0;
                     document.querySelectorAll('#star-rating .fa-star').forEach(s =>
                         s.classList.remove('text-secondary'));
-                    await loadFeedbacks();  // Reload không cần refresh page
+                    await loadFeedbacks();
                 } else {
                     alert('Failed: ' + result.message);
                 }
