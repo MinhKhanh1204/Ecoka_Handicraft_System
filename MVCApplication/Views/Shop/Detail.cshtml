@@ -1,177 +1,246 @@
 ﻿@{
-	ViewData["Title"] = "Detail";
+    ViewData["Title"] = "Detail";
 }
 @model ProductDetailResponseDto
+
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-	<h1 class="text-center text-white display-6">Shop Detail</h1>
-	<ol class="breadcrumb justify-content-center mb-0">
-		<li class="breadcrumb-item"><a href="/Home">Home</a></li>
-		<li class="breadcrumb-item"><a href="/Shop">Shop</a></li>
-		<li class="breadcrumb-item active text-white">Shop Detail</li>
-	</ol>
+    <h1 class="text-center text-white display-6">Shop Detail</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Shop">Shop</a></li>
+        <li class="breadcrumb-item active text-white">Shop Detail</li>
+    </ol>
 </div>
 <!-- Single Page Header End -->
 <!-- Single Product Start -->
 <div class="container-fluid py-5 mt-5">
-	<div class="container py-5">
-		<div class="row g-4 mb-5">
-			<div class="col-lg-12 col-xl-12">
-				<div class="row g-4">
-					<div class="col-lg-6">
-						<div class="border rounded">
-							<a href="#">
-								<img src="@Model.MainImage" class="img-fluid rounded" alt="Image">
-							</a>
-						</div>
-					</div>
-					<div class="col-lg-6">
-						<h4 class="fw-bold mb-3">@Model.ProductName</h4>
-						<p class="mb-3">Category: @Model.Category.CategoryName</p>
-						<del>
-							@if (Model.Price != Model.FinalPrice)
-							{
-								@Model.Price.ToString("N0")
-							}
-						</del>
-						<h5 class="fw-bold mb-3">@Model.FinalPrice.ToString("N0") VND</h5>
-						<div class="d-flex mb-4">
-							<i class="fa fa-star text-secondary"></i>
-							<i class="fa fa-star text-secondary"></i>
-							<i class="fa fa-star text-secondary"></i>
-							<i class="fa fa-star text-secondary"></i>
-							<i class="fa fa-star"></i>
-						</div>
-						<p class="mb-4"><p>@Model.Description</p></p>
-						<div class="input-group quantity mb-5" style="width: 100px;">
-							<div class="input-group-btn">
-								<button class="btn btn-sm btn-minus rounded-circle bg-light border">
-									<i class="fa fa-minus"></i>
-								</button>
-							</div>
-							<input type="text" class="form-control form-control-sm text-center border-0" value="1">
-							<div class="input-group-btn">
-								<button class="btn btn-sm btn-plus rounded-circle bg-light border">
-									<i class="fa fa-plus"></i>
-								</button>
-							</div>
-						</div>
-						<a href="#" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
-					</div>
-					<div class="col-lg-12">
-						<nav>
-							<div class="nav nav-tabs mb-3">
-								<button class="nav-link active border-white border-bottom-0" type="button" role="tab"
-										id="nav-about-tab" data-bs-toggle="tab" data-bs-target="#nav-about"
-										aria-controls="nav-about" aria-selected="true">
-									Description
-								</button>
-								<button class="nav-link border-white border-bottom-0" type="button" role="tab"
-										id="nav-mission-tab" data-bs-toggle="tab" data-bs-target="#nav-mission"
-										aria-controls="nav-mission" aria-selected="false">
-									Reviews
-								</button>
-							</div>
-						</nav>
-						<div class="tab-content mb-5">
-							<div class="tab-pane active" id="nav-about" role="tabpanel" aria-labelledby="nav-about-tab">
-								<p>
-									@Model.Description
-								</p>
-							</div>
-							<div class="tab-pane" id="nav-mission" role="tabpanel" aria-labelledby="nav-mission-tab">
-								<div class="d-flex">
-									<img src="img/avatar.jpg" class="img-fluid rounded-circle p-3" style="width: 100px; height: 100px;" alt="">
-									<div class="">
-										<p class="mb-2" style="font-size: 14px;">April 12, 2024</p>
-										<div class="d-flex justify-content-between">
-											<h5>Jason Smith</h5>
-											<div class="d-flex mb-3">
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star"></i>
-											</div>
-										</div>
-										<p>
-											The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic
-											words etc. Susp endisse ultricies nisi vel quam suscipit
-										</p>
-									</div>
-								</div>
-								<div class="d-flex">
-									<img src="img/avatar.jpg" class="img-fluid rounded-circle p-3" style="width: 100px; height: 100px;" alt="">
-									<div class="">
-										<p class="mb-2" style="font-size: 14px;">April 12, 2024</p>
-										<div class="d-flex justify-content-between">
-											<h5>Sam Peters</h5>
-											<div class="d-flex mb-3">
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star text-secondary"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-											</div>
-										</div>
-										<p class="text-dark">
-											The generated Lorem Ipsum is therefore always free from repetition injected humour, or non-characteristic
-											words etc. Susp endisse ultricies nisi vel quam suscipit
-										</p>
-									</div>
-								</div>
-							</div>
-							<div class="tab-pane" id="nav-vision" role="tabpanel">
-								<p class="text-dark">
-									Tempor erat elitr rebum at clita. Diam dolor diam ipsum et tempor sit. Aliqu diam
-									amet diam et eos labore. 3
-								</p>
-								<p class="mb-0">
-									Diam dolor diam ipsum et tempor sit. Aliqu diam amet diam et eos labore.
-									Clita erat ipsum et lorem et sit
-								</p>
-							</div>
-						</div>
-					</div>
-					<form action="#">
-						<h4 class="mb-5 fw-bold">Leave a Reply</h4>
-						<div class="row g-4">
-							<div class="col-lg-6">
-								<div class="border-bottom rounded">
-									<input type="text" class="form-control border-0 me-4" placeholder="Yur Name *">
-								</div>
-							</div>
-							<div class="col-lg-6">
-								<div class="border-bottom rounded">
-									<input type="email" class="form-control border-0" placeholder="Your Email *">
-								</div>
-							</div>
-							<div class="col-lg-12">
-								<div class="border-bottom rounded my-4">
-									<textarea name="" id="" class="form-control border-0" cols="30" rows="8" placeholder="Your Review *" spellcheck="false"></textarea>
-								</div>
-							</div>
-							<div class="col-lg-12">
-								<div class="d-flex justify-content-between py-3 mb-5">
-									<div class="d-flex align-items-center">
-										<p class="mb-0 me-3">Please rate:</p>
-										<div class="d-flex align-items-center" style="font-size: 12px;">
-											<i class="fa fa-star text-muted"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-										</div>
-									</div>
-									<a href="#" class="btn border border-secondary text-primary rounded-pill px-4 py-3"> Post Comment</a>
-								</div>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-		
-		</div>
-	</div>
+    <div class="container py-5">
+        <div class="row g-4 mb-5">
+            <div class="col-lg-12 col-xl-12">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="border rounded">
+                            <a href="#">
+                                <img src="@Model.MainImage" class="img-fluid rounded" alt="Image">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h4 class="fw-bold mb-3">@Model.ProductName</h4>
+                        <p class="mb-3">Category: @Model.Category.CategoryName</p>
+                        <del>
+                            @if (Model.Price != Model.FinalPrice)
+                            {
+                                @Model.Price.ToString("N0")
+                            }
+                        </del>
+                        <h5 class="fw-bold mb-3">@Model.FinalPrice.ToString("N0") VND</h5>
+
+                        <!-- Rating trung bình — sẽ cập nhật bằng JS -->
+                        <div class="d-flex mb-4" id="avg-rating">
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <span class="ms-2 text-muted" id="review-count"></span>
+                        </div>
+
+                        <p class="mb-4">@Model.Description</p>
+                        <div class="input-group quantity mb-5" style="width: 100px;">
+                            <div class="input-group-btn">
+                                <button class="btn btn-sm btn-minus rounded-circle bg-light border">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="form-control form-control-sm text-center border-0" value="1">
+                            <div class="input-group-btn">
+                                <button class="btn btn-sm btn-plus rounded-circle bg-light border">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <a href="#" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary">
+                            <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                        </a>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="col-lg-12">
+                        <nav>
+                            <div class="nav nav-tabs mb-3">
+                                <button class="nav-link active border-white border-bottom-0" type="button" role="tab"
+                                        id="nav-about-tab" data-bs-toggle="tab" data-bs-target="#nav-about">
+                                    Description
+                                </button>
+                                <button class="nav-link border-white border-bottom-0" type="button" role="tab"
+                                        id="nav-mission-tab" data-bs-toggle="tab" data-bs-target="#nav-mission">
+                                    Reviews <span id="tab-review-count"></span>
+                                </button>
+                            </div>
+                        </nav>
+                        <div class="tab-content mb-5">
+                            <!-- Tab Description -->
+                            <div class="tab-pane active" id="nav-about" role="tabpanel">
+                                <p>@Model.Description</p>
+                            </div>
+
+                            <!-- Tab Reviews — LOAD BẰNG AJAX -->
+                            <div class="tab-pane" id="nav-mission" role="tabpanel">
+                                <div id="feedback-list">
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border text-dark"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Leave a Review -->
+                    <div>
+                        <h4 class="mb-5 fw-bold">Leave a Reply</h4>
+                        <div class="row g-4">
+                            <div class="col-lg-12">
+                                <div class="border-bottom rounded my-4">
+                                    <textarea id="feedbackComment" class="form-control border-0"
+                                              cols="30" rows="8" placeholder="Your Review *"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="d-flex justify-content-between py-3 mb-5">
+                                    <div class="d-flex align-items-center">
+                                        <p class="mb-0 me-3">Please rate:</p>
+                                        <div class="d-flex align-items-center" id="star-rating"
+                                             style="font-size: 18px; cursor: pointer;">
+                                            <i class="fa fa-star" data-value="1"></i>
+                                            <i class="fa fa-star" data-value="2"></i>
+                                            <i class="fa fa-star" data-value="3"></i>
+                                            <i class="fa fa-star" data-value="4"></i>
+                                            <i class="fa fa-star" data-value="5"></i>
+                                        </div>
+                                    </div>
+                                    <button id="btnSubmitFeedback"
+                                            class="btn border border-secondary text-primary rounded-pill px-4 py-3">
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- Single Product End -->
+@section Scripts {
+    <script>
+        const productId = @Html.Raw(Model.ProductId != null ? Model.ProductId : "0");
+
+        // ========== Load Feedbacks ==========
+        async function loadFeedbacks() {
+            try {
+                const res = await fetch(`/Feedback/GetByProduct?productId=${productId}`);
+                const feedbacks = await res.json();
+
+                // Cập nhật rating trung bình
+                const avg = feedbacks.length > 0
+                    ? feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
+                    : 0;
+
+                document.querySelectorAll('#avg-rating .fa-star').forEach((star, idx) => {
+                    star.classList.toggle('text-secondary', idx < Math.round(avg));
+                });
+                document.getElementById('review-count').textContent = `(${feedbacks.length} reviews)`;
+                document.getElementById('tab-review-count').textContent = `(${feedbacks.length})`;
+
+                // Render danh sách
+                if (feedbacks.length === 0) {
+                    document.getElementById('feedback-list').innerHTML =
+                        '<p class="text-muted">No reviews yet. Be the first to review!</p>';
+                    return;
+                }
+
+                let html = '';
+                feedbacks.forEach(fb => {
+                    const date = new Date(fb.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        stars += `<i class="fa fa-star ${i <= fb.rating ? 'text-secondary' : ''}"></i>`;
+                    }
+                    html += `
+                        <div class="d-flex mb-4">
+                            <img src="/img/avatar.jpg" class="img-fluid rounded-circle p-3"
+                                 style="width: 100px; height: 100px;" alt="">
+                            <div>
+                                <p class="mb-2" style="font-size: 14px;">${date}</p>
+                                <div class="d-flex justify-content-between">
+                                    <h5>Customer #${fb.customerID}</h5>
+                                    <div class="d-flex mb-3">${stars}</div>
+                                </div>
+                                <p class="text-dark">${fb.comment || ''}</p>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('feedback-list').innerHTML = html;
+
+            } catch (err) {
+                document.getElementById('feedback-list').innerHTML =
+                    '<p class="text-danger">Failed to load reviews.</p>';
+            }
+        }
+
+        // ========== Star Rating Click ==========
+        let selectedRating = 0;
+        document.querySelectorAll('#star-rating .fa-star').forEach(star => {
+            star.addEventListener('click', function () {
+                selectedRating = parseInt(this.dataset.value);
+                document.querySelectorAll('#star-rating .fa-star').forEach((s, idx) => {
+                    s.classList.toggle('text-secondary', idx < selectedRating);
+                });
+            });
+        });
+
+        // ========== Submit Feedback ==========
+        document.getElementById('btnSubmitFeedback').addEventListener('click', async function () {
+            const comment = document.getElementById('feedbackComment').value.trim();
+
+            if (selectedRating === 0) { alert('Please select a rating!'); return; }
+            if (!comment) { alert('Please write a review!'); return; }
+
+            const dto = {
+                customerID: 1,          
+                productID: productId,
+                rating: selectedRating,
+                comment: comment
+            };
+
+            try {
+                const res = await fetch('/Feedback/Create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dto)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    document.getElementById('feedbackComment').value = '';
+                    selectedRating = 0;
+                    document.querySelectorAll('#star-rating .fa-star').forEach(s =>
+                        s.classList.remove('text-secondary'));
+                    await loadFeedbacks();  // Reload không cần refresh page
+                } else {
+                    alert('Failed: ' + result.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // ========== Load khi trang mở ==========
+        loadFeedbacks();
+    </script>
+}
