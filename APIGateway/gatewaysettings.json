@@ -59,7 +59,7 @@
             ],
             "UpstreamPathTemplate": "/feedbacks/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
-        }
+        },
         {
             "DownstreamPathTemplate": "/odata/feedbacks/{everything}",
             "DownstreamScheme": "https",
