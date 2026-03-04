@@ -11,6 +11,9 @@ using ProductAPI.Repositories;
 using ProductAPI.Repositories.Implements;
 using ProductAPI.Services;
 using ProductAPI.Services.Implements;
+using ProductAPI.Helpers;
+using CloudinaryDotNet;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,22 @@ builder.Services.AddScoped<ProductAPI.Admin.Mappers.ICategoryMapper, ProductAPI.
 builder.Services.AddScoped<ProductAPI.Repositories.ICategoryRepository, ProductAPI.Repositories.Implements.CategoryRepository>();
 builder.Services.AddScoped<ProductAPI.Services.ICategoryService, ProductAPI.Services.Implements.CategoryService>();
 builder.Services.AddScoped<ICategoryMapper, CategoryMapper>();
+
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddScoped(provider =>
+{
+    var config = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+    var account = new CloudinaryDotNet.Account(
+        config.CloudName,
+        config.ApiKey,
+        config.ApiSecret
+    );
+    return new Cloudinary(account);
+});
 
 // Add services to the container.
 
