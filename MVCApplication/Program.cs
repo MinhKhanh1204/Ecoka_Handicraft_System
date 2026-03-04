@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IProductService, ProductService>();
+//builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Read gateway base URL from configuration (appsettings.json)
@@ -22,7 +22,9 @@ var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://loc
 // AccountService → PUBLIC (No attach JWT)
 builder.Services.AddGatewayPublicClient<IAccountService, AccountService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IOrderService, OrderService>(gatewayBase);
-builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
+//builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
+//builder.Services.AddGatewayAuthClient<IProductService, MVCApplication.Services.Implements.ProductService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IProductAdminService, MVCApplication.Areas.Admin.Services.Implements.ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 
 //setting authen

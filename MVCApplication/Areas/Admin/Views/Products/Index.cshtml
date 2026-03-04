@@ -1,0 +1,276 @@
+@using MVCApplication.Areas.Admin.DTOs
+@using MVCApplication.CustomFormatter
+@model PagedResult<ReadProductDto>
+
+@{
+    ViewData["Title"] = "Products";
+    var keyword = (string?)ViewBag.Keyword;
+    var status = (string?)ViewBag.Status;
+
+    bool isAdmin = User.IsInRole("Admin");
+    bool isStaff = User.IsInRole("Staff");
+}
+
+<div class="pagetitle">
+    <h1>Products</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a>
+            </li>
+            <li class="breadcrumb-item active">Products</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <!-- Header -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
+                        <h5 class="card-title mb-0">Products Management</h5>
+
+                        <a class="btn btn-primary"
+                           asp-area="Admin"
+                           asp-controller="Products"
+                           asp-action="Create">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm mới
+                        </a>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <form method="get" class="row g-2">
+                            <input type="hidden" name="status" value="@status" />
+                            <div class="col-md-8 col-lg-6">
+                                <div class="input-group">
+                                    <input name="keyword"
+                                           value="@keyword"
+                                           class="form-control"
+                                           placeholder="Tìm theo tên sản phẩm..." />
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-search me-1"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-lg-6">
+                                <a class="btn btn-outline-secondary"
+                                   asp-area="Admin"
+                                   asp-controller="Products"
+                                   asp-action="Index">
+                                    Reset All
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Filter -->
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <form method="get" class="row g-2 align-items-center">
+                            <input type="hidden" name="keyword" value="@keyword" />
+                            <div class="col-auto">
+                                <label class="fw-bold me-2">Bộ lọc trạng thái:</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="status" class="form-select border-primary" onchange="this.form.submit()">
+                                    <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">Tất cả hợp lệ</option>
+                                    <option value="Active" selected="@(status == "Active")">Active</option>
+                                    <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                                    <option value="Inactive" selected="@(status == "Inactive")">Inactive</option>
+                                    @if (isAdmin)
+                                    {
+                                        <option value="Rejected" selected="@(status == "Rejected")">Rejected</option>
+                                    }
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:60px;">STT</th>
+                                    <th>Ảnh</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá</th>
+                                    <th>Tồn kho</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @if (Model.Items == null || !Model.Items.Any())
+                                {
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="bi bi-box-seam display-4 d-block mb-3"></i>
+                                            Không tìm thấy sản phẩm nào
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    int stt = (Model.PageNumber - 1) * Model.PageSize;
+
+                                    foreach (var p in Model.Items)
+                                    {
+                                        stt++;
+
+                                        string badgeClass = p.Status switch
+                                        {
+                                            "Active" => "success",
+                                            "Pending" => "warning text-dark",
+                                            "Rejected" => "danger",
+                                            "Inactive" => "secondary",
+                                            _ => "dark"
+                                        };
+
+                                        <tr>
+                                            <td class="fw-bold">@stt</td>
+
+                                            <td>
+                                                <img src="@(string.IsNullOrEmpty(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
+                                                     alt="@p.ProductName"
+                                                     style="width:55px;height:55px;object-fit:cover"
+                                                     class="rounded shadow-sm border" />
+                                            </td>
+
+                                            <td>@p.ProductName</td>
+
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    @p.CategoryName
+                                                </span>
+                                            </td>
+
+                                            <td class="text-danger fw-bold">
+                                                @p.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))
+                                            </td>
+
+                                            <td>
+                                                @if (p.StockQuantity <= 5)
+                                                {
+                                                    <span class="text-danger fw-bold">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i> @p.StockQuantity
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@p.StockQuantity</span>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                <span class="badge bg-@badgeClass">@p.Status</span>
+                                            </td>
+
+                                            <td class="text-end">
+                                                <div class="btn-group shadow-sm">
+
+                                                    <a class="btn btn-sm btn-outline-secondary"
+                                                       asp-action="Details"
+                                                       asp-route-id="@p.ProductID">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+
+                                                    <a class="btn btn-sm btn-outline-primary"
+                                                       asp-action="Edit"
+                                                       asp-route-id="@p.ProductID">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+
+                                                    @if (isAdmin && p.Status == "Pending")
+                                                    {
+                                                        <form asp-action="Approve" asp-route-id="@p.ProductID" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-success">
+                                                                <i class="bi bi-check-circle"></i>
+                                                            </button>
+                                                        </form>
+
+                                                        <form asp-action="Reject" asp-route-id="@p.ProductID" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                                <i class="bi bi-x-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+
+                                                    @if (isAdmin && p.Status != "Inactive")
+                                                    {
+                                                        <form asp-action="Delete"
+                                                              asp-route-id="@p.ProductID"
+                                                              method="post"
+                                                              class="d-inline"
+                                                              onsubmit="return confirm('Ngừng kinh doanh sản phẩm này?');">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                <i class="bi bi-slash-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+
+                                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                       asp-route-keyword="@keyword"
+                                       asp-route-status="@status">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-pageNumber="@i"
+                                           asp-route-keyword="@keyword"
+                                           asp-route-status="@status">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                       asp-route-keyword="@keyword"
+                                       asp-route-status="@status">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </nav>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
