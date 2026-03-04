@@ -1,5 +1,9 @@
 {
-    "Routes": [
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
         {
             "DownstreamPathTemplate": "/api/auth/{everything}",
             "DownstreamScheme": "https",

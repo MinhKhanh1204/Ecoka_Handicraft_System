@@ -20,5 +20,14 @@ namespace ProductAPI.Repositories.Implements
 				.Where(p => p.Status == "Active")
 				.ToList();
 		}
-	}
+
+        public async Task<Product> GetProductDetailAsync(string productId)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => p.Status == "Active")
+                .FirstOrDefaultAsync(p => p.ProductID == productId);
+        }
+    }
 }

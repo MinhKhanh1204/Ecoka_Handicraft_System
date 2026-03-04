@@ -1,0 +1,70 @@
+@using MVCApplication.Areas.Admin.DTOs
+@model CategoryCreateDto
+
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<div class="pagetitle">
+    <h1>Thêm Category</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index">Categories</a></li>
+            <li class="breadcrumb-item active">Create</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin category</h5>
+
+                    <form method="post" class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="CategoryName" class="form-label">Tên</label>
+                            <input asp-for="CategoryName" class="form-control" />
+                            <span asp-validation-for="CategoryName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Status" class="form-label">Trạng thái</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle me-1"></i>Lưu
+                            </button>
+                            <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                                Hủy
+                            </a>
+                        </div>
+
+                        <div class="col-12">
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="~/Areas/Admin/Views/Shared/_ValidationScriptsPartial.cshtml" />
+}
+

@@ -1,6 +1,6 @@
 using ProductAPI.Admin.DTOs;
-using ProductAPI.Mappers;
-using ProductAPI.Repositories;
+using ProductAPI.Admin.Mappers;
+using ProductAPI.Admin.Repositories;
 
 namespace ProductAPI.Admin.Services.Implements
 {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
+using ProductAPI.Admin.Services;
 using ProductAPI.CustomFormatter;
-using ProductAPI.Services;
 
 namespace ProductAPI.Admin.Controllers
 {
@@ -60,7 +60,7 @@ namespace ProductAPI.Admin.Controllers
                 nameof(GetById),
                 new { id = category.CategoryID },
                 ApiResponse<ReadCategoryDto>
-                .SuccessResponse(category, "Created successfully"));
+                    .SuccessResponse(category, "Created successfully"));
         }
 
         [HttpPut("{id}")]

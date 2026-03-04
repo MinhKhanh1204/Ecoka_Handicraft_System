@@ -1,12 +1,14 @@
 ﻿using ProductAPI.Models;
 
-namespace ProductAPI.admin.Repositories
+namespace ProductAPI.Admin.Repositories
 {
     public interface IProductAdminRepository
     {
         IQueryable<Product> GetQueryable();
 
         Task<Product?> GetByIdAsync(string id);
+
+        Task<List<Product>> GetByStatusAsync(string status);
 
         Task AddAsync(Product product);
 

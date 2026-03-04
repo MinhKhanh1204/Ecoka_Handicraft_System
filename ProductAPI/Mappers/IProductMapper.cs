@@ -6,5 +6,7 @@ namespace ProductAPI.Mappers
 	public interface IProductMapper
 	{
 		ProductDto ToDto(Product product);
-	}
+
+        ProductDetailResponseDto ToDto(Product product, string mainImage);
+    }
 }
