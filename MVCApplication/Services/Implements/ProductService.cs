@@ -1,5 +1,4 @@
 ﻿using MVCApplication.CustomFormatter;
-using MVCApplication.Models;
 using MVCApplication.Models.DTOs;
 
 namespace MVCApplication.Services.Implements

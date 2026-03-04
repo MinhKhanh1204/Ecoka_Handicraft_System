@@ -1,6 +1,5 @@
-﻿using MVCApplication.Models.DTOs;
-
-namespace MVCApplication.Models
+﻿
+namespace MVCApplication.Models.DTOs
 {
     public class ProductDetailResponseDto
     {
