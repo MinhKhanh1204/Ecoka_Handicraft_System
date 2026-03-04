@@ -11,7 +11,14 @@ namespace FeedbackAPI.Repositories.Implements
         {
             _context = context;
         }
-
+        public async Task<bool> ExistsAsync(string customerId, string productId)
+        {
+            return await _context.Feedbacks
+                .AnyAsync(f =>
+                    f.CustomerID == customerId &&
+                    f.ProductID == productId &&
+                    f.Status == "Active");
+        }
         // ================= READ =================
 
         public async Task<IEnumerable<Feedback>> GetAllAsync()

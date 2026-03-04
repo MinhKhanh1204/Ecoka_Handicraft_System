@@ -13,17 +13,21 @@ namespace MVCApplication.Controllers
             _feedbackService = feedbackService;
         }
 
+        // ================= GET BY PRODUCT + FILTER =================
         [HttpGet]
-        public async Task<IActionResult> GetByProduct(string productId)  // ← đổi sang string
+        public async Task<IActionResult> GetByProduct(string productId, int? minRating)
         {
             var feedbacks = await _feedbackService.FilterAsync(new FeedbackFilterDto
             {
-                ProductID = productId,    // ← giờ khớp string = string
-                Status = "Active"
+                ProductID = productId,
+                Status = "Active",
+                MinRating = minRating
             });
+
             return Json(feedbacks);
         }
 
+        // ================= CREATE =================
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
         {
@@ -35,6 +39,38 @@ namespace MVCApplication.Controllers
             {
                 var result = await _feedbackService.CreateAsync(dto);
                 return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ================= UPDATE =================
+        [HttpPut]
+        [Route("Feedback/Update/{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] FeedbackUpdateDto dto)
+        {
+            try
+            {
+                var result = await _feedbackService.UpdateAsync(id, dto);
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ================= DELETE =================
+        [HttpDelete]
+        [Route("Feedback/Delete/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _feedbackService.DeleteAsync(id);
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
