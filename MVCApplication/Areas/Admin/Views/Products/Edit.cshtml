@@ -1,0 +1,133 @@
+@using MVCApplication.Areas.Admin.DTOs
+@model UpdateProductDto
+
+@{
+    ViewData["Title"] = "Chỉnh sửa sản phẩm";
+    var productId = (string)ViewBag.ProductID;
+}
+
+<div class="pagetitle">
+    <h1>Chỉnh sửa sản phẩm</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin sản phẩm: <span class="text-primary">@productId</span></h5>
+
+                    <form asp-action="Edit" asp-route-id="@productId" method="post" class="row g-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+
+                        <div class="col-md-8">
+                            <label asp-for="ProductName" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="ProductName" class="form-control" />
+                            <span asp-validation-for="ProductName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="CategoryID" class="form-label">Danh mục</label>
+                            <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryID" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Price" class="form-label">Giá bán (VNĐ)</label>
+                            <input asp-for="Price" type="number" class="form-control" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Discount" class="form-label">Giảm giá (%)</label>
+                            <input asp-for="Discount" type="number" class="form-control" />
+                            <span asp-validation-for="Discount" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="StockQuantity" class="form-label">Số lượng tồn</label>
+                            <input asp-for="StockQuantity" type="number" class="form-control" />
+                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Status" class="form-label">Trạng thái</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Material" class="form-label">Chất liệu</label>
+                            <input asp-for="Material" class="form-control" />
+                            <span asp-validation-for="Material" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Mô tả chi tiết</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Link URL - Yêu cầu đúng 4 ảnh)</h6>
+                            <p class="text-muted small">Cung cấp đủ 4 ảnh. Chọn 1 ảnh làm ảnh chính.</p>
+                            
+                            <div id="image-inputs">
+                                @for (int i = 0; i < 4; i++)
+                                {
+                                    <div class="row g-2 mb-2 align-items-center">
+                                        <div class="col-md-9">
+                                            <input asp-for="Images[i].ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                                            <span asp-validation-for="Images[i].ImageUrl" class="text-danger"></span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="mainImageIndex" value="@i" @(Model.Images != null && i < Model.Images.Count && Model.Images[i].IsMain ? "checked" : "")>
+                                                <label class="form-check-label">Ảnh chính</label>
+                                            </div>
+                                            <input type="hidden" asp-for="Images[i].IsMain" id="isMain_@i" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4 text-center">
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="bi bi-save me-1"></i>Lưu thay đổi
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary px-4">Quay lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.querySelectorAll('input[name="mainImageIndex"]').forEach((radio, index) => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('input[type="hidden"][name$=".IsMain"]').forEach((hidden, hIndex) => {
+                    hidden.value = (hIndex === index).toString().toLowerCase();
+                });
+            });
+        });
+    </script>
+}

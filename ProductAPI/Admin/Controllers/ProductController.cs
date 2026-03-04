@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Services;
+using ProductAPI.CustomFormatter;
 
 namespace ProductAPI.Admin.Controllers
 {
@@ -17,20 +18,16 @@ namespace ProductAPI.Admin.Controllers
             _service = service;
         }
 
-        // ================= GET ALL =================
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetPaged(
+            [FromQuery] string? keyword, 
+            [FromQuery] string? status, 
+            [FromQuery] string? userRole,
+            [FromQuery] int pageNumber = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
-        }
-
-        // ================= SEARCH =================
-        [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string keyword)
-        {
-            var result = await _service.SearchAsync(keyword);
-            return Ok(result);
+            var result = await _service.GetPagedAsync(keyword, status, userRole, pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<ProductListDto>>.SuccessResponse(result));
         }
 
         // ================= GET BY ID =================
@@ -40,11 +37,11 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 var product = await _service.GetByIdAsync(id);
-                return Ok(product);
+                return Ok(ApiResponse<ProductDetailDto>.SuccessResponse(product));
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(ApiResponse<ProductDetailDto>.Fail(ex.Message, 404));
             }
         }
 
@@ -54,10 +51,17 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
 
-            await _service.CreateAsync(dto);
-            return StatusCode(201, "Created successfully");
+            try
+            {
+                await _service.CreateAsync(dto);
+                return StatusCode(201, ApiResponse<string>.SuccessResponse("Created successfully", "Created successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message, 400));
+            }
         }
 
         // ================= UPDATE =================
@@ -66,16 +70,16 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> Update(string id, [FromBody] UpdateProductDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
 
             try
             {
                 await _service.UpdateAsync(id, dto);
-                return Ok("Updated successfully");
+                return Ok(ApiResponse<string>.SuccessResponse("Updated successfully", "Updated successfully"));
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(ApiResponse<string>.Fail(ex.Message, 404));
             }
         }
 
@@ -87,11 +91,11 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.ApproveAsync(id);
-                return Ok("Approved successfully");
+                return Ok(ApiResponse<string>.SuccessResponse("Approved successfully", "Approved successfully"));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ApiResponse<string>.Fail(ex.Message, 400));
             }
         }
 
@@ -103,11 +107,11 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.RejectAsync(id);
-                return Ok("Rejected successfully"); 
+                return Ok(ApiResponse<string>.SuccessResponse("Rejected successfully", "Rejected successfully")); 
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ApiResponse<string>.Fail(ex.Message, 400));
             }
         }
 
@@ -119,11 +123,11 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.DeleteAsync(id); 
-                return Ok("Product inactivated successfully");
+                return Ok(ApiResponse<string>.SuccessResponse("Product inactivated successfully", "Product inactivated successfully"));
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(ApiResponse<string>.Fail(ex.Message, 404));
             }
         }
     }

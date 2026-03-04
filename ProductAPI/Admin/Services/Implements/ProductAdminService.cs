@@ -3,6 +3,7 @@ using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Repositories;
 using ProductAPI.Admin.Services;
 using ProductAPI.Models;
+using ProductAPI.CustomFormatter;
 
 namespace ProductAPI.Admin.Services.Implements
 {
@@ -15,17 +16,59 @@ namespace ProductAPI.Admin.Services.Implements
             _repository = repository;
         }
 
-        // ================= GET ALL =================
-        public async Task<List<ProductListDto>> GetAllAsync()
+        // ================= GET PAGED =================
+        public async Task<PagedResult<ProductListDto>> GetPagedAsync(string? keyword, string? status, string? userRole, int pageNumber, int pageSize)
         {
-            return await _repository.GetQueryable()
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var query = _repository.GetQueryable();
+
+            // ================= FILTER =================
+
+            if (!string.IsNullOrWhiteSpace(userRole) &&
+                userRole.Equals("Staff", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(p => p.Status != ProductStatus.Rejected);
+            }
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(p =>
+                    EF.Functions.Like(p.ProductName, $"%{keyword}%") ||
+                    (p.Category != null &&
+                     EF.Functions.Like(p.Category.CategoryName, $"%{keyword}%"))
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(status) &&
+                !status.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+                var statusLower = status.Trim().ToLower();
+                query = query.Where(p => p.Status.ToLower() == statusLower);
+            }
+
+            // ================= COUNT (chỉ filter) =================
+            var totalCount = await query.CountAsync();
+
+            // ================= ORDER ỔN ĐỊNH =================
+            // Dùng ProductID làm key chính để đảm bảo thứ tự tuyệt đối
+            query = query
+                .OrderBy(p => p.ProductID);
+
+            // ================= PAGING =================
+            var items = await query
+                .AsNoTracking()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new ProductListDto
                 {
                     ProductID = p.ProductID,
                     ProductName = p.ProductName,
-                    CategoryName = p.Category.CategoryName,
+                    CategoryName = p.Category != null
+                        ? p.Category.CategoryName
+                        : "Unknown",
                     Price = p.Price,
                     StockQuantity = p.StockQuantity,
                     Status = p.Status,
@@ -35,38 +78,9 @@ namespace ProductAPI.Admin.Services.Implements
                         .FirstOrDefault()
                 })
                 .ToListAsync();
-        }
 
-        // ================= SEARCH =================
-        public async Task<List<ProductListDto>> SearchAsync(string keyword)
-        {
-            if (string.IsNullOrWhiteSpace(keyword))
-                return await GetAllAsync();
-
-            keyword = keyword.Trim();
-
-            return await _repository.GetQueryable()
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages)
-                .Where(p =>
-                    EF.Functions.Collate(p.ProductName, "Latin1_General_CI_AI").Contains(keyword) ||
-                    EF.Functions.Collate(p.Status, "Latin1_General_CI_AI").Contains(keyword) ||
-                    EF.Functions.Collate(p.Category.CategoryName, "Latin1_General_CI_AI").Contains(keyword)
-                )
-                .Select(p => new ProductListDto
-                {
-                    ProductID = p.ProductID,
-                    ProductName = p.ProductName,
-                    CategoryName = p.Category.CategoryName,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    Status = p.Status,
-                    MainImage = p.ProductImages
-                        .Where(i => i.IsMain)
-                        .Select(i => i.ImageURL)
-                        .FirstOrDefault()
-                })
-                .ToListAsync();
+            return PagedResult<ProductListDto>.Create(
+                items, totalCount, pageNumber, pageSize);
         }
 
         // ================= GET BY ID =================
@@ -118,7 +132,10 @@ namespace ProductAPI.Admin.Services.Implements
             if (lastProduct != null)
             {
                 var numberPart = lastProduct.ProductID.Substring(prefix.Length);
-                nextNumber = int.Parse(numberPart) + 1;
+                if (int.TryParse(numberPart, out int currentNumber))
+                {
+                    nextNumber = currentNumber + 1;
+                }
             }
 
             var newProductID = $"{prefix}{nextNumber:D3}";
@@ -271,13 +288,5 @@ namespace ProductAPI.Admin.Services.Implements
                     throw new Exception("Image URL cannot be empty.");
             }
         }
-    }
-
-    public static class ProductStatus
-    {
-        public const string Pending = "Pending";
-        public const string Approved = "Approved";
-        public const string Rejected = "Rejected";
-        public const string Inactive = "Inactive";
     }
 }
