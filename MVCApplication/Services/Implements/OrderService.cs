@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
-using MVCApplication.Models;
+using MVCApplication.Models.DTOs;
 
 namespace MVCApplication.Services.Implements
 {
@@ -29,8 +29,8 @@ namespace MVCApplication.Services.Implements
 
         public async Task<IEnumerable<Order>> GetOrdersByCustomerAsync(string customerId)
         {
-            //if (string.IsNullOrWhiteSpace(customerId))
-            //    return Enumerable.Empty<Order>();
+            if (string.IsNullOrWhiteSpace(customerId))
+                return Enumerable.Empty<Order>();
 
             var response = await _http.GetAsync($"/customer/orders");
 
@@ -68,11 +68,18 @@ namespace MVCApplication.Services.Implements
             return await GetOrNullAsync<Order>($"customer/orders/{Uri.EscapeDataString(orderId)}");
         }
 
-        public async Task<bool> CancelOrderAsync(string orderId, string cancelReason)
+        public async Task CancelOrderAsync(string orderId, string cancelReason)
         {
-            var uri = QueryHelpers.AddQueryString($"customer/orders/{Uri.EscapeDataString(orderId)}", new Dictionary<string, string?> { ["reason"] = cancelReason });
-            var resp = await _http.DeleteAsync(uri);
-            return resp.IsSuccessStatusCode;
+            var response = await _http.PutAsJsonAsync(
+                $"customer/orders/{Uri.EscapeDataString(orderId)}/cancel",
+                cancelReason
+            );
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Cancel failed: {error}");
+            }
         }
 
         public async Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId)

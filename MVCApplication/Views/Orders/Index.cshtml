@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Order>
+﻿@using MVCApplication.Models.DTOs
+@model IEnumerable<Order>
 
 @{
     ViewData["Title"] = "My Orders";
@@ -6,6 +7,50 @@
 
 <div class="container py-5">
     <h2 class="mb-4">My Orders</h2>
+
+    <!-- SEARCH FORM -->
+    <form asp-action="Search" method="get" class="mb-4">
+        <div class="row g-2">
+
+            <div class="col-md-3">
+                <input type="text" name="orderId"
+                       class="form-control"
+                       placeholder="Order ID" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="from" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" name="to" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <select name="paymentStatus" class="form-select">
+                    <option value="">All Payment</option>
+                    <option>Paid</option>
+                    <option>Pending</option>
+                    <option>Failed</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <select name="tabStatus" class="form-select">
+                    <option value="">All</option>
+                    <option value="current">Current</option>
+                    <option value="history">History</option>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100">
+                    Search
+                </button>
+            </div>
+
+        </div>
+    </form>
 
     @if (!Model.Any())
     {
@@ -20,7 +65,7 @@
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card shadow-sm h-100 border-0">
 
-                    <!-- Header -->
+                    <!-- HEADER -->
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <strong>#@order.OrderID</strong>
                         <span class="badge bg-primary">
@@ -28,22 +73,21 @@
                         </span>
                     </div>
 
-                    <!-- Body -->
+                    <!-- BODY -->
                     <div class="card-body">
-
-                        <p class="mb-1">
+                        <p>
                             <strong>Date:</strong>
                             @order.OrderDate?.ToString("dd/MM/yyyy")
                         </p>
 
-                        <p class="mb-1">
+                        <p>
                             <strong>Shipping:</strong>
                             <span class="badge bg-warning text-dark">
                                 @order.ShippingStatus
                             </span>
                         </p>
 
-                        <p class="mb-2">
+                        <p>
                             <strong>Address:</strong>
                             @order.ShippingAddress
                         </p>
@@ -62,13 +106,16 @@
                         </div>
                     </div>
 
-                    <!-- Footer -->
+                    <!-- FOOTER -->
                     @if (order.ShippingStatus == "Pending")
                     {
                         <div class="card-footer bg-white text-end border-0">
                             <form asp-action="Cancel" method="post">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@order.OrderID" />
-                                <button class="btn btn-sm btn-danger">
+
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Are you sure you want to cancel this order?');">
                                     Cancel
                                 </button>
                             </form>
@@ -81,16 +128,19 @@
     </div>
 </div>
 
+<!-- MODAL -->
 <div class="modal fade" id="orderDetailModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
 
-            <div class="modal-header bg-dark text-white rounded-top-4">
+            <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title fw-bold">
                     🧾 Order Details
                 </h5>
-                <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
             </div>
 
             <div class="modal-body p-4" id="orderDetailContent">
@@ -107,22 +157,23 @@
     async function showOrderDetail(orderId) {
 
         const modal = new bootstrap.Modal(
-            document.getElementById('orderDetailModal'));
+            document.getElementById('orderDetailModal')
+        );
 
         modal.show();
 
-        document.getElementById("orderDetailContent").innerHTML =
-            `<div class="text-center py-5">
+        document.getElementById("orderDetailContent").innerHTML = `
+            <div class="text-center py-5">
                 <div class="spinner-border text-dark"></div>
-             </div>`;
+            </div>`;
 
         const response = await fetch(`/Orders/Details/${orderId}`);
 
         if (!response.ok) {
-            document.getElementById("orderDetailContent").innerHTML =
-                `<div class="alert alert-danger">
+            document.getElementById("orderDetailContent").innerHTML = `
+                <div class="alert alert-danger">
                     Failed to load order details
-                 </div>`;
+                </div>`;
             return;
         }
 

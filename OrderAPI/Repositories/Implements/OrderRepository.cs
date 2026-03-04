@@ -67,18 +67,21 @@ namespace OrderAPI.Repositories.Implements
                 {
                     var pending = PaymentStatus.Pending.ToString();
                     var shippingPending = ShippingStatus.Pending.ToString();
+                    var shippingApproved = ShippingStatus.Approved.ToString();
                     query = query.Where(o =>
                         o.ShippingStatus == shippingPending ||
-                        o.PaymentStatus == pending);
+                        o.ShippingStatus == shippingApproved);
                 }
                 else if (t == "history")
                 {
                     // treat Approved as delivered/complete in current enum
                     var approved = ShippingStatus.Approved.ToString();
                     var cancelled = ShippingStatus.Cancelled.ToString();
+                    var returned = ShippingStatus.Returned.ToString();
                     query = query.Where(o =>
                         o.ShippingStatus == approved ||
-                        o.ShippingStatus == cancelled);
+                        o.ShippingStatus == cancelled ||
+                        o.ShippingStatus == returned);
                 }
             }
 
