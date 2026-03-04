@@ -25,7 +25,7 @@
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
         {
-            "DownstreamPathTemplate": "/api/admin/categories/{everything}",
+            "DownstreamPathTemplate": "/api/categories/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
@@ -46,6 +46,18 @@
                 }
             ],
             "UpstreamPathTemplate": "/customer/orders/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/admin/categories/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7109
+                }
+            ],
+            "UpstreamPathTemplate": "/admin/categories/{everything}",
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
         {
