@@ -11,53 +11,87 @@ namespace MVCApplication.Controllers
 {
     public class OrdersController : Controller
     {
-        private readonly IOrderService _service;
+        private readonly IOrderService _orderService;
+        private readonly IProductService _productService;
 
-        public OrdersController(IOrderService service)
+
+        public OrdersController(IOrderService service, IProductService productService)
         {
-            _service = service;
+            _orderService = service;
+            _productService = productService;
         }
 
         // Danh sách order của customer
-        public async Task<IActionResult> Index(string customerId)
+        public async Task<IActionResult> Index(string? search)
         {
-            //if (string.IsNullOrWhiteSpace(customerId))
-            //    return BadRequest("CustomerId required");
+            var customerId = User.FindFirst("accountID")?.Value;
+            if (string.IsNullOrWhiteSpace(customerId))
+                return BadRequest("CustomerId required");
 
-            var orders = await _service.GetOrdersByCustomerAsync(customerId);
+            var orders = await _orderService
+                .GetOrdersByCustomerAsync(customerId);
+
             return View(orders);
         }
 
         // Chi tiết order
         public async Task<IActionResult> Details(string id)
         {
-            var order = await _service.GetOrderDetailAsync(id);
+            var order = await _orderService.GetOrderDetailAsync(id);
             if (order == null) return NotFound();
+            if (order.OrderItems != null)
+    {
+        foreach (var item in order.OrderItems)
+        {
+            if (!string.IsNullOrEmpty(item.ProductID))
+            {
+                var product = await _productService
+                    .GetProductDetailAsync(item.ProductID);
+
+                if (product != null)
+                {
+                    item.ProductName = product.ProductName;
+                    item.ProductImage = product.MainImage;
+                }
+            }
+        }
+    }
 
             return PartialView("_OrderDetailPartial", order);
         }
 
         // Search
         public async Task<IActionResult> Search(
-            string customerId,
-            string? orderId,
-            DateTime? from,
-            DateTime? to,
-            string? paymentStatus,
-            string? tabStatus)
+    string? orderId,
+    DateTime? from,
+    DateTime? to,
+    string? paymentStatus,
+    string? tabStatus)
         {
-            var orders = await _service.SearchOrdersAsync(
-                customerId, orderId, from, to, paymentStatus, tabStatus);
+            var customerId = User.FindFirst("accountID")?.Value;
+
+            if (string.IsNullOrWhiteSpace(customerId))
+                return BadRequest("CustomerId required");
+
+            var orders = await _orderService.SearchOrdersAsync(
+                customerId,
+                orderId,
+                from,
+                to,
+                paymentStatus,
+                tabStatus);
 
             return View("Index", orders);
         }
 
         // Cancel
         [HttpPost]
-        public async Task<IActionResult> Cancel(string id, string? returnCustomerId = null)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(string id)
         {
-            await _service.CancelOrderAsync(id, "Cancelled by customer");
-            return RedirectToAction(nameof(Index), new { customerId = returnCustomerId });
+            await _orderService.CancelOrderAsync(id, "Cancelled by customer");
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

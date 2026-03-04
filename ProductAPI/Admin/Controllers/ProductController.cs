@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductAPI.admin.DTOs;
-using ProductAPI.admin.Services;
+using ProductAPI.Admin.DTOs;
+using ProductAPI.Admin.Services;
 
-namespace ProductAPI.admin.Controllers
+namespace ProductAPI.Admin.Controllers
 {
     [Route("api/admin/products")]
     [ApiController]
@@ -17,9 +17,7 @@ namespace ProductAPI.admin.Controllers
             _service = service;
         }
 
-        // ==========================
-        // GET ALL (Admin + Staff)
-        // ==========================
+        // ================= GET ALL =================
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -27,6 +25,7 @@ namespace ProductAPI.admin.Controllers
             return Ok(result);
         }
 
+        // ================= SEARCH =================
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
@@ -34,9 +33,7 @@ namespace ProductAPI.admin.Controllers
             return Ok(result);
         }
 
-        // ==========================
-        // GET BY ID (Admin + Staff)
-        // ==========================
+        // ================= GET BY ID =================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -51,6 +48,7 @@ namespace ProductAPI.admin.Controllers
             }
         }
 
+        // ================= CREATE =================
         [HttpPost]
         //[Authorize(Roles = "Staff")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
@@ -59,10 +57,10 @@ namespace ProductAPI.admin.Controllers
                 return BadRequest(ModelState);
 
             await _service.CreateAsync(dto);
-
-            return Ok("Created successfully");
+            return StatusCode(201, "Created successfully");
         }
 
+        // ================= UPDATE =================
         [HttpPut("{id}")]
         //[Authorize(Roles = "Staff")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateProductDto dto)
@@ -81,14 +79,47 @@ namespace ProductAPI.admin.Controllers
             }
         }
 
+        // ================= APPROVE =================
+        [HttpPut("approve/{id}")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Approve(string id)
+        {
+            try
+            {
+                await _service.ApproveAsync(id);
+                return Ok("Approved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // ================= REJECT =================
+        [HttpPut("reject/{id}")]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Reject(string id)
+        {
+            try
+            {
+                await _service.RejectAsync(id);
+                return Ok("Rejected successfully"); 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // ================= DELETE (INACTIVE) =================
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Staff")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
             try
             {
-                await _service.DeleteAsync(id);
-                return Ok("Deleted successfully");
+                await _service.DeleteAsync(id); 
+                return Ok("Product inactivated successfully");
             }
             catch (Exception ex)
             {
