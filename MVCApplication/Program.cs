@@ -16,6 +16,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();    
 
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
@@ -24,6 +25,7 @@ builder.Services.AddGatewayPublicClient<IAccountService, AccountService>(gateway
 builder.Services.AddGatewayAuthClient<IOrderService, OrderService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);  // ← THÊM TỪ BRANCH
 
 //setting authen
 builder.Services
@@ -70,7 +72,7 @@ builder.Services
 
             NameClaimType = "username",
             RoleClaimType = ClaimTypes.Role
-		};
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -79,9 +81,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
