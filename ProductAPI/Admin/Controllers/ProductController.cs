@@ -48,7 +48,7 @@ namespace ProductAPI.Admin.Controllers
         // ================= CREATE =================
         [HttpPost]
         //[Authorize(Roles = "Staff")]
-        public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
+        public async Task<IActionResult> Create([FromForm] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
@@ -67,7 +67,7 @@ namespace ProductAPI.Admin.Controllers
         // ================= UPDATE =================
         [HttpPut("{id}")]
         //[Authorize(Roles = "Staff")]
-        public async Task<IActionResult> Update(string id, [FromBody] UpdateProductDto dto)
+        public async Task<IActionResult> Update(string id, [FromForm] UpdateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));

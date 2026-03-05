@@ -4,16 +4,19 @@ using ProductAPI.Admin.Repositories;
 using ProductAPI.Admin.Services;
 using ProductAPI.Models;
 using ProductAPI.CustomFormatter;
+using ProductAPI.Services;
 
 namespace ProductAPI.Admin.Services.Implements
 {
     public class ProductAdminService : IProductAdminService
     {
         private readonly IProductAdminRepository _repository;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductAdminService(IProductAdminRepository repository)
+        public ProductAdminService(IProductAdminRepository repository, ICloudinaryService cloudinaryService)
         {
             _repository = repository;
+            _cloudinaryService = cloudinaryService;
         }
 
         // ================= GET PAGED =================
@@ -107,6 +110,7 @@ namespace ProductAPI.Admin.Services.Implements
                 CreatedAt = product.CreatedAt,
                 CategoryName = product.Category.CategoryName,
                 Images = product.ProductImages
+                    .OrderByDescending(i => i.IsMain)
                     .Select(i => i.ImageURL)
                     .ToList()
             };
@@ -118,9 +122,10 @@ namespace ProductAPI.Admin.Services.Implements
             ValidateProduct(dto.ProductName, dto.Description, dto.Material,
                             dto.Price, dto.Discount, dto.StockQuantity);
 
-            ValidateImages(dto.Images, i => i.ImageUrl, i => i.IsMain);
+            await ValidateImagesAsync(dto.Images, i => i.ImageUrl, i => i.ImageFile, i => i.IsMain);
 
             var prefix = "ECOKA";
+            // ... (rest of ID generation logic)
 
             var lastProduct = await _repository.GetQueryable()
                 .Where(p => p.ProductID.StartsWith(prefix))
@@ -156,10 +161,16 @@ namespace ProductAPI.Admin.Services.Implements
 
             foreach (var img in dto.Images)
             {
+                var imageUrl = img.ImageUrl;
+                if (img.ImageFile != null)
+                {
+                    imageUrl = await _cloudinaryService.UploadImageAsync(img.ImageFile);
+                }
+
                 product.ProductImages.Add(new ProductImage
                 {
                     ProductID = newProductID,
-                    ImageURL = img.ImageUrl,
+                    ImageURL = imageUrl!,
                     IsMain = img.IsMain
                 });
             }
@@ -191,16 +202,22 @@ namespace ProductAPI.Admin.Services.Implements
 
             if (dto.Images != null && dto.Images.Any())
             {
-                ValidateImages(dto.Images, i => i.ImageUrl, i => i.IsMain);
+                await ValidateImagesAsync(dto.Images, i => i.ImageUrl, i => i.ImageFile, i => i.IsMain);
 
                 product.ProductImages.Clear();
 
                 foreach (var img in dto.Images)
                 {
+                    var imageUrl = img.ImageUrl;
+                    if (img.ImageFile != null)
+                    {
+                        imageUrl = await _cloudinaryService.UploadImageAsync(img.ImageFile);
+                    }
+
                     product.ProductImages.Add(new ProductImage
                     {
                         ProductID = id,
-                        ImageURL = img.ImageUrl,
+                        ImageURL = imageUrl!,
                         IsMain = img.IsMain
                     });
                 }
@@ -271,9 +288,10 @@ namespace ProductAPI.Admin.Services.Implements
                 throw new Exception("Stock quantity cannot be negative.");
         }
 
-        private void ValidateImages<T>(
+        private async Task ValidateImagesAsync<T>(
             ICollection<T> images,
-            Func<T, string> imageUrlSelector,
+            Func<T, string?> imageUrlSelector,
+            Func<T, IFormFile?> imageFileSelector,
             Func<T, bool> isMainSelector)
         {
             if (images == null || images.Count != 4)
@@ -284,8 +302,8 @@ namespace ProductAPI.Admin.Services.Implements
 
             foreach (var img in images)
             {
-                if (string.IsNullOrWhiteSpace(imageUrlSelector(img)))
-                    throw new Exception("Image URL cannot be empty.");
+                if (string.IsNullOrWhiteSpace(imageUrlSelector(img)) && imageFileSelector(img) == null)
+                    throw new Exception("Each image must have either a URL or a file.");
             }
         }
     }

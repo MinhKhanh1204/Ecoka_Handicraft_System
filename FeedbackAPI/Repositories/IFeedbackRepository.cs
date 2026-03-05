@@ -7,11 +7,11 @@ namespace FeedbackAPI.Repositories
         // ===== READ =====
         Task<IEnumerable<Feedback>> GetAllAsync();
         Task<Feedback?> GetByIdAsync(int feedbackId);
-
+        Task<bool> ExistsAsync(string customerId, string productId);
         // ===== FILTER =====
         Task<IEnumerable<Feedback>> FilterAsync(
-            int? customerId,
-            int? productId,
+            string? customerId,
+            string? productId,
             int? minRating,
             int? maxRating,
             string? status,

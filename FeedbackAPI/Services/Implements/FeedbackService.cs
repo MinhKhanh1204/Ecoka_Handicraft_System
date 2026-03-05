@@ -57,11 +57,18 @@ namespace FeedbackAPI.Services.Implements
 
         public async Task<FeedbackReadDto> CreateAsync(FeedbackCreateDto dto)
         {
+            var existed = await _repo.ExistsAsync(dto.CustomerID, dto.ProductID);
+
+            if (existed)
+            {
+                throw new Exception("You have already reviewed this product.");
+            }
+
             var entity = _mapper.Map<Feedback>(dto);
             var created = await _repo.CreateAsync(entity);
             var result = _mapper.Map<FeedbackReadDto>(created);
 
-            // Notify all clients watching this product
+            // SignalR notify
             await _hub.Clients
                 .Group($"product_{result.ProductID}")
                 .SendAsync("FeedbackCreated", result);

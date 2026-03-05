@@ -37,27 +37,44 @@ namespace MVCApplication.Controllers
         // Chi tiết order
         public async Task<IActionResult> Details(string id)
         {
-            var order = await _orderService.GetOrderDetailAsync(id);
-            if (order == null) return NotFound();
-            if (order.OrderItems != null)
-    {
-        foreach (var item in order.OrderItems)
-        {
-            if (!string.IsNullOrEmpty(item.ProductID))
+            try
             {
-                var product = await _productService
-                    .GetProductDetailAsync(item.ProductID);
+                var order = await _orderService.GetOrderDetailAsync(id);
+                if (order == null)
+                    return NotFound();
 
-                if (product != null)
+                if (order.OrderItems != null)
                 {
-                    item.ProductName = product.ProductName;
-                    item.ProductImage = product.MainImage;
-                }
-            }
-        }
-    }
+                    foreach (var item in order.OrderItems)
+                    {
+                        if (!string.IsNullOrWhiteSpace(item.ProductID))
+                        {
+                            try
+                            {
+                                var product = await _productService
+                                    .GetProductDetailAsync(item.ProductID);
 
-            return PartialView("_OrderDetailPartial", order);
+                                if (product != null)
+                                {
+                                    item.ProductName = product.ProductName;
+                                    item.ProductImage = product.MainImage;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("Product API error: " + ex.Message);
+                            }
+                        }
+                    }
+                }
+
+                return PartialView("_OrderDetailPartial", order);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Order detail error: " + ex.Message);
+                return StatusCode(500, "Failed to load order details");
+            }
         }
 
         // Search

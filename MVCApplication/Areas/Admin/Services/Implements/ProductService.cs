@@ -79,7 +79,32 @@ namespace MVCApplication.Areas.Admin.Services.Implements
 
         public async Task<bool> CreateAsync(CreateProductDto dto)
         {
-            var resp = await _http.PostAsJsonAsync(BasePath, dto);
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(dto.CategoryID.ToString()), nameof(dto.CategoryID));
+            content.Add(new StringContent(dto.ProductName), nameof(dto.ProductName));
+            if (dto.Description != null) content.Add(new StringContent(dto.Description), nameof(dto.Description));
+            if (dto.Material != null) content.Add(new StringContent(dto.Material), nameof(dto.Material));
+            content.Add(new StringContent(dto.Price.ToString()), nameof(dto.Price));
+            content.Add(new StringContent(dto.Discount.ToString()), nameof(dto.Discount));
+            content.Add(new StringContent(dto.StockQuantity.ToString()), nameof(dto.StockQuantity));
+
+            for (int i = 0; i < dto.Images.Count; i++)
+            {
+                var img = dto.Images[i];
+                if (!string.IsNullOrWhiteSpace(img.ImageUrl))
+                {
+                    content.Add(new StringContent(img.ImageUrl), $"Images[{i}].ImageUrl");
+                }
+                if (img.ImageFile != null)
+                {
+                    var fileContent = new StreamContent(img.ImageFile.OpenReadStream());
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.ImageFile.ContentType);
+                    content.Add(fileContent, $"Images[{i}].ImageFile", img.ImageFile.FileName);
+                }
+                content.Add(new StringContent(img.IsMain.ToString().ToLower()), $"Images[{i}].IsMain");
+            }
+
+            var resp = await _http.PostAsync(BasePath, content);
             if (!resp.IsSuccessStatusCode)
                 return false;
 
@@ -89,7 +114,33 @@ namespace MVCApplication.Areas.Admin.Services.Implements
 
         public async Task<bool> UpdateAsync(string id, UpdateProductDto dto)
         {
-            var resp = await _http.PutAsJsonAsync($"{BasePath}/{id}", dto);
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(dto.CategoryID.ToString()), nameof(dto.CategoryID));
+            content.Add(new StringContent(dto.ProductName), nameof(dto.ProductName));
+            if (dto.Description != null) content.Add(new StringContent(dto.Description), nameof(dto.Description));
+            if (dto.Material != null) content.Add(new StringContent(dto.Material), nameof(dto.Material));
+            content.Add(new StringContent(dto.Price.ToString()), nameof(dto.Price));
+            content.Add(new StringContent(dto.Discount.ToString()), nameof(dto.Discount));
+            content.Add(new StringContent(dto.StockQuantity.ToString()), nameof(dto.StockQuantity));
+            content.Add(new StringContent(dto.Status), nameof(dto.Status));
+
+            for (int i = 0; i < dto.Images.Count; i++)
+            {
+                var img = dto.Images[i];
+                if (!string.IsNullOrWhiteSpace(img.ImageUrl))
+                {
+                    content.Add(new StringContent(img.ImageUrl), $"Images[{i}].ImageUrl");
+                }
+                if (img.ImageFile != null)
+                {
+                    var fileContent = new StreamContent(img.ImageFile.OpenReadStream());
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.ImageFile.ContentType);
+                    content.Add(fileContent, $"Images[{i}].ImageFile", img.ImageFile.FileName);
+                }
+                content.Add(new StringContent(img.IsMain.ToString().ToLower()), $"Images[{i}].IsMain");
+            }
+
+            var resp = await _http.PutAsync($"{BasePath}/{id}", content);
             if (!resp.IsSuccessStatusCode)
                 return false;
 
