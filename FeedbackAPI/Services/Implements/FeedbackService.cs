@@ -12,15 +12,18 @@ namespace FeedbackAPI.Services.Implements
         private readonly IFeedbackRepository _repo;
         private readonly IMapper _mapper;
         private readonly IHubContext<FeedbackHub> _hub;
+        private readonly IAccountService _accountService;
 
         public FeedbackService(
             IFeedbackRepository repo,
             IMapper mapper,
-            IHubContext<FeedbackHub> hub)
+            IHubContext<FeedbackHub> hub,
+            IAccountService accountService)
         {
             _repo = repo;
             _mapper = mapper;
             _hub = hub;
+            _accountService = accountService;
         }
 
         // ================= READ =================
@@ -28,7 +31,14 @@ namespace FeedbackAPI.Services.Implements
         public async Task<IEnumerable<FeedbackReadDto>> GetAllAsync()
         {
             var feedbacks = await _repo.GetAllAsync();
-            return _mapper.Map<IEnumerable<FeedbackReadDto>>(feedbacks);
+            var dtos = _mapper.Map<List<FeedbackReadDto>>(feedbacks);
+
+            foreach (var dto in dtos)
+            {
+                dto.Username = await _accountService.GetUsernameAsync(dto.CustomerID!);
+            }
+
+            return dtos;
         }
 
         public async Task<FeedbackReadDto?> GetByIdAsync(int feedbackId)
@@ -50,7 +60,14 @@ namespace FeedbackAPI.Services.Implements
                 filter.From,
                 filter.To);
 
-            return _mapper.Map<IEnumerable<FeedbackReadDto>>(feedbacks);
+            var result = _mapper.Map<List<FeedbackReadDto>>(feedbacks);
+
+            foreach (var fb in result)
+            {
+                fb.Username = await _accountService.GetUsernameAsync(fb.CustomerID!);
+            }
+
+            return result;
         }
 
         // ================= CREATE =================

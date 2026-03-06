@@ -6,6 +6,7 @@ namespace MVCApplication.Models
     {
         public int FeedbackID { get; set; }
         public string? CustomerID { get; set; }
+        public string? Username { get; set; }
         public string? ProductID { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
@@ -13,7 +14,16 @@ namespace MVCApplication.Models
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
     }
-
+    public class FeedbackViewDto
+    {
+        public int FeedbackID { get; set; }
+        public string? CustomerID { get; set; }
+        public string? Username { get; set; }
+        public string? ProductID { get; set; }
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
     public class FeedbackCreateDto
     {
         [Required]

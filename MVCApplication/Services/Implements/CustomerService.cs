@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using MVCApplication.Models;
 
@@ -14,7 +15,33 @@ namespace MVCApplication.Services.Implements
         {
             _http = http;
         }
+        public async Task<string?> GetUsername(string customerId)
+        {
+            try
+            {
+                var res = await _http.GetAsync(
+                    $"https://localhost:5000/admin/customers/{customerId}");
 
+                if (!res.IsSuccessStatusCode)
+                    return customerId;
+
+                var json = await res.Content.ReadAsStringAsync();
+
+                using var doc = JsonDocument.Parse(json);
+
+                var username = doc
+                    .RootElement
+                    .GetProperty("data")
+                    .GetProperty("username")
+                    .GetString();
+
+                return username ?? customerId;
+            }
+            catch
+            {
+                return customerId;
+            }
+        }
         public async Task<IEnumerable<CustomerViewModel>> GetAllAsync()
         {
             var response = await _http.GetAsync("/admin/customers");

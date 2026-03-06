@@ -68,7 +68,10 @@ builder.Services.AddDbContext<DBContext>(opt =>
 // ========================
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-
+builder.Services.AddHttpClient<IAccountService, AccountService>(c =>
+{
+    c.BaseAddress = new Uri("https://localhost:5000");
+});
 var app = builder.Build();
 
 // ========================
