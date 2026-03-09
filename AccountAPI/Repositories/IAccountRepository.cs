@@ -1,4 +1,4 @@
-﻿using AccountAPI.Models;
+using AccountAPI.Models;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AccountAPI.Repositories
@@ -16,5 +16,10 @@ namespace AccountAPI.Repositories
         Task AddUserRoleAsync(UserRole userRole);
         Task SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
+
+        Task<Account?> GetByEmailAsync(string email);
+        Task<Account?> GetByPasswordRecoveryTokenAsync(string token);
+        Task SetPasswordRecoveryTokenAsync(string accountId, string token, DateTime expiry);
+        Task UpdatePasswordAsync(string accountId, string hashedPassword);
     }
 }

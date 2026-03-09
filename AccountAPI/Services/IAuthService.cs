@@ -1,4 +1,4 @@
-﻿using AccountAPI.DTOs;
+using AccountAPI.DTOs;
 
 namespace AccountAPI.Services
 {
@@ -7,6 +7,9 @@ namespace AccountAPI.Services
         LoginResponseDto Login(LoginRequestDto request);
 
         Task RegisterCustomerAsync(RegisterCustomerRequestDto request);
-    }
 
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
+    }
 }

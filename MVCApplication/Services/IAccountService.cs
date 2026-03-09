@@ -1,4 +1,4 @@
-﻿using MVCApplication.Models;
+using MVCApplication.Models;
 using MVCApplication.Models.DTOs;
 
 namespace MVCApplication.Services
@@ -7,5 +7,7 @@ namespace MVCApplication.Services
     {
         Task<LoginResponseDto> LoginAsync(LoginViewModel model);
         Task<bool> RegisterAsync(RegisterViewModel model);
+        Task<bool> ForgotPasswordAsync(ForgotPasswordViewModel model);
+        Task<bool> ResetPasswordAsync(ResetPasswordViewModel model);
     }
 }
