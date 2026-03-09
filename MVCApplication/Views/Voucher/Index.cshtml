@@ -1,0 +1,47 @@
+@model IEnumerable<MVCApplication.Models.DTOs.VoucherDto>
+
+@{
+    ViewData["Title"] = "Voucher List";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Available Vouchers</h1>
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-lg overflow-hidden transition-hover">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h5 class="card-title mb-0">@item.Code</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">@item.VoucherName</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-success p-2">
+                                @(item.DiscountPercentage > 0 ? $"{item.DiscountPercentage}% Off" : "Special Discount")
+                            </span>
+                            @if (item.MaxReducing.HasValue)
+                            {
+                                <small class="text-muted">Max: @string.Format("{0:C0}", item.MaxReducing)</small>
+                            }
+                        </div>
+                        <p class="card-text small text-dark">@item.Description</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3">
+                        <div class="d-grid">
+                            <a asp-action="Details" asp-route-id="@item.VoucherId" class="btn btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
