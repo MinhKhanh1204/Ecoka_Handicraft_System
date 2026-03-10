@@ -61,5 +61,32 @@ namespace MVCApplication.Services.Implements
 
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<CustomFormatter.ApiResponse<object>> ChangePasswordAsync(ChangePasswordViewModel model)
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/change-password", model);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return CustomFormatter.ApiResponse<object>.Fail("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                try 
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
+                    return errorResult ?? CustomFormatter.ApiResponse<object>.Fail("Đã có lỗi xảy ra", (int)response.StatusCode);
+                }
+                catch
+                {
+                    return CustomFormatter.ApiResponse<object>.Fail($"Lỗi hệ thống: {response.StatusCode}", (int)response.StatusCode);
+                }
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
+            
+            return result ?? CustomFormatter.ApiResponse<object>.Fail("Đã có lỗi xảy ra", (int)response.StatusCode);
+        }
     }
 }

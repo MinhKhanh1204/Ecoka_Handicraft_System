@@ -7,5 +7,6 @@ namespace MVCApplication.Services
     {
         Task<LoginResponseDto> LoginAsync(LoginViewModel model);
         Task<bool> RegisterAsync(RegisterViewModel model);
+        Task<CustomFormatter.ApiResponse<object>> ChangePasswordAsync(ChangePasswordViewModel model);
     }
 }

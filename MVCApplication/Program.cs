@@ -21,8 +21,8 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
-// AccountService → PUBLIC (No attach JWT)
-builder.Services.AddGatewayPublicClient<IAccountService, AccountService>(gatewayBase);
+// AccountService → AUTH (Need to attach JWT for change-password)
+builder.Services.AddGatewayAuthClient<IAccountService, AccountService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IOrderService, OrderService>(gatewayBase);
 //builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IProductService, MVCApplication.Services.Implements.ProductService>(gatewayBase);

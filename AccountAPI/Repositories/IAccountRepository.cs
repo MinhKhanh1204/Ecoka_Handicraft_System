@@ -16,5 +16,6 @@ namespace AccountAPI.Repositories
         Task AddUserRoleAsync(UserRole userRole);
         Task SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<Account?> GetByIdAsync(string accountId);
     }
 }

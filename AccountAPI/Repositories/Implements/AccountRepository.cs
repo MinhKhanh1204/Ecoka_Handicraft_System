@@ -60,5 +60,13 @@ namespace AccountAPI.Repositories.Implements
         {
             return await _context.Accounts.AnyAsync(x => x.Username == username);
         }
+
+        public async Task<Account?> GetByIdAsync(string accountId)
+        {
+            return await _context.Accounts
+                .Include(a => a.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(a => a.AccountID == accountId);
+        }
     }
 }

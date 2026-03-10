@@ -111,6 +111,19 @@ namespace AccountAPI.Services.Implements
             }
         }
 
-    }
+        public async Task ChangePasswordAsync(string accountId, ChangePasswordDto request)
+        {
+            var account = await _repo.GetByIdAsync(accountId);
+            if (account == null)
+                throw new NotFoundException("Account not found");
 
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, account.Password))
+                throw new BadRequestException("Old password is incorrect");
+
+            account.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            
+            await _repo.SaveChangesAsync();
+        }
+
+    }
 }

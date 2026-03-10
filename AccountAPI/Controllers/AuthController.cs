@@ -32,6 +32,17 @@ namespace AccountAPI.Controllers
             await _service.RegisterCustomerAsync(request);
             return Ok(ApiResponse<object>.SuccessResponse(new object(), "Register successfully"));
         }
-    }
 
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto request)
+        {
+            var accountId = User.FindFirst("accountID")?.Value;
+            if (string.IsNullOrEmpty(accountId))
+                return Unauthorized(ApiResponse<object>.Fail("Unauthorized", StatusCodes.Status401Unauthorized));
+
+            await _service.ChangePasswordAsync(accountId, request);
+            return Ok(ApiResponse<object>.SuccessResponse(new object(), "Password changed successfully"));
+        }
+    }
 }

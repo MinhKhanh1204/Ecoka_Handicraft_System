@@ -7,6 +7,6 @@ namespace AccountAPI.Services
         LoginResponseDto Login(LoginRequestDto request);
 
         Task RegisterCustomerAsync(RegisterCustomerRequestDto request);
+        Task ChangePasswordAsync(string accountId, ChangePasswordDto request);
     }
-
 }

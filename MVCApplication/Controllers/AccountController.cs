@@ -98,5 +98,31 @@ namespace MVCApplication.Controllers
         {
             return View();
         }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.ChangePasswordAsync(model);
+
+            if (!result.Success)
+            {
+                TempData["error"] = result.Message;
+                return View(model);
+            }
+
+            TempData["success"] = "Đổi mật khẩu thành công";
+            return RedirectToAction("RedirectByRole");
+        }
     }
 }
