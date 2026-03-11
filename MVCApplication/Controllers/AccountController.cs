@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MVCApplication.Models;
@@ -27,6 +27,50 @@ namespace MVCApplication.Controllers
         public IActionResult Register()
         {
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            await _accountService.ForgotPasswordAsync(model);
+            TempData["success"] = "If an account exists with this email, a password reset link has been sent.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string? token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["error"] = "Invalid reset link.";
+                return RedirectToAction(nameof(Login));
+            }
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var success = await _accountService.ResetPasswordAsync(model);
+            if (!success)
+            {
+                TempData["error"] = "Invalid or expired reset link. Please request a new one.";
+                return View(model);
+            }
+            TempData["success"] = "Your password has been reset. You can now log in.";
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpPost]

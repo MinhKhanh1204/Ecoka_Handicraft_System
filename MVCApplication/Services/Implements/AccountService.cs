@@ -1,4 +1,4 @@
-﻿using MVCApplication.CustomFormatter;
+using MVCApplication.CustomFormatter;
 using MVCApplication.Models;
 using MVCApplication.Models.DTOs;
 using System.Text;
@@ -87,6 +87,21 @@ namespace MVCApplication.Services.Implements
             var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
             
             return result ?? CustomFormatter.ApiResponse<object>.Fail("Đã có lỗi xảy ra", (int)response.StatusCode);
+        }
+        public async Task<bool> ForgotPasswordAsync(ForgotPasswordViewModel model)
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/forgot-password", new { model.Email });
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordViewModel model)
+        {
+            var response = await _httpClient.PostAsJsonAsync("auth/reset-password", new
+            {
+                model.Token,
+                model.NewPassword
+            });
+            return response.IsSuccessStatusCode;
         }
     }
 }

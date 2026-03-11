@@ -1,4 +1,4 @@
-﻿using AccountAPI.DTOs;
+using AccountAPI.DTOs;
 using AccountAPI.Exceptions;
 using AccountAPI.Helpers;
 using AccountAPI.Mappers;
@@ -13,17 +13,23 @@ namespace AccountAPI.Services.Implements
         private readonly JwtTokenHelper _jwt;
         private readonly IAccountMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IEmailService _emailService;
+        private readonly PasswordResetSettings _resetSettings;
 
         public AuthService(
             IAccountRepository repo,
             JwtTokenHelper jwt,
             IAccountMapper mapper,
-            ICloudinaryService cloudinaryService)
+            ICloudinaryService cloudinaryService,
+            IEmailService emailService,
+            Microsoft.Extensions.Options.IOptions<PasswordResetSettings> resetSettings)
         {
             _repo = repo;
             _jwt = jwt;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
+            _emailService = emailService;
+            _resetSettings = resetSettings.Value;
         }
 
         public LoginResponseDto Login(LoginRequestDto request)
@@ -125,5 +131,35 @@ namespace AccountAPI.Services.Implements
             await _repo.SaveChangesAsync();
         }
 
+        public async Task ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        {
+            var account = await _repo.GetByEmailAsync(request.Email);
+            if (account == null)
+                return; // Do not reveal whether email exists; always return success to caller
+
+            if (account.Status != "Active")
+                return;
+
+            var token = Guid.NewGuid().ToString("N");
+            var expiry = DateTime.UtcNow.AddMinutes(_resetSettings.TokenExpiryMinutes);
+            await _repo.SetPasswordRecoveryTokenAsync(account.AccountID, token, expiry);
+            await _emailService.SendPasswordResetEmailAsync(account.Email, token);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequestDto request)
+        {
+            var account = await _repo.GetByPasswordRecoveryTokenAsync(request.Token);
+            if (account == null)
+                throw new BadRequestException("Invalid or expired reset link.");
+
+            if (account.TokenExpiry == null || account.TokenExpiry.Value < DateTime.UtcNow)
+                throw new BadRequestException("Reset link has expired. Please request a new one.");
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _repo.UpdatePasswordAsync(account.AccountID, hashedPassword);
+
+            // Send confirmation email
+            await _emailService.SendPasswordResetConfirmationEmailAsync(account.Email);
+        }
     }
 }

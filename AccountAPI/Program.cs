@@ -12,6 +12,8 @@ using AccountAPI.Middlewares;
 using System.Text.Json;
 using CloudinaryDotNet;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 // Admin Customer Management
 using AccountAPI.Admin.Repositories;
@@ -26,6 +28,36 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Forgot password: 3 requests per 5 minutes
+    options.AddPolicy("ForgotPasswordPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(5),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Reset password: 10 attempts per 15 minutes (prevent brute force token)
+    options.AddPolicy("ResetPasswordPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(15),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+});
+
 builder.Services.AddDbContext<DBContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -33,6 +65,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountMapper, AccountMapper>();
 builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.Configure<PasswordResetSettings>(builder.Configuration.GetSection("PasswordReset"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 // Admin Customer Management
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -99,6 +134,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.UseStaticFiles();
 
