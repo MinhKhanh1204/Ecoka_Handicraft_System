@@ -7,6 +7,7 @@ namespace AccountAPI.Admin.Repositories
         IQueryable<Staff> GetAll();
 
         Task<Staff?> GetByIdAsync(string id);
+        Task<Role?> GetRoleByIdAsync(int roleId);
 
         Task AddAsync(Staff staff);
 
@@ -26,6 +27,8 @@ namespace AccountAPI.Admin.Repositories
         Task AddUserRoleAsync(UserRole userRole);
 
         Task<Role?> GetRoleByNameAsync(string roleName);
+
+        Task AddRoleAsync(Role role);
 
         Task BeginTransactionAsync();
 

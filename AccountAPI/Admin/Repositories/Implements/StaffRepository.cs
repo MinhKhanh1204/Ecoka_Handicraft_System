@@ -31,6 +31,11 @@ namespace AccountAPI.Admin.Repositories.Implements
                         .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(s => s.StaffId == id);
         }
+        public async Task<Role?> GetRoleByIdAsync(int roleId)
+        {
+            return await _context.Roles
+                .FirstOrDefaultAsync(r => r.RoleID == roleId);
+        }
 
         public async Task AddAsync(Staff staff)
         {
@@ -85,7 +90,12 @@ namespace AccountAPI.Admin.Repositories.Implements
 
         public async Task<Role?> GetRoleByNameAsync(string roleName)
         {
-            return await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
+            return await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+        }
+
+        public async Task AddRoleAsync(Role role)
+        {
+            await _context.Roles.AddAsync(role);
         }
 
         public async Task BeginTransactionAsync()

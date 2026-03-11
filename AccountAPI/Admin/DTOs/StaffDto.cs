@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AccountAPI.Admin.DTOs
 {
@@ -15,6 +15,8 @@ namespace AccountAPI.Admin.DTOs
             public string Phone { get; set; } = null!;
 
             public string Role { get; set; } = null!;
+
+            public string? Avatar { get; set; }
 
             public bool Status { get; set; }
         }
@@ -44,6 +46,14 @@ namespace AccountAPI.Admin.DTOs
 
             public string Role { get; set; } = null!;
 
+            public string? Avatar { get; set; }
+
+            public string? Gender { get; set; }
+
+            public string? CitizenId { get; set; }
+
+            public DateOnly? DateOfBirth { get; set; }
+
             public bool Status { get; set; }
 
             public DateOnly? HireDate { get; set; }
@@ -64,7 +74,7 @@ namespace AccountAPI.Admin.DTOs
             [Required]
             public string Password { get; set; } = null!;
 
-            public string Role { get; set; } = "Staff";
+            public int RoleID { get; set; }
 
             public string? Address { get; set; }
 
@@ -91,8 +101,6 @@ namespace AccountAPI.Admin.DTOs
             public string? Address { get; set; }
 
             public string? Gender { get; set; }
-
-            public string? CitizenId { get; set; }
 
             public DateOnly? DateOfBirth { get; set; }
 

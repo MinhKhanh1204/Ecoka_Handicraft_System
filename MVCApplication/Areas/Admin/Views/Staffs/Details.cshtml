@@ -1,0 +1,141 @@
+@model MVCApplication.Areas.Admin.DTOs.StaffDetailViewModel
+
+@{
+    ViewData["Title"] = "Staff Details";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+
+            <div class="card shadow-sm mb-5">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Staff Information</h3>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <!-- LEFT: Avatar + Name -->
+                        <div class="col-md-4 border-end">
+
+                            <div class="text-center">
+
+                                @if (!string.IsNullOrEmpty(Model.Avatar))
+                                {
+                                    <img src="@Model.Avatar"
+                                         alt="Avatar"
+                                         class="rounded-circle shadow mb-3"
+                                         style="width:140px;height:140px;object-fit:cover;">
+                                }
+                                else
+                                {
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3 shadow"
+                                         style="width:140px;height:140px;">
+                                        <i class="bi bi-person-fill text-white" style="font-size:3rem;"></i>
+                                    </div>
+                                }
+
+                                <h4 class="mb-1">@Model.FullName</h4>
+                                <p class="text-muted">@Model.Email</p>
+
+                                <div class="mt-3">
+
+                                    @if (Model.Role == "Admin")
+                                    {
+                                        <span class="badge bg-primary px-3 py-2">Admin</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark px-3 py-2">Staff</span>
+                                    }
+
+                                    @if (Model.Status)
+                                    {
+                                        <span class="badge bg-success px-3 py-2 ms-1">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger px-3 py-2 ms-1">Deleted</span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT: Information -->
+                        <div class="col-md-8">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Staff ID</label>
+                                    <div class="fw-semibold">@Model.StaffId</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Phone</label>
+                                    <div class="fw-semibold">@Model.Phone</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Gender</label>
+                                    <div class="fw-semibold">@(Model.Gender ?? "N/A")</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Date of Birth</label>
+                                    <div class="fw-semibold">
+                                        @(Model.DateOfBirth?.ToString("yyyy-MM-dd") ?? "N/A")
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Citizen ID</label>
+                                    <div class="fw-semibold">@(Model.CitizenId ?? "N/A")</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Hire Date</label>
+                                    <div class="fw-semibold">@(Model.HireDate ?? "N/A")</div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="text-muted small">Address</label>
+                                    <div class="fw-semibold">@(Model.Address ?? "N/A")</div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- FOOTER BUTTONS -->
+                <div class="card-footer text-center">
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.StaffId"
+                       class="btn btn-warning me-2">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>

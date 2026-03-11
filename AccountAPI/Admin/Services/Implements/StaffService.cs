@@ -52,6 +52,7 @@ namespace AccountAPI.Admin.Services.Implements
                     Role = s.StaffNavigation.UserRoles
                         .Select(ur => ur.Role.RoleName)
                         .FirstOrDefault() ?? "Staff",
+                    Avatar = s.StaffNavigation.Avatar,
                     Status = s.Status == "Active"
                 })
                 .ToListAsync();
@@ -81,6 +82,10 @@ namespace AccountAPI.Admin.Services.Implements
                 Role = staff.StaffNavigation?.UserRoles
                     .Select(ur => ur.Role.RoleName)
                     .FirstOrDefault() ?? "Staff",
+                Avatar = staff.StaffNavigation?.Avatar,
+                Gender = staff.Gender,
+                CitizenId = staff.CitizenId,
+                DateOfBirth = staff.DateOfBirth,
                 Status = staff.Status == "Active",
                 HireDate = staff.HireDate
             };
@@ -90,7 +95,7 @@ namespace AccountAPI.Admin.Services.Implements
         {
             // Check email uniqueness
             if (await _repo.EmailExistsAsync(dto.Email))
-                return false;
+                throw new InvalidOperationException("EMAIL_EXISTS");
 
             // Use email prefix as username, ensure uniqueness
             string baseUsername = dto.Email.Split('@')[0];
@@ -122,12 +127,12 @@ namespace AccountAPI.Admin.Services.Implements
 
                 await _repo.AddAccountAsync(account);
 
-                // 3. Assign Role
-                var role = await _repo.GetRoleByNameAsync(dto.Role ?? "Staff");
+                // 3. Assign Role — MUST exist in DB
+                var role = await _repo.GetRoleByIdAsync(dto.RoleID);
+
                 if (role == null)
                 {
-                    await _repo.RollbackTransactionAsync();
-                    return false;
+                    throw new InvalidOperationException("ROLE_NOT_FOUND");
                 }
 
                 await _repo.AddUserRoleAsync(new UserRole
@@ -171,11 +176,11 @@ namespace AccountAPI.Admin.Services.Implements
             if (staff == null)
                 return false;
 
+            // Only update allowed fields (NOT StaffId, NOT CitizenId)
             staff.FullName = dto.FullName;
             staff.Phone = dto.Phone;
             staff.Address = dto.Address;
             staff.Gender = dto.Gender;
-            staff.CitizenId = dto.CitizenId;
             staff.DateOfBirth = dto.DateOfBirth;
             staff.Status = dto.Status ? "Active" : "Deleted";
 

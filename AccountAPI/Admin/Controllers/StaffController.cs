@@ -43,12 +43,19 @@ namespace AccountAPI.Admin.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid data", 400));
 
-            var result = await _service.CreateStaffAsync(dto);
-
-            if (!result)
-                return BadRequest(ApiResponse<bool>.Fail("Email already exists or role not found", 400));
-
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "Staff created successfully"));
+            try
+            {
+                var result = await _service.CreateStaffAsync(dto);
+                return Ok(ApiResponse<bool>.SuccessResponse(true, "Staff created successfully"));
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "EMAIL_EXISTS")
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Email already exists", 400));
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "ROLE_NOT_FOUND")
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Role not found in system", 400));
+            }
         }
 
         // PUT /api/admin/staffs
