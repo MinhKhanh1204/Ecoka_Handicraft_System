@@ -1,4 +1,4 @@
-﻿using MVCApplication.Extensions;
+using MVCApplication.Extensions;
 using MVCApplication.Services;
 using MVCApplication.Services.Implements;
 using Microsoft.IdentityModel.Tokens;
@@ -30,6 +30,7 @@ builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IProdu
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);
 builder.Services.AddGatewayPublicClient<IVoucherService, VoucherService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IVoucherAdminService, MVCApplication.Areas.Admin.Services.Implements.VoucherAdminService>(gatewayBase);
 //setting authen
 builder.Services
     .AddAuthentication(options =>

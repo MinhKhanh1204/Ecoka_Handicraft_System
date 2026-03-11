@@ -1,0 +1,103 @@
+@using MVCApplication.Areas.Admin.DTOs
+@model CreateVoucherDto
+
+@{
+    ViewData["Title"] = "Add Voucher";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="pagetitle">
+    <h1>Add Voucher (UC_48)</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Voucher Management</a></li>
+            <li class="breadcrumb-item active">Add Voucher</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Voucher Information</h5>
+
+                    <form asp-action="Create" method="post" class="row g-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+
+                        <div class="col-md-6">
+                            <label asp-for="VoucherName" class="form-label">Voucher Name <span class="text-danger">*</span></label>
+                            <input asp-for="VoucherName" class="form-control" placeholder="e.g. Summer Sale 2024" />
+                            <span asp-validation-for="VoucherName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label">Code <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control" placeholder="e.g. SUMMER24" maxlength="50" />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional description"></textarea>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="DiscountPercentage" class="form-label">Discount % <span class="text-danger">*</span></label>
+                            <input asp-for="DiscountPercentage" type="number" class="form-control" min="0" max="100" step="0.01" />
+                            <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="MaxReducing" class="form-label">Max Reducing (VND)</label>
+                            <input asp-for="MaxReducing" type="number" class="form-control" min="0" step="1000" placeholder="Optional" />
+                            <span asp-validation-for="MaxReducing" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                            <input asp-for="Quantity" type="number" class="form-control" min="1" />
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ExpiryDate" class="form-label">Expiry Date <span class="text-danger">*</span></label>
+                            <input asp-for="ExpiryDate" type="date" class="form-control" />
+                            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="MinOrderValue" class="form-label">Min Order Value (VND)</label>
+                            <input asp-for="MinOrderValue" type="number" class="form-control" min="0" step="1000" placeholder="Optional" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="MaxUsagePerUser" class="form-label">Max Usage Per User</label>
+                            <input asp-for="MaxUsagePerUser" type="number" class="form-control" min="1" placeholder="Optional" />
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label">Active</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Create Voucher
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -11,6 +11,10 @@ builder.Services.AddAutoMapper(typeof(VoucherAPI.Profiles.VoucherProfile));
 builder.Services.AddScoped<VoucherAPI.Repositories.IVoucherRepository, VoucherAPI.Repositories.VoucherRepository>();
 builder.Services.AddScoped<VoucherAPI.Services.IVoucherService, VoucherAPI.Services.VoucherService>();
 
+// Admin - Voucher Management
+builder.Services.AddScoped<VoucherAPI.Admin.Repositories.IVoucherAdminRepository, VoucherAPI.Admin.Repositories.Implements.VoucherAdminRepository>();
+builder.Services.AddScoped<VoucherAPI.Admin.Services.IVoucherAdminService, VoucherAPI.Admin.Services.Implements.VoucherAdminService>();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

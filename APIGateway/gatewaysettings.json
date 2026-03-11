@@ -73,6 +73,18 @@
             "UpstreamHttpMethod": [ "GET" ]
         },
         {
+            "DownstreamPathTemplate": "/api/admin/vouchers/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7166
+                }
+            ],
+            "UpstreamPathTemplate": "/admin/vouchers/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+        },
+        {
             "DownstreamPathTemplate": "/api/admin/products/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
