@@ -37,12 +37,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <select name="sortBy" class="form-control">
-                                    <option value="">Sort By</option>
-                                    <option value="id_asc" selected="@(ViewBag.SortBy == "id_asc")">ID: Low to High</option>
+                                <select name="sortBy" id="sortBy" class="form-control" onchange="this.form.submit()">
+                                    <option value="id_asc" selected="@(ViewBag.SortBy != "id_desc")">ID: Low to High</option>
                                     <option value="id_desc" selected="@(ViewBag.SortBy == "id_desc")">ID: High to Low</option>
-                                    <option value="newest" selected="@(ViewBag.SortBy == "newest")">Newest First</option>
-                                    <option value="oldest" selected="@(ViewBag.SortBy == "oldest")">Oldest First</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
