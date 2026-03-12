@@ -154,7 +154,7 @@
 </div>
 
 <script>
-    async function showOrderDetail(orderId) {
+        async function showOrderDetail(orderId) {
 
         const modal = new bootstrap.Modal(
             document.getElementById('orderDetailModal')
@@ -167,7 +167,7 @@
                 <div class="spinner-border text-dark"></div>
             </div>`;
 
-        const response = await fetch(`/Orders/Details/${orderId}`);
+        const response = await fetch(`/customer/orders/${orderId}`);
 
         if (!response.ok) {
             document.getElementById("orderDetailContent").innerHTML = `
