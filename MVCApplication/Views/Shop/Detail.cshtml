@@ -1,4 +1,4 @@
-﻿@using MVCApplication.Models.DTOs
+@using MVCApplication.Models.DTOs
 @{
     ViewData["Title"] = "Detail";
 }
@@ -32,17 +32,36 @@
                     <div class="col-lg-6">
                         <h4 class="fw-bold mb-3">@Model.ProductName</h4>
                         <p class="mb-3">Category: @Model.Category.CategoryName</p>
-
                         <del>
                             @if (Model.Price != Model.FinalPrice)
                             {
                                 @Model.Price.ToString("N0")
                             }
                         </del>
-
                         <h5 class="fw-bold mb-3">
                             @Model.FinalPrice.ToString("N0") VND
                         </h5>
+
+                        <!-- Nút Cart -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <!-- Quantity Spinner -->
+                            <div class="input-group" style="width: 140px;">
+                                <button class="btn btn-outline-secondary" type="button" id="btnQtyMinus">−</button>
+                                <input type="text" id="inputQty"
+                                       class="form-control text-center"
+                                       value="1"
+                                       style="width: 50px;" />
+                                <button class="btn btn-outline-secondary" type="button" id="btnQtyPlus">+</button>
+                            </div>
+
+                            <button id="btnAddToCart"
+                                    data-productid="@Model.ProductId"
+                                    data-stock="@Model.StockQuantity"
+                                    class="btn btn-primary">
+                                <i class="fa fa-cart-plus me-1"></i> Add to Cart
+                            </button>
+                        </div>
+                        <small class="text-muted">Còn <span id="stockLabel">@Model.StockQuantity</span> sản phẩm trong kho</small>
 
                         <!-- Average Rating -->
                         <div class="d-flex mb-4" id="avg-rating">
@@ -76,15 +95,12 @@
                         </nav>
 
                         <div class="tab-content mb-5">
-
                             <!-- DESCRIPTION -->
                             <div class="tab-pane fade show active" id="nav-about">
                                 <p>@Model.Description</p>
                             </div>
-
                             <!-- REVIEWS -->
                             <div class="tab-pane fade" id="nav-reviews">
-
                                 <!-- FILTER -->
                                 <div class="row mb-3">
                                     <div class="col-md-4">
@@ -102,28 +118,26 @@
                                         </button>
                                     </div>
                                 </div>
-
                                 <!-- LIST -->
                                 <div id="feedback-list">
                                     <div class="text-center py-3">
                                         <div class="spinner-border text-dark"></div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
 
-                    <!-- FORM -->
+                    <!-- FORM: chỉ hiện khi đã đăng nhập -->
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
                     <div class="col-lg-12">
                         <h4 class="mb-4 fw-bold">Leave a Reply</h4>
-
 <textarea id="feedbackComment"
           class="form-control mb-3"
           rows="4"
           placeholder="Your review">
 </textarea>
-
                         <div id="star-rating" style="cursor:pointer; font-size:18px;">
                             <i class="fa fa-star" data-value="1"></i>
                             <i class="fa fa-star" data-value="2"></i>
@@ -131,14 +145,18 @@
                             <i class="fa fa-star" data-value="4"></i>
                             <i class="fa fa-star" data-value="5"></i>
                         </div>
-
                         <button id="btnSubmitFeedback"
                                 class="btn btn-primary mt-3">
                             Post Comment
                         </button>
-
                     </div>
-
+                    }
+                    else
+                    {
+                    <div class="col-lg-12">
+                        <p class="text-muted">Please <a href="/Account/Login">login</a> to leave a review.</p>
+                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -147,19 +165,92 @@
 <!-- Single Product End -->
 @section Scripts {
     <script>
-
+        // ==== CART ====
         const productId = '@Model.ProductId';
-        const customerID = '@User.FindFirst("accountID")?.Value';
+        const currentUserId = '@(ViewBag.CurrentUserId ?? string.Empty)';
+        const stockQty = parseInt('@Model.StockQuantity') || 0;
 
+        // Nút − / +
+        $('#btnQtyMinus').click(function () {
+            const input = $('#inputQty');
+            const val = parseInt(input.val()) || 1;
+            if (val > 1) input.val(val - 1);
+        });
+
+        $('#btnQtyPlus').click(function () {
+            const input = $('#inputQty');
+            const val = parseInt(input.val()) || 1;
+            if (val < stockQty) input.val(val + 1);
+            else input.val(stockQty);
+        });
+
+        // Validation khi nhập tay
+        $('#inputQty').on('input change', function () {
+            let val = parseInt($(this).val());
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > stockQty) val = stockQty;
+            $(this).val(val);
+        });
+
+        // Add to Cart
+        $('#btnAddToCart').click(function () {
+            // Lấy quantity hiện tại
+            let qty = parseInt($('#inputQty').val());
+
+            // Validation
+            if (isNaN(qty) || qty < 1) {
+                alert('Số lượng phải ít nhất là 1.');
+                $('#inputQty').val(1).focus();
+                return;
+            }
+            if (qty > stockQty) {
+                alert(`Số lượng không được vượt quá tồn kho (${stockQty}).`);
+                $('#inputQty').val(stockQty).focus();
+                return;
+            }
+
+            // Check Login trước khi gửi
+            if (!currentUserId) {
+                alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
+                window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+
+            const btn = $(this);
+            btn.prop('disabled', true).text('Đang thêm...');
+
+            $.ajax({
+                url: '/Cart/AddItem',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ ProductId: productId, Quantity: qty }),
+                success: function () {
+                    alert(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
+                    
+                    // Reset trạng thái nút thay vì chuyển trang
+                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
+                    
+                    // Reset ô input về 1 (tuỳ chọn)
+                    $('#inputQty').val(1);
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        window.location.href = '/Account/Login';
+                    } else {
+                        alert('Thêm vào giỏ hàng thất bại!\n' + (xhr.responseText || ''));
+                    }
+                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
+                }
+            });
+        });
+
+        // ==== FEEDBACK giữ nguyên như cũ, đồng bộ property ====
         let selectedRating = 0;
         let editingId = null;
 
-        // ================= LOAD =================
         async function loadFeedbacks(minRating = null) {
-
             let url = `/Feedback/GetByProduct?productId=${productId}`;
             if (minRating) url += `&minRating=${minRating}`;
-
             try {
                 const res = await fetch(url);
                 const feedbacks = await res.json();
@@ -172,27 +263,20 @@
             }
         }
 
-        // ================= RENDER =================
         function renderFeedbacks(feedbacks) {
-
             if (!feedbacks.length) {
                 document.getElementById('feedback-list').innerHTML =
                     '<p class="text-muted">No reviews yet.</p>';
                 return;
             }
-
             let html = '';
-
             feedbacks.forEach(fb => {
-
                 const date = new Date(fb.createdAt)
                     .toLocaleDateString('en-US');
-
                 let stars = '';
                 for (let i = 1; i <= 5; i++) {
                     stars += `<i class="fa fa-star ${i <= fb.rating ? 'text-warning' : ''}"></i>`;
                 }
-
                 html += `
                 <div class="border-bottom mb-3 pb-3">
                     <div class="d-flex justify-content-between">
@@ -200,154 +284,133 @@
                         <div>${stars}</div>
                     </div>
                     <p>${fb.comment || ''}</p>
-
-                    ${fb.customerID === customerID ? `
+                    ${fb.customerID == currentUserId ? `
                         <button class="btn btn-sm btn-warning me-2"
-                            onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">
-                            Edit
-                        </button>
-
+                            onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Edit</button>
                         <button class="btn btn-sm btn-danger"
-                            onclick="deleteFeedback(${fb.feedbackID})">
-                            Delete
-                        </button>
+                            onclick="deleteFeedback(${fb.feedbackID})">Delete</button>
                     ` : ''}
                 </div>`;
             });
-
             document.getElementById('feedback-list').innerHTML = html;
         }
 
-        // ================= AVERAGE =================
         function updateAverage(feedbacks) {
-
             const avg = feedbacks.length
-                ? feedbacks.reduce((s,f)=>s+f.rating,0)/feedbacks.length
+                ? feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length
                 : 0;
-
             document.querySelectorAll('#avg-rating .fa-star')
-                .forEach((star,idx)=>{
+                .forEach((star, idx) => {
                     star.classList.toggle('text-warning',
                         idx < Math.round(avg));
                 });
-
             document.getElementById('review-count')
                 .textContent = `(${feedbacks.length} reviews)`;
-
             document.getElementById('tab-review-count')
                 .textContent = `(${feedbacks.length})`;
         }
 
-        // ================= FILTER =================
         function filterFeedbacks() {
             const rating =
                 document.getElementById('filterRating').value;
             loadFeedbacks(rating);
         }
 
-        // ================= DELETE =================
         async function deleteFeedback(id) {
-
             if (!confirm("Delete this review?")) return;
-
             await fetch(`/Feedback/Delete/${id}`, {
-                method:'DELETE'
+                method: 'DELETE'
             });
-
             loadFeedbacks();
         }
 
-        // ================= EDIT =================
         function editFeedback(id, rating, comment) {
-
             editingId = id;
             selectedRating = rating;
-
             document.getElementById('feedbackComment').value = comment;
-
             document.querySelectorAll('#star-rating .fa-star')
-                .forEach((s,idx)=>{
+                .forEach((s, idx) => {
                     s.classList.toggle('text-warning',
                         idx < rating);
                 });
-
             window.scrollTo({
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
             });
         }
 
-        // ================= STAR CLICK =================
         document.querySelectorAll('#star-rating .fa-star')
-            .forEach(star=>{
-                star.addEventListener('click', function(){
+            .forEach(star => {
+                star.addEventListener('click', function () {
                     selectedRating =
                         parseInt(this.dataset.value);
-
                     document.querySelectorAll('#star-rating .fa-star')
-                        .forEach((s,idx)=>{
+                        .forEach((s, idx) => {
                             s.classList.toggle('text-warning',
                                 idx < selectedRating);
                         });
                 });
             });
 
-        // ================= CREATE / UPDATE =================
         document.getElementById('btnSubmitFeedback')
-        .addEventListener('click', async function(){
+            .addEventListener('click', async function () {
+                const comment =
+                    document.getElementById('feedbackComment')
+                        .value.trim();
 
-            const comment =
-                document.getElementById('feedbackComment')
-                    .value.trim();
+                // Custom Validations
+                if (!selectedRating) {
+                    alert('Qúy khách vui lòng chọn số sao (Rating).');
+                    return;
+                }
+                
+                if (comment.length < 10) {
+                    alert('Bình luận quá ngắn. Vui lòng nhập tối thiểu 10 ký tự để tụi mình hiểu rõ hơn ý kiến của bạn.');
+                    return;
+                }
 
-            if (!customerID) {
-                alert('Login first');
-                return;
-            }
-
-            if (!selectedRating) {
-                alert('Select rating');
-                return;
-            }
-
-            if (editingId) {
-
-                await fetch(`/Feedback/Update/${editingId}`,{
-                    method:'PUT',
-                    headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        rating:selectedRating,
-                        comment:comment
-                    })
+                // Cấm từ thô tục cơ bản (có thể mở rộng thêm)
+                const badWords = ["dm", "vcl", "cc", "đm", "địt", "lồn", "cặc", "chó"];
+                const lowerComment = comment.toLowerCase();
+                const hasBadWord = badWords.some(word => {
+                    // check whole word match
+                    const regex = new RegExp(`\\b${word}\\b`, 'g');
+                    return regex.test(lowerComment);
                 });
 
-                editingId = null;
-
-            } else {
-
-                await fetch('/Feedback/Create',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        customerID:customerID,
-                        productID:productId,
-                        rating:selectedRating,
-                        comment:comment
-                    })
-                });
-            }
-
-            document.getElementById('feedbackComment').value='';
-            selectedRating=0;
-
-            document.querySelectorAll('#star-rating .fa-star')
-                .forEach(s=>s.classList.remove('text-warning'));
-
-            loadFeedbacks();
-        });
+                if (hasBadWord) {
+                    alert('Bình luận của bạn chứa từ ngữ không phù hợp. Vui lòng dùng từ ngữ lịch sự nhé!');
+                    return;
+                }
+                if (editingId) {
+                    await fetch(`/Feedback/Update/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            rating: selectedRating,
+                            comment: comment
+                        })
+                    });
+                    editingId = null;
+                } else {
+                    await fetch('/Feedback/Create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            productID: productId,
+                            rating: selectedRating,
+                            comment: comment
+                        })
+                    });
+                }
+                document.getElementById('feedbackComment').value = '';
+                selectedRating = 0;
+                document.querySelectorAll('#star-rating .fa-star')
+                    .forEach(s => s.classList.remove('text-warning'));
+                loadFeedbacks();
+            });
 
         // LOAD PAGE
         loadFeedbacks();
-
     </script>
 }

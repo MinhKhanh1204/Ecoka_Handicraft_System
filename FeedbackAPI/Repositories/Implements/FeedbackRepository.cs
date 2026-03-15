@@ -122,7 +122,8 @@ namespace FeedbackAPI.Repositories.Implements
             if (feedback == null)
                 return false;
 
-            _context.Feedbacks.Remove(feedback);
+            feedback.Status = "Deleted";
+            feedback.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -130,7 +131,10 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task DeleteEntityAsync(Feedback feedback)
         {
             _context.Feedbacks.Attach(feedback);
-            _context.Feedbacks.Remove(feedback);
+            feedback.Status = "Deleted";
+            feedback.UpdatedAt = DateTime.UtcNow;
+            _context.Entry(feedback).Property(f => f.Status).IsModified = true;
+            _context.Entry(feedback).Property(f => f.UpdatedAt).IsModified = true;
             await _context.SaveChangesAsync();
         }
     }

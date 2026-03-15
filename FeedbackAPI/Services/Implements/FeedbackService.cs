@@ -1,7 +1,5 @@
 using AutoMapper;
-using Microsoft.AspNetCore.SignalR;
 using FeedbackAPI.DTOs;
-using FeedbackAPI.Hubs;
 using FeedbackAPI.Models;
 using FeedbackAPI.Repositories;
 
@@ -11,18 +9,15 @@ namespace FeedbackAPI.Services.Implements
     {
         private readonly IFeedbackRepository _repo;
         private readonly IMapper _mapper;
-        private readonly IHubContext<FeedbackHub> _hub;
         private readonly IAccountService _accountService;
 
         public FeedbackService(
             IFeedbackRepository repo,
             IMapper mapper,
-            IHubContext<FeedbackHub> hub,
             IAccountService accountService)
         {
             _repo = repo;
             _mapper = mapper;
-            _hub = hub;
             _accountService = accountService;
         }
 
@@ -85,11 +80,6 @@ namespace FeedbackAPI.Services.Implements
             var created = await _repo.CreateAsync(entity);
             var result = _mapper.Map<FeedbackReadDto>(created);
 
-            // SignalR notify
-            await _hub.Clients
-                .Group($"product_{result.ProductID}")
-                .SendAsync("FeedbackCreated", result);
-
             return result;
         }
 
@@ -103,10 +93,6 @@ namespace FeedbackAPI.Services.Implements
 
             var result = _mapper.Map<FeedbackReadDto>(entity);
 
-            await _hub.Clients
-                .Group($"product_{result.ProductID}")
-                .SendAsync("FeedbackUpdated", result);
-
             return result;
         }
 
@@ -119,10 +105,6 @@ namespace FeedbackAPI.Services.Implements
             if (existing == null) return false;
 
             await _repo.DeleteEntityAsync(existing);
-
-            await _hub.Clients
-                .Group($"product_{existing.ProductID}")
-                .SendAsync("FeedbackDeleted", feedbackId);
 
             return true;
         }

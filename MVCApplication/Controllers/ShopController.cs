@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Models;
 using MVCApplication.Services;
 
@@ -32,6 +32,9 @@ namespace MVCApplication.Controllers
 
 			if (product == null)
 				return NotFound();
+
+            // Truyền accountID của user đang đăng nhập (null nếu chưa login)
+            ViewBag.CurrentUserId = User.FindFirst("accountID")?.Value;
 
 			return View(product);
 		}

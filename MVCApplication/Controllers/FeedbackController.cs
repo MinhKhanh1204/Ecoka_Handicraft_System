@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Models;
 using MVCApplication.Services;
 
@@ -15,6 +15,7 @@ namespace MVCApplication.Controllers
 
         // ================= GET BY PRODUCT + FILTER =================
         [HttpGet]
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         public async Task<IActionResult> GetByProduct(string productId, int? minRating)
         {
             var feedbacks = await _feedbackService.FilterAsync(new FeedbackFilterDto
@@ -31,9 +32,12 @@ namespace MVCApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
         {
-            var username = User.FindFirst("username")?.Value;
-            if (string.IsNullOrEmpty(username))
+            var accountId = User.FindFirst("accountID")?.Value;
+            if (string.IsNullOrEmpty(accountId))
                 return Json(new { success = false, message = "Please login first" });
+
+            // Gán CustomerID từ token vào DTO trước khi gửi xuống API
+            dto.CustomerID = accountId;
 
             try
             {

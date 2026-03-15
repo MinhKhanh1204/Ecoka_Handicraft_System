@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using FeedbackAPI.DTOs;
 using FeedbackAPI.Services;
 
@@ -42,6 +43,7 @@ namespace FeedbackAPI.Controllers
 
         // ================= CREATE =================
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -57,6 +59,7 @@ namespace FeedbackAPI.Controllers
 
         // ================= UPDATE =================
         [HttpPut("{feedbackId:int}")]
+        [Authorize]
         public async Task<IActionResult> Update(int feedbackId, [FromBody] FeedbackUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -70,6 +73,7 @@ namespace FeedbackAPI.Controllers
 
         // ================= DELETE =================
         [HttpDelete("{feedbackId:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int feedbackId)
         {
             var result = await _service.DeleteAsync(feedbackId);

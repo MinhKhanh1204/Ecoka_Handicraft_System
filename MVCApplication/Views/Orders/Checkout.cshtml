@@ -1,0 +1,209 @@
+@model MVCApplication.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Checkout</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Cart/View">Cart</a></li>
+        <li class="breadcrumb-item active text-white">Checkout</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+
+<!-- Checkout Page Start -->
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <h1 class="mb-4">Billing details</h1>
+        <form action="/Orders/CreateOrder" method="post">
+            <input type="hidden" name="cartItemIds" value="@string.Join(",", Model.SelectedItems.Select(i => i.CartItemId))" />
+            <input type="hidden" id="hidVoucherId" name="VoucherId" value="" />
+            <input type="hidden" id="hidPaymentMethod" name="PaymentMethod" value="COD" />
+
+            <div class="row g-5">
+                <div class="col-md-12 col-lg-6 col-xl-7">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div class="form-item w-100">
+                                <label class="form-label my-3">Shipping Address<sup>*</sup></label>
+                                <input type="text" name="ShippingAddress" class="form-control" placeholder="House Number Street Name" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-item">
+                        <label class="form-label my-3">Order Notes</label>
+                        <textarea name="Note" class="form-control" spellcheck="false" cols="30" rows="6" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
+                    </div>
+
+                    <div class="mt-5">
+                        <h4 class="mb-4">Apply Voucher</h4>
+                        <div class="input-group">
+                            <input type="text" id="txtVoucherCode" class="form-control border-primary" placeholder="Enter coupon code">
+                            <button type="button" class="btn btn-primary" onclick="applyVoucher()">Apply</button>
+                        </div>
+                        <p id="lblVoucherMessage" class="mt-2 text-danger"></p>
+                    </div>
+                </div>
+                
+                <div class="col-md-12 col-lg-6 col-xl-5">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Products</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.SelectedItems)
+                                {
+                                    <tr>
+                                        <th scope="row">
+                                            <div class="d-flex align-items-center mt-2">
+                                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/default-product.png" : item.ImageUrl)" class="img-fluid rounded-circle" style="width: 50px; height: 50px;" alt="" onerror="this.src='/img/single-item.jpg'">
+                                            </div>
+                                        </th>
+                                        <td class="py-4">@item.ProductName</td>
+                                        <td class="py-4">@item.Price.ToString("N0")</td>
+                                        <td class="py-4">@item.Quantity</td>
+                                        <td class="py-4">@((item.Price * item.Quantity).ToString("N0"))</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <th scope="row">
+                                    </th>
+                                    <td class="py-4"></td>
+                                    <td class="py-4"></td>
+                                    <td class="py-5">
+                                        <p class="mb-0 text-dark py-3">Subtotal</p>
+                                    </td>
+                                    <td class="py-5">
+                                        <div class="py-3 border-bottom border-top">
+                                            <p class="mb-0 text-dark">@Model.Subtotal.ToString("N0") ₫</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                    </th>
+                                    <td class="py-4"></td>
+                                    <td class="py-4"></td>
+                                    <td class="py-5">
+                                        <p class="mb-0 text-dark py-3">Discount</p>
+                                    </td>
+                                    <td class="py-5">
+                                        <div class="py-3 border-bottom border-top">
+                                            <p class="mb-0 text-danger" id="lblDiscount">- 0 ₫</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                    </th>
+                                    <td class="py-4"></td>
+                                    <td class="py-4"></td>
+                                    <td class="py-5">
+                                        <p class="mb-0 text-dark text-uppercase py-3">TOTAL</p>
+                                    </td>
+                                    <td class="py-5">
+                                        <div class="py-3 border-bottom border-top">
+                                            <p class="mb-0 text-dark fw-bold" id="lblFinalTotal">@Model.Subtotal.ToString("N0") ₫</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
+                        <div class="col-12">
+                            <div class="form-check text-start my-3">
+                                <input type="radio" class="form-check-input bg-primary border-0" id="Payments-1" name="PaymentCheck" value="COD" checked>
+                                <label class="form-check-label" for="Payments-1">Cash On Delivery (COD)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Disable VNPay cho gọn nhứ -->
+                    <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3 mb-4">
+                        <div class="col-12">
+                            <div class="form-check text-start my-3">
+                                <input type="radio" class="form-check-input bg-primary border-0" id="Delivery-1" name="PaymentCheck" value="VNPAY">
+                                <label class="form-check-label" for="Delivery-1">VNPay (Online Payment)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 text-center align-items-center justify-content-center pt-4">
+                        <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Checkout Page End -->
+
+@section Scripts {
+    <script>
+        const subtotal = @Model.Subtotal;
+        let discount = 0;
+        let formatter = new Intl.NumberFormat('vi-VN');
+
+        function updateTotals() {
+            let discountAmount = subtotal * (discount / 100);
+            let finalTotal = subtotal - discountAmount;
+            if (finalTotal < 0) finalTotal = 0;
+            
+            $('#lblDiscount').text("- " + formatter.format(discountAmount) + " ₫");
+            $('#lblFinalTotal').text(formatter.format(finalTotal) + " ₫");
+        }
+
+        function applyVoucher() {
+            let code = $('#txtVoucherCode').val();
+            if (!code) {
+                $('#lblVoucherMessage').text("Vui lòng nhập mã Voucher.");
+                $('#lblVoucherMessage').attr('class', 'mt-2 text-danger');
+                return;
+            }
+
+            $.ajax({
+                url: '/Voucher/Apply?code=' + encodeURIComponent(code),
+                type: 'GET',
+                success: function (res) {
+                    $('#lblVoucherMessage').text("Áp dụng mã thành công!");
+                    $('#lblVoucherMessage').attr('class', 'mt-2 text-success');
+                    
+                    $('#hidVoucherId').val(res.voucherId);
+                    discount = parseFloat(res.discount) || 0;
+                    
+                    updateTotals();
+                },
+                error: function (xhr) {
+                    let msg = "Mã Voucher không hợp lệ hoặc đã hết hạn.";
+                    if (xhr.status === 404 && xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $('#lblVoucherMessage').text(msg);
+                    $('#lblVoucherMessage').attr('class', 'mt-2 text-danger');
+                    
+                    // Reset voucher
+                    $('#hidVoucherId').val("");
+                    discount = 0;
+                    updateTotals();
+                }
+            });
+        }
+        
+        $('input[name="PaymentCheck"]').change(function() {
+            $('#hidPaymentMethod').val($(this).val());
+        });
+    </script>
+}

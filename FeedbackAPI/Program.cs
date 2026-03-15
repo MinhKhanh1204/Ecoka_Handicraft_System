@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.OData;
-using Microsoft.OData.ModelBuilder;
-using FeedbackAPI.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using FeedbackAPI.Models;
 using FeedbackAPI.Profiles;
 using FeedbackAPI.Repositories;
@@ -10,12 +10,6 @@ using FeedbackAPI.Services;
 using FeedbackAPI.Services.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// ========================
-// OData EDM model
-// ========================
-var edmBuilder = new ODataConventionModelBuilder();
-edmBuilder.EntitySet<Feedback>("feedbacks");
 
 // ========================
 // CORS (for AJAX clients)
@@ -36,25 +30,12 @@ builder.Services.AddCors(options =>
 });
 
 // ========================
-// Controllers + OData
+// Controllers
 // ========================
-builder.Services.AddControllers()
-    .AddOData(opt =>
-        opt.AddRouteComponents("odata", edmBuilder.GetEdmModel())
-           .Filter()
-           .OrderBy()
-           .Select()
-           .SetMaxTop(100)
-           .Count()
-           .Expand());
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// ========================
-// SignalR
-// ========================
-builder.Services.AddSignalR();
 
 // ========================
 // AutoMapper + EF Core
@@ -72,6 +53,26 @@ builder.Services.AddHttpClient<IAccountService, AccountService>(c =>
 {
     c.BaseAddress = new Uri("https://localhost:5000");
 });
+
+// ========================
+// Authentication / JWT
+// ========================
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
 var app = builder.Build();
 
 // ========================
@@ -85,13 +86,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowConfigured");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// ========================
-// SignalR Hub endpoint
-// ========================
-app.MapHub<FeedbackHub>("/hubs/feedback");
 
 app.Run();
