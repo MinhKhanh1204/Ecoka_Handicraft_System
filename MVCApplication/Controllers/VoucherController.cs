@@ -48,7 +48,8 @@ namespace MVCApplication.Controllers
             return Ok(new 
             { 
                 VoucherId = matchedVoucher.VoucherId, 
-                Discount = matchedVoucher.DiscountPercentage 
+                Discount = matchedVoucher.DiscountPercentage,
+                MaxReducing = matchedVoucher.MaxReducing
             });
         }
     }

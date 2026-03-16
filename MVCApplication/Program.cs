@@ -30,6 +30,7 @@ builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IProdu
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);
 builder.Services.AddGatewayPublicClient<IVoucherService, VoucherService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<IPaymentService, PaymentService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICartService, CartService>(gatewayBase);
 //setting authen
 builder.Services

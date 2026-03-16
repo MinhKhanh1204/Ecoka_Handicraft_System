@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -98,13 +98,13 @@ namespace MVCApplication.Services.Implements
 
         public async Task UpdatePaymentStatusAsync(string orderId, string paymentMethod, string paymentStatus, string? note)
         {
-            var update = new OrderUpdateDto
+            var update = new 
             {
                 PaymentMethod = paymentMethod,
-                PaymentStatus = paymentStatus,
+                Status = paymentStatus,
                 Note = note
             };
-            var uri = $"customer/orders/{Uri.EscapeDataString(orderId)}";
+            var uri = $"customer/orders/{Uri.EscapeDataString(orderId)}/payment-status";
             var resp = await _http.PutAsJsonAsync(uri, update);
             resp.EnsureSuccessStatusCode();
         }

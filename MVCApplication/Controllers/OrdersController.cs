@@ -15,13 +15,15 @@ namespace MVCApplication.Controllers
         private readonly IProductService _productService;
         private readonly ICartService _cartService;
         private readonly IConfiguration _configuration;
+        private readonly IPaymentService _paymentService;
 
-        public OrdersController(IOrderService service, IProductService productService, ICartService cartService, IConfiguration configuration)
+        public OrdersController(IOrderService service, IProductService productService, ICartService cartService, IConfiguration configuration, IPaymentService paymentService)
         {
             _orderService = service;
             _productService = productService;
             _cartService = cartService;
             _configuration = configuration;
+            _paymentService = paymentService;
         }
 
         // --- CHECKOUT FLOW ---
@@ -88,17 +90,13 @@ namespace MVCApplication.Controllers
                 return BadRequest("No items selected for checkout");
 
             // Enrich Prices
-            decimal subtotal = 0;
             foreach (var item in selectedItems)
             {
                 try
                 {
                     var product = await _productService.GetProductDetailAsync(item.ProductId);
                     if (product != null)
-                    {
                         item.Price = product.FinalPrice > 0 ? product.FinalPrice : product.Price;
-                        subtotal += item.Price * item.Quantity;
-                    }
                 }
                 catch { }
             }
@@ -130,30 +128,18 @@ namespace MVCApplication.Controllers
                     await _cartService.DeleteCartItemAsync(id);
                 }
 
-                // Nếu là VNPay thì redirect sang cổng thanh toán
+                // Chuyển hướng thanh toán qua PaymentService
                 if (model.PaymentMethod == "VNPAY")
                 {
-                    var vnpay = new Utils.VnPayLibrary();
-                    var vnp_TmnCode = _configuration["VNPay:TmnCode"];
-                    var vnp_HashSecret = _configuration["VNPay:HashSecret"];
-                    var vnp_Url = _configuration["VNPay:BaseUrl"];
-                    var vnp_ReturnUrl = _configuration["VNPay:ReturnUrl"];
-
-                    vnpay.AddRequestData("vnp_Version", _configuration["VNPay:Version"]);
-                    vnpay.AddRequestData("vnp_Command", _configuration["VNPay:Command"]);
-                    vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
-                    vnpay.AddRequestData("vnp_Amount", ((long)(newOrder.TotalAmount * 100 ?? 0)).ToString()); 
-                    vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
-                    vnpay.AddRequestData("vnp_CurrCode", "VND");
-                    vnpay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
-                    vnpay.AddRequestData("vnp_Locale", "vn");
-                    vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang: " + newOrder.OrderID);
-                    vnpay.AddRequestData("vnp_OrderType", "other");
-                    vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
-                    vnpay.AddRequestData("vnp_TxnRef", newOrder.OrderID.ToString()); 
-
-                    string paymentUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
-                    return Redirect(paymentUrl);
+                    string returnUrl = Url.Action("PaymentCallback", "Orders", null, Request.Scheme)!;
+                    string? url = await _paymentService.GetVnPayUrlAsync(newOrder.OrderID.ToString(), newOrder.TotalAmount ?? 0, "Thanh toan don hang " + newOrder.OrderID, returnUrl);
+                    if (!string.IsNullOrEmpty(url)) return Redirect(url);
+                }
+                else if (model.PaymentMethod == "MOMO")
+                {
+                    string returnUrl = Url.Action("PaymentCallback", "Orders", null, Request.Scheme)!;
+                    string? url = await _paymentService.GetMomoUrlAsync(newOrder.OrderID.ToString(), newOrder.TotalAmount ?? 0, "Thanh toan don hang " + newOrder.OrderID, returnUrl);
+                    if (!string.IsNullOrEmpty(url)) return Redirect(url);
                 }
 
                 return RedirectToAction("Details", new { id = newOrder.OrderID });
@@ -165,42 +151,32 @@ namespace MVCApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> PaymentCallback()
         {
-            var vnpay = new Utils.VnPayLibrary();
-            foreach (var (key, value) in Request.Query)
-            {
-                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
-                {
-                    vnpay.AddResponseData(key, value);
-                }
-            }
+            // PaymentCallback là trang return cho người dùng xem
+            string? vnp_ResponseCode = Request.Query["vnp_ResponseCode"];
+            string? memo_ResultCode = Request.Query["resultCode"];
+            string? orderIdRaw = Request.Query["orderId"]; // MoMo
+            string? vnp_TxnRef = Request.Query["vnp_TxnRef"]; // VNPay
 
-            string orderId = vnpay.GetResponseData("vnp_TxnRef");
-            long vnpayTranId = Convert.ToInt64(vnpay.GetResponseData("vnp_TransactionNo"));
-            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
-            string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
-            string vnp_SecureHash = Request.Query["vnp_SecureHash"];
-            string terminalID = Request.Query["vnp_TmnCode"];
-            long vnp_Amount = Convert.ToInt64(vnpay.GetResponseData("vnp_Amount")) / 100;
-            string bankCode = Request.Query["vnp_BankCode"];
-
-            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"]);
-            if (checkSignature)
+            if (vnp_ResponseCode == "00" || memo_ResultCode == "0")
             {
-                if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
+                string? orderId = !string.IsNullOrEmpty(orderIdRaw) ? orderIdRaw.Split('_')[0] : vnp_TxnRef;
+                string paymentMethod = !string.IsNullOrEmpty(orderIdRaw) ? "MoMo" : "VNPay";
+                
+                if (!string.IsNullOrEmpty(orderId))
                 {
-                    // Thanh toán thành công
-                    await _orderService.UpdatePaymentStatusAsync(orderId, "Paid");
-                    TempData["PaymentMsg"] = "Thanh toán thành công qua VNPay!";
+                    // Fallback update status nếu IPN chưa tới (đặc biệt hữu ích khi chạy localhost)
+                    try 
+                    {
+                        await _orderService.UpdatePaymentStatusAsync(orderId, paymentMethod, "Paid", "Thanh toan thanh cong");
+                    }
+                    catch { }
                 }
-                else
-                {
-                    // Thanh toán lỗi
-                    TempData["PaymentMsg"] = $"Thanh toán thất bại. Mã lỗi: {vnp_ResponseCode}";
-                }
+
+                TempData["PaymentMsg"] = "Thành công! Đơn hàng của bạn đã được ghi nhận và đang chờ xử lý.";
             }
             else
             {
-                TempData["PaymentMsg"] = "Chữ ký không hợp lệ!";
+                TempData["PaymentMsg"] = "Giao dịch không thành công hoặc đã bị người dùng hủy.";
             }
 
             return RedirectToAction("Index");

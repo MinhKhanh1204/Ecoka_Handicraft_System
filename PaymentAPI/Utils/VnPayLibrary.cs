@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Http;
 
-namespace MVCApplication.Utils
+namespace PaymentAPI.Utils
 {
     public class VnPayLibrary
     {
@@ -42,17 +40,20 @@ namespace MVCApplication.Utils
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                    data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value).Replace("%20", "+") + "&");
                 }
             }
 
-            var queryString = data.ToString();
-            baseUrl += "?" + queryString;
-            var signData = queryString.Remove(queryString.Length - 1);
-            var vnpSecureHash = HmacSha512(vnpHashSecret, signData);
-            baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+            string queryString = data.ToString();
+            if (queryString.EndsWith("&"))
+            {
+                queryString = queryString.Remove(queryString.Length - 1);
+            }
 
-            return baseUrl;
+            string vnpSecureHash = HmacSha512(vnpHashSecret, queryString);
+            string finalUrl = baseUrl + "?" + queryString + "&vnp_SecureHash=" + vnpSecureHash;
+
+            return finalUrl;
         }
 
         public bool ValidateSignature(string inputHash, string secretKey)
@@ -64,18 +65,13 @@ namespace MVCApplication.Utils
 
         private string HmacSha512(string key, string inputData)
         {
-            var hash = new StringBuilder();
             var keyBytes = Encoding.UTF8.GetBytes(key);
             var inputBytes = Encoding.UTF8.GetBytes(inputData);
             using (var hmac = new HMACSHA512(keyBytes))
             {
                 var hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
+                return BitConverter.ToString(hashValue).Replace("-", "").ToLower();
             }
-            return hash.ToString();
         }
 
         private string GetResponseRaw()
@@ -93,10 +89,9 @@ namespace MVCApplication.Utils
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+                    data.Append(Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value).Replace("%20", "+") + "&");
                 }
             }
-            //remove last '&'
             if (data.Length > 0)
             {
                 data.Remove(data.Length - 1, 1);
