@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\Admin\Views\Staffs\" />
     <Folder Include="Views\Shop\" />
   </ItemGroup>
 

@@ -27,6 +27,7 @@ builder.Services.AddGatewayAuthClient<IOrderService, OrderService>(gatewayBase);
 //builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IProductService, MVCApplication.Services.Implements.ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IProductAdminService, MVCApplication.Areas.Admin.Services.Implements.ProductService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IStaffAdminService, MVCApplication.Areas.Admin.Services.Implements.StaffAdminService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);
 builder.Services.AddGatewayPublicClient<IVoucherService, VoucherService>(gatewayBase);

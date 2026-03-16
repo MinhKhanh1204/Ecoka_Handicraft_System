@@ -109,6 +109,30 @@
             "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         },
         {
+            "DownstreamPathTemplate": "/api/admin/staffs",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7018
+                }
+            ],
+            "UpstreamPathTemplate": "/admin/staffs",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/admin/staffs/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7018
+                }
+            ],
+            "UpstreamPathTemplate": "/admin/staffs/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+        },
+        {
             "DownstreamPathTemplate": "/api/feedbacks/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
