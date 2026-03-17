@@ -3,8 +3,6 @@ using ProductAPI.Admin.Repositories;
 using ProductAPI.Admin.Repositories.Implements;
 using ProductAPI.Admin.Services;
 using ProductAPI.Admin.Services.Implements;
-using ProductAPI.Mappers;
-using ProductAPI.Mappers.Implements;
 using ProductAPI.Middlewares;
 using ProductAPI.Models;
 using ProductAPI.Repositories;
@@ -22,7 +20,6 @@ builder.Services.AddDbContext<DBContext>(opt =>
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IProductMapper, ProductMapper>();
 
 builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<IProductAdminRepository, ProductAdminRepository>();
@@ -33,7 +30,6 @@ builder.Services.AddScoped<ProductAPI.Admin.Mappers.ICategoryMapper, ProductAPI.
 
 builder.Services.AddScoped<ProductAPI.Repositories.ICategoryRepository, ProductAPI.Repositories.Implements.CategoryRepository>();
 builder.Services.AddScoped<ProductAPI.Services.ICategoryService, ProductAPI.Services.Implements.CategoryService>();
-builder.Services.AddScoped<ICategoryMapper, CategoryMapper>();
 
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
@@ -50,6 +46,9 @@ builder.Services.AddScoped(provider =>
     );
     return new Cloudinary(account);
 });
+
+//Mapping
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Add services to the container.
 

@@ -81,15 +81,15 @@ namespace MVCApplication.Controllers
 
             var result = await _accountService.LoginAsync(model);
 
-            if (result == null || string.IsNullOrEmpty(result.AccessToken))
+            if (!result.Success)
             {
-                TempData["error"] = "Email hoặc Password không đúng";
+                TempData["error"] = result.Message;
                 return View(model);
             }
 
             // Store JWT in HttpOnly
             Response.Cookies.Append("AccessToken",
-                result.AccessToken,
+                result.Data.AccessToken,
                 new CookieOptions
                 {
                     HttpOnly = true,
@@ -121,13 +121,13 @@ namespace MVCApplication.Controllers
 
             var result = await _accountService.RegisterAsync(model);
 
-            if (!result)
+            if (!result.Success)
             {
-                TempData["error"] = "Username/Email đã tồn tại hoặc đăng ký thất bại";
+                TempData["error"] = result.Message;
                 return View(model);
             }
 
-            TempData["success"] = "Đăng ký thành công. Vui lòng đăng nhập.";
+            TempData["success"] = result.Message;
 
             return RedirectToAction("Login");
         }

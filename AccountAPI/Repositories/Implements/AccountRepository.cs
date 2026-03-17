@@ -71,8 +71,10 @@ namespace AccountAPI.Repositories.Implements
         
         public async Task<Account?> GetByEmailAsync(string email)
         {
-            return await _context.Accounts
-                .FirstOrDefaultAsync(a => a.Email == email);
+            return _context.Accounts
+                    .Include(a => a.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+                    .FirstOrDefault(a => a.Email == email);
         }
 
         public async Task<Account?> GetByPasswordRecoveryTokenAsync(string token)

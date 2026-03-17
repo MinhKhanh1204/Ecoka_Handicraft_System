@@ -1,6 +1,4 @@
 using AccountAPI.Helpers;
-using AccountAPI.Mappers.Implements;
-using AccountAPI.Mappers;
 using AccountAPI.Repositories.Implements;
 using AccountAPI.Repositories;
 using AccountAPI.Services.Implements;
@@ -62,7 +60,6 @@ builder.Services.AddDbContext<DBContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IAccountMapper, AccountMapper>();
 builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -76,6 +73,9 @@ builder.Services.AddScoped<ICustomerMapper, CustomerMapper>();
 
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+
+//Mapping
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddAuthentication(options =>
 {

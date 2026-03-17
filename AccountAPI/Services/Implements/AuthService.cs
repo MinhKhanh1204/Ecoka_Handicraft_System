@@ -1,9 +1,9 @@
 using AccountAPI.DTOs;
 using AccountAPI.Exceptions;
 using AccountAPI.Helpers;
-using AccountAPI.Mappers;
 using AccountAPI.Models;
 using AccountAPI.Repositories;
+using AutoMapper;
 
 namespace AccountAPI.Services.Implements
 {
@@ -11,15 +11,15 @@ namespace AccountAPI.Services.Implements
     {
         private readonly IAccountRepository _repo;
         private readonly JwtTokenHelper _jwt;
-        private readonly IAccountMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IEmailService _emailService;
         private readonly PasswordResetSettings _resetSettings;
+        private readonly IMapper _mapper;
 
         public AuthService(
             IAccountRepository repo,
             JwtTokenHelper jwt,
-            IAccountMapper mapper,
+            IMapper mapper,
             ICloudinaryService cloudinaryService,
             IEmailService emailService,
             Microsoft.Extensions.Options.IOptions<PasswordResetSettings> resetSettings)
@@ -32,9 +32,9 @@ namespace AccountAPI.Services.Implements
             _resetSettings = resetSettings.Value;
         }
 
-        public LoginResponseDto Login(LoginRequestDto request)
+        public async Task<LoginResponseDto> Login(LoginRequestDto request)
         {
-            var account = _repo.GetByUsername(request.Username);
+            var account = await _repo.GetByEmailAsync(request.Email);
             if (account == null)
                 throw new UnauthorizedException("Invalid username or password");
 
@@ -46,7 +46,7 @@ namespace AccountAPI.Services.Implements
 
             var token = _jwt.GenerateToken(account);
 
-            return _mapper.ToLoginResponse(token);
+            return _mapper.Map<LoginResponseDto>(token);
         }
 
         public async Task RegisterCustomerAsync(RegisterCustomerRequestDto request)
@@ -113,7 +113,7 @@ namespace AccountAPI.Services.Implements
             catch
             {
                 await transaction.RollbackAsync();
-                throw;
+                throw new BadRequestException("Register fail");
             }
         }
 
