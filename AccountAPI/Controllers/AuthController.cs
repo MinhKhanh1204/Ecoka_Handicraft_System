@@ -1,6 +1,7 @@
 using AccountAPI.CustomFormatter;
 using AccountAPI.DTOs;
 using AccountAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -60,5 +61,25 @@ namespace AccountAPI.Controllers
             await _service.ResetPasswordAsync(request);
             return Ok(ApiResponse<object>.SuccessResponse(new object(), "Password has been reset successfully."));
         }
-    }
+
+		[Authorize]
+		[HttpGet("profile")]
+		public async Task<IActionResult> GetProfile()
+		{
+			var accountId = User.FindFirst("accountID")!.Value;
+
+			var result = await _service.GetProfileAsync(accountId);
+			return Ok(ApiResponse<ProfileResponseDto>.SuccessResponse(result));
+		}
+
+		[Authorize]
+		[HttpPut("profile")]
+		public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequestDto request)
+		{
+			var accountId = User.FindFirst("accountID")!.Value;
+
+			await _service.UpdateProfileAsync(accountId, request);
+			return Ok(ApiResponse<object>.SuccessResponse(new object(), "Update profile success"));
+		}
+	}
 }

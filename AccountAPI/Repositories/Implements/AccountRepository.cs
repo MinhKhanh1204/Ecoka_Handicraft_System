@@ -105,5 +105,17 @@ namespace AccountAPI.Repositories.Implements
                 await _context.SaveChangesAsync();
             }
         }
-    }
+
+		public async Task<Account?> GetProfileAsync(string accountId)
+		{
+			return await _context.Accounts
+				.Include(x => x.Customer)
+				.FirstOrDefaultAsync(x => x.AccountID == accountId);
+		}
+
+		public async Task UpdateAsync()
+		{
+			await _context.SaveChangesAsync();
+		}
+	}
 }
