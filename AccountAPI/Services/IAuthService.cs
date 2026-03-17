@@ -12,5 +12,9 @@ namespace AccountAPI.Services
         Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
 
         Task ResetPasswordAsync(ResetPasswordRequestDto request);
-    }
+
+		Task<ProfileResponseDto> GetProfileAsync(string accountId);
+
+		Task UpdateProfileAsync(string accountId, UpdateProfileRequestDto request);
+	}
 }

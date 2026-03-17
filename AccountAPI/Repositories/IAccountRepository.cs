@@ -22,5 +22,9 @@ namespace AccountAPI.Repositories
         Task<Account?> GetByPasswordRecoveryTokenAsync(string token);
         Task SetPasswordRecoveryTokenAsync(string accountId, string token, DateTime expiry);
         Task UpdatePasswordAsync(string accountId, string hashedPassword);
-    }
+
+		Task<Account?> GetProfileAsync(string accountId);
+
+		Task UpdateAsync();
+	}
 }

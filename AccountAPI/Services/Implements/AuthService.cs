@@ -161,5 +161,55 @@ namespace AccountAPI.Services.Implements
             // Send confirmation email
             await _emailService.SendPasswordResetConfirmationEmailAsync(account.Email);
         }
-    }
+
+		public async Task<ProfileResponseDto> GetProfileAsync(string accountId)
+		{
+			var account = await _repo.GetProfileAsync(accountId);
+
+			if (account == null)
+				throw new BadRequestException("Account not found");
+
+			return new ProfileResponseDto
+			{
+				AccountId = account.AccountID,
+				Username = account.Username,
+				Email = account.Email,
+				Avatar = account.Avatar,
+
+				FullName = account.Customer?.FullName!,
+				DateOfBirth = account.Customer?.DateOfBirth,
+				Gender = account.Customer?.Gender,
+				Phone = account.Customer?.Phone,
+				Address = account.Customer?.Address
+			};
+		}
+
+		public async Task UpdateProfileAsync(string accountId, UpdateProfileRequestDto request)
+		{
+			var account = await _repo.GetProfileAsync(accountId);
+
+			if (account == null)
+				throw new BadRequestException("Account not found");
+
+			var customer = account.Customer;
+
+			if (customer == null)
+				throw new BadRequestException("Customer not found");
+
+			// update customer
+			customer.FullName = request.FullName;
+			customer.DateOfBirth = request.DateOfBirth;
+			customer.Gender = request.Gender;
+			customer.Phone = request.Phone;
+			customer.Address = request.Address;
+
+			// upload avatar n?u có
+			if (request.Avatar != null)
+			{
+				account.Avatar = await _cloudinaryService.UploadImageAsync(request.Avatar);
+			}
+
+			await _repo.UpdateAsync();
+		}
+	}
 }
