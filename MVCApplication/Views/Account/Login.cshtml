@@ -20,8 +20,8 @@
                 <div class="col-lg-7">
                     <form asp-action="Login" method="post">
                         <div asp-validation-summary="All" style="color:red"></div>
-                        <input asp-for="Username" type="text" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Name">
-                        <span asp-validation-for="Username" style="color:red"></span>
+                        <input asp-for="Email" type="email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Email">
+                        <span asp-validation-for="Email" style="color:red"></span>
                         <input asp-for="Password" type="password" class="w-100 form-control border-0 py-3 mb-2" placeholder="Enter Your Password">
                         <span asp-validation-for="Password" style="color:red"></span>
                         <div class="text-end mb-4">

@@ -18,9 +18,9 @@ namespace AccountAPI.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login(LoginRequestDto request)
+        public async Task<IActionResult> Login(LoginRequestDto request)
         {
-            var result = _service.Login(request);
+            var result = await _service.Login(request);
             return Ok(ApiResponse<LoginResponseDto>.SuccessResponse(result));
         }
 

@@ -4,7 +4,7 @@ namespace AccountAPI.Services
 {
     public interface IAuthService
     {
-        LoginResponseDto Login(LoginRequestDto request);
+        Task<LoginResponseDto> Login(LoginRequestDto request);
 
         Task RegisterCustomerAsync(RegisterCustomerRequestDto request);
         Task ChangePasswordAsync(string accountId, ChangePasswordDto request);

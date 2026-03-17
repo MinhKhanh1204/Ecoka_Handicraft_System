@@ -1,5 +1,5 @@
-﻿using ProductAPI.DTOs;
-using ProductAPI.Mappers;
+﻿using AutoMapper;
+using ProductAPI.DTOs;
 using ProductAPI.Repositories;
 
 namespace ProductAPI.Services.Implements
@@ -7,9 +7,9 @@ namespace ProductAPI.Services.Implements
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _repo;
-        private readonly ICategoryMapper _mapper;
+        private readonly IMapper _mapper;
 
-        public CategoryService(ICategoryRepository repo, ICategoryMapper mapper)
+        public CategoryService(ICategoryRepository repo, IMapper mapper)
         {
             _repo = repo;
             _mapper = mapper;
@@ -17,7 +17,7 @@ namespace ProductAPI.Services.Implements
 
         public List<CategoryDto> GetAllCategories()
         {
-            return _repo.GetAll().Select(p => _mapper.ToDto(p)).ToList();
+            return _repo.GetAll().Select(p => _mapper.Map<CategoryDto>(p)).ToList();
         }
     }
 }

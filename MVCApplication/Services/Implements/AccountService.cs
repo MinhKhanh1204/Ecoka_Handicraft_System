@@ -1,4 +1,3 @@
-using MVCApplication.CustomFormatter;
 using MVCApplication.Models;
 using MVCApplication.Models.DTOs;
 using System.Text;
@@ -15,19 +14,16 @@ namespace MVCApplication.Services.Implements
             _httpClient = httpClient;
         }
 
-        public async Task<LoginResponseDto> LoginAsync(LoginViewModel model)
+        public async Task<CustomFormatter.ApiResponse<LoginResponseDto>> LoginAsync(LoginViewModel model)
         {
             var response = await _httpClient.PostAsJsonAsync("auth/login", model);
 
-            if (!response.IsSuccessStatusCode)
-                return null;
-
             var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<LoginResponseDto>>();
 
-            return result?.Data;
+            return result!;
         }
 
-        public async Task<bool> RegisterAsync(RegisterViewModel model)
+        public async Task<ApiResponse<object>> RegisterAsync(RegisterViewModel model)
         {
             using var formData = new MultipartFormDataContent();
 
@@ -58,8 +54,8 @@ namespace MVCApplication.Services.Implements
                 formData.Add(streamContent, "Avatar", model.Avatar.FileName);
             }
             var response = await _httpClient.PostAsync("auth/register-customer", formData);
-
-            return response.IsSuccessStatusCode;
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+            return result!;
         }
 
         public async Task<CustomFormatter.ApiResponse<object>> ChangePasswordAsync(ChangePasswordViewModel model)
