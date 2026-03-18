@@ -1,4 +1,4 @@
-using AccountAPI.Admin.Services;
+﻿using AccountAPI.Admin.Services;
 using AccountAPI.CustomFormatter;
 using Microsoft.AspNetCore.Mvc;
 using static AccountAPI.Admin.DTOs.StaffDto;
@@ -40,37 +40,84 @@ namespace AccountAPI.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateStaff([FromBody] CreateStaffDto dto)
         {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Request body is empty", 400));
+
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid data", 400));
 
             try
             {
-                var result = await _service.CreateStaffAsync(dto);
+                await _service.CreateStaffAsync(dto);
                 return Ok(ApiResponse<bool>.SuccessResponse(true, "Staff created successfully"));
             }
             catch (InvalidOperationException ex) when (ex.Message == "EMAIL_EXISTS")
             {
                 return BadRequest(ApiResponse<bool>.Fail("Email already exists", 400));
             }
+            catch (InvalidOperationException ex) when (ex.Message == "PHONE_EXISTS")
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Phone already exists", 400));
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "CITIZENID_EXISTS")
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Citizen ID already exists", 400));
+            }
             catch (InvalidOperationException ex) when (ex.Message == "ROLE_NOT_FOUND")
             {
-                return BadRequest(ApiResponse<bool>.Fail("Role not found in system", 400));
+                return BadRequest(ApiResponse<bool>.Fail("Role not found", 400));
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "INVALID_AGE")
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Staff must be at least 18", 400));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.Fail(ex.Message, 500));
             }
         }
 
         // PUT /api/admin/staffs
-        [HttpPut]
-        public async Task<IActionResult> UpdateStaff([FromBody] UpdateStaffDto dto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateStaff(string id, [FromBody] UpdateStaffDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid data", 400));
+            {
+                var errors = ModelState.Values
+                                .SelectMany(v => v.Errors)
+                                .Select(e => e.ErrorMessage)
+                                .ToList();
+                return BadRequest(ApiResponse<bool>.Fail(string.Join("; ", errors), 400));
+            }
 
-            var result = await _service.UpdateStaffAsync(dto);
+            // So sánh id URL và dto.StaffId
+            if (id != dto.StaffId)
+                return BadRequest(ApiResponse<bool>.Fail("Staff ID mismatch", 400));
 
-            if (!result)
-                return NotFound(ApiResponse<bool>.Fail("Staff not found", 404));
+            try
+            {
+                var result = await _service.UpdateStaffAsync(dto);
+                if (!result)
+                {
+                    return NotFound(ApiResponse<bool>.Fail("Staff not found", 404));
+                }
 
-            return Ok(ApiResponse<bool>.SuccessResponse(true, "Staff updated successfully"));
+                return Ok(ApiResponse<bool>.SuccessResponse(true, "Staff updated successfully"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                string message = ex.Message switch
+                {
+                    "INVALID_AGE" => "Staff must be at least 18 years old",
+                    "CITIZENID_EXISTS" => "Citizen ID already exists for another staff",
+                    _ => "An unexpected error occurred"
+                };
+                return BadRequest(ApiResponse<bool>.Fail(message, 400));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.Fail("Internal server error: " + ex.Message, 500));
+            }
         }
 
         // DELETE /api/admin/staffs/{id}

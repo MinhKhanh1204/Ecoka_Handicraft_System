@@ -10,7 +10,7 @@ namespace MVCApplication.Areas.Admin.Services
 
         Task<(bool Success, string? ErrorMessage)> CreateStaffAsync(CreateStaffViewModel model);
 
-        Task<bool> UpdateStaffAsync(EditStaffViewModel model);
+        Task<(bool Success, string? ErrorMessage)> UpdateStaffAsync(EditStaffViewModel model);
 
         Task<bool> DeleteStaffAsync(string id);
     }

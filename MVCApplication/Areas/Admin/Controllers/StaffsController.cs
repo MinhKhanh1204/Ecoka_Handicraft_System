@@ -56,19 +56,56 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateStaffViewModel model)
         {
+            // ✅ Validate tuổi (server-side)
+            if (model.DateOfBirth.HasValue)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var age = today.Year - model.DateOfBirth.Value.Year;
+
+                if (model.DateOfBirth.Value > today.AddYears(-age))
+                    age--;
+
+                if (age < 18)
+                {
+                    ModelState.AddModelError("DateOfBirth", "Staff must be at least 18 years old");
+                }
+            }
+
             if (!ModelState.IsValid)
                 return View(model);
 
+            // ✅ Upload avatar (optional)
+            if (model.AvatarFile != null)
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(model.AvatarFile.FileName);
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/staff", fileName);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await model.AvatarFile.CopyToAsync(stream);
+                }
+
+                model.Avatar = "/images/staff/" + fileName;
+            }
+
             var (success, errorMessage) = await _staffService.CreateStaffAsync(model);
+
             if (!success)
             {
+                // 🔥 Đưa lỗi API xuống form luôn
+                ModelState.AddModelError("", errorMessage ?? "Failed to create staff");
+
                 TempData["ToastType"] = "error";
                 TempData["ToastMessage"] = errorMessage ?? "Failed to create staff";
+
                 return View(model);
             }
 
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = "Staff created successfully";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -104,20 +141,76 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditStaffViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            // ✅ Validate tuổi (server-side) giống Create
+            if (model.DateOfBirth.HasValue)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var age = today.Year - model.DateOfBirth.Value.Year;
 
-            var result = await _staffService.UpdateStaffAsync(model);
-            if (!result)
+                if (model.DateOfBirth.Value > today.AddYears(-age))
+                    age--;
+
+                if (age < 18)
+                {
+                    ModelState.AddModelError("DateOfBirth", "Staff must be at least 18 years old");
+                }
+            }
+
+            if (!ModelState.IsValid)
             {
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = "Failed to update staff";
+                TempData["ToastMessage"] = "Please correct the errors in the form";
                 return View(model);
             }
 
-            TempData["ToastType"] = "success";
-            TempData["ToastMessage"] = "Staff updated successfully";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                // Upload avatar (optional) and send its URL to API
+                if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+                {
+                    var fileName = Guid.NewGuid() + Path.GetExtension(model.AvatarFile.FileName);
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/staff", fileName);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await model.AvatarFile.CopyToAsync(stream);
+                    }
+
+                    model.Avatar = "/images/staff/" + fileName;
+                }
+
+                var (success, errorMessage) = await _staffService.UpdateStaffAsync(model);
+                if (!success)
+                {
+                    TempData["ToastType"] = "error";
+                    TempData["ToastMessage"] = errorMessage ?? "Failed to update staff";
+                    return View(model);
+                }
+
+                TempData["ToastType"] = "success";
+                TempData["ToastMessage"] = "Staff updated successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                string message = ex.Message switch
+                {
+                    "INVALID_AGE" => "Staff must be at least 18 years old",
+                    "CITIZENID_EXISTS" => "Citizen ID already exists",
+                    _ => "Failed to update staff. Please try again."
+                };
+                TempData["ToastType"] = "error";
+                TempData["ToastMessage"] = message;
+                return View(model);
+            }
+            catch (Exception)
+            {
+                TempData["ToastType"] = "error";
+                TempData["ToastMessage"] = "Failed to update staff. Please try again.";
+                return View(model);
+            }
         }
 
         // POST: /Admin/Staffs/Delete/{id}

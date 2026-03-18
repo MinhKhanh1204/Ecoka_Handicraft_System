@@ -73,7 +73,7 @@
                         <div class="col-12 mt-4">
                             <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Upload file hoặc Link URL)</h6>
                             <p class="text-muted small">Cung cấp ít nhất 1 ảnh. Ảnh đầu tiên được mặc định làm ảnh chính.</p>
-                            
+
                             <div id="image-inputs">
                                 @for (int i = 0; i < 4; i++)
                                 {
@@ -112,7 +112,9 @@
 </section>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         // Cập nhật giá trị IsMain khi thay đổi radio button
         document.querySelectorAll('input[name="mainImageIndex"]').forEach((radio, index) => {
