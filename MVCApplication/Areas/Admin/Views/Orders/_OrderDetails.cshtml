@@ -1,0 +1,52 @@
+﻿@model MVCApplication.Models.DTOs.Order
+
+<div class="row mb-3">
+
+    <div class="col-md-6">
+        <strong>Order ID:</strong> @Model.OrderID <br />
+        <strong>Customer:</strong> @(Model.CustomerID ?? "-") <br />
+        <strong>Order Date:</strong> @(Model.OrderDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")
+    </div>
+
+    <div class="col-md-6">
+        <strong>Payment Method:</strong> @(Model.PaymentMethod ?? "-") <br />
+        <strong>Payment Status:</strong> @(Model.PaymentStatus ?? "-") <br />
+        <strong>Shipping Status:</strong> @(Model.ShippingStatus ?? "-")
+    </div>
+
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th class="text-end">Price</th>
+                <th class="text-end">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (Model.OrderItems != null && Model.OrderItems.Any())
+            {
+                foreach (var it in Model.OrderItems)
+                {
+                    <tr>
+                        <td>@(it.ProductName ?? it.ProductID)</td>
+                        <td>@it.Quantity</td>
+                        <td class="text-end">@((it.UnitPrice ?? 0).ToString("C"))</td>
+                        <td class="text-end">@(((it.UnitPrice ?? 0) * (it.Quantity ?? 0)).ToString("C"))</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center">No items</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+</div>

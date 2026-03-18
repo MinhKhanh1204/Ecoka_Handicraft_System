@@ -1,4 +1,4 @@
-@model IEnumerable<MVCApplication.Models.DTOs.Order>
+﻿@model IEnumerable<MVCApplication.Models.DTOs.Order>
 
 @{
     ViewData["Title"] = "Orders Management";
@@ -10,7 +10,7 @@
     string baseUrl = Url.Action("Index", "Orders", new { area = "Admin" }) ?? "/Admin/Orders";
     string buildPageUrl(int p) =>
         baseUrl + "?" +
-        $"orderId={q(ViewBag.OrderId as string)}&customerName={q(ViewBag.CustomerName as string)}&from={q(ViewBag.From as string)}&to={q(ViewBag.To as string)}&shippingStatus={q(ViewBag.ShippingStatus as string)}&paymentStatus={q(ViewBag.PaymentStatus as string)}&page={p}";
+        $"orderId={q(ViewBag.OrderId as string)}&customerId={q(ViewBag.CustomerId as string)}&from={q(ViewBag.From as string)}&to={q(ViewBag.To as string)}&shippingStatus={q(ViewBag.ShippingStatus as string)}&paymentStatus={q(ViewBag.PaymentStatus as string)}&page={p}";
 }
 
 <h1 class="mb-4">Orders Management</h1>
@@ -30,7 +30,7 @@
         <input name="orderId" value="@(ViewBag.OrderId ?? "")" class="form-control" placeholder="Order ID" />
     </div>
     <div class="col-sm-2">
-        <input name="customerName" value="@(ViewBag.CustomerName ?? "")" class="form-control" placeholder="Customer" />
+        <input name="customerId" value="@(ViewBag.CustomerId ?? "")" class="form-control" placeholder="Customer" />
     </div>
     <div class="col-sm-2">
         <input type="date" name="from" value="@(ViewBag.From ?? "")" class="form-control" />
@@ -92,17 +92,45 @@
                     <td>@(o.PaymentStatus ?? "-")</td>
                     <td>@(o.ShippingStatus ?? "-")</td>
                     <td>
-                        <a class="btn btn-sm btn-info me-1" href="@Url.Action("Details", "Orders", new { area = "Admin", orderId = o.OrderID })">Details</a>
 
-                        <!-- Update button triggers modal -->
-                        <button type="button"
-                                class="btn btn-sm btn-warning me-1 btn-open-update"
-                                data-orderid="@o.OrderID"
-                                data-currentstatus="@(o.ShippingStatus ?? "Pending")">
-                            Update
+                        <button class="btn btn-sm btn-info btn-show-details"
+                                data-orderid="@o.OrderID">
+                            Details
                         </button>
 
-                        <a class="btn btn-sm btn-secondary" href="@Url.Action("Get", "Orders", new { area = "Admin", orderId = o.OrderID })">JSON</a>
+                        @{
+                            bool isPendingShipping = string.Equals(o.ShippingStatus ?? "", "Pending", StringComparison.OrdinalIgnoreCase);
+                            bool isPaid = string.Equals(o.PaymentStatus ?? "", "Paid", StringComparison.OrdinalIgnoreCase);
+                            bool needAction = isPendingShipping && !isPaid;
+                        }
+
+                        @if (isPendingShipping && !isPaid)
+                        {
+                            <button type="button"
+                                    class="btn btn-sm btn-warning me-1 btn-open-update"
+                                    data-orderid="@o.OrderID"
+                                    data-currentstatus="@o.ShippingStatus">
+
+                                Update
+
+                                @* red exclamation *@
+                                @if (needAction)
+                                {
+                                    <span class="text-danger fw-bold ms-1">!</span>
+                                }
+
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-sm btn-warning me-1"
+                                    disabled
+                                    title="Paid or non-pending orders cannot be modified">
+                                Update
+                            </button>
+                        }
+
                     </td>
                 </tr>
             }
@@ -192,7 +220,6 @@
                             <option value="Pending">Pending</option>
                             <option value="Approved">Approved</option>
                             <option value="Cancelled">Cancelled</option>
-                            <option value="Returned">Returned</option>
                         </select>
                     </div>
                     <p class="text-muted small">Updating status will change the shipping state for this order.</p>
@@ -203,6 +230,25 @@
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="modal fade" id="orderDetailsModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="orderDetailsContent">
+                <div class="text-center p-4">
+                    <div class="spinner-border"></div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -221,6 +267,62 @@
                     updateModal.show();
                 });
             });
+
         })();
+
+        document.addEventListener("click", function (e) {
+
+            const btn = e.target.closest(".btn-show-details");
+
+            if (!btn) return;
+
+            const orderId = btn.dataset.orderid;
+
+            const modal = new bootstrap.Modal(
+                document.getElementById("orderDetailsModal")
+            );
+
+            const container = document.getElementById("orderDetailsContent");
+
+            container.innerHTML =
+                '<div class="text-center p-4"><div class="spinner-border"></div></div>';
+
+            fetch(`/Admin/Orders/Details?orderId=${orderId}`)
+                .then(res => res.text())
+                .then(html => {
+                    container.innerHTML = html;
+                });
+
+            modal.show();
+        });
+
+        document.getElementById("updateForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+
+            const res = await fetch(form.action, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+
+                alert(data.message);
+
+                location.reload(); // reload lại trang list
+
+            } else {
+
+                alert(data.message);
+
+            }
+
+        });
     </script>
 }
+

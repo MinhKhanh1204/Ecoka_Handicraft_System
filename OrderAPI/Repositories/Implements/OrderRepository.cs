@@ -94,9 +94,22 @@ namespace OrderAPI.Repositories.Implements
 
         public async Task<Order?> GetOrderDetailAsync(string orderId)
         {
-            return await _context.Orders
+            // Eagerly include OrderItems and defensively ensure collection is loaded.
+            var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId);
+
+            if (order == null)
+                return null;
+
+            // Defensive load in case Include did not populate (rare, but helps debugging)
+            var itemsLoaded = order.OrderItems != null && order.OrderItems.Any();
+            if (!itemsLoaded)
+            {
+                await _context.Entry(order).Collection(o => o.OrderItems).LoadAsync();
+            }
+
+            return order;
         }
 
         public async Task<bool> CancelOrderAsync(string orderId, string cancelReason)

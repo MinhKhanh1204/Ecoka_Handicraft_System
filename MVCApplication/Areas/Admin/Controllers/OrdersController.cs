@@ -22,7 +22,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,
@@ -30,43 +30,56 @@ namespace MVCApplication.Areas.Admin.Controllers
             int page = 1,
             int pageSize = 10)
         {
-            IEnumerable<Order> orders = new List<Order>();
+            // Keep incoming filters for view
+            ViewBag.OrderId = orderId;
+            ViewBag.CustomerId = customerId;
+            ViewBag.From = from?.ToString("yyyy-MM-dd");
+            ViewBag.To = to?.ToString("yyyy-MM-dd");
+            ViewBag.ShippingStatus = shippingStatus;
+            ViewBag.PaymentStatus = paymentStatus;
+
+            IEnumerable<Order> orders = Enumerable.Empty<Order>();
 
             try
             {
-                bool hasFilter =
-                    !string.IsNullOrWhiteSpace(orderId) ||
-                    !string.IsNullOrWhiteSpace(customerName) ||
-                    from.HasValue ||
-                    to.HasValue ||
-                    !string.IsNullOrWhiteSpace(shippingStatus) ||
-                    !string.IsNullOrWhiteSpace(paymentStatus);
+                Console.WriteLine($"customerId = {customerId}");
 
-                if (hasFilter)
+                if (!string.IsNullOrEmpty(orderId) ||
+                    !string.IsNullOrEmpty(customerId) ||
+                    from != null || to != null ||
+                    !string.IsNullOrEmpty(shippingStatus) ||
+                    !string.IsNullOrEmpty(paymentStatus))
                 {
                     orders = await _service.SearchOrdersForStaffAsync(
                         orderId,
-                        customerName,
+                        customerId,
                         from,
                         to,
                         shippingStatus,
                         paymentStatus
-                    ) ?? new List<Order>();
+                    ) ?? Enumerable.Empty<Order>();
                 }
                 else
                 {
-                    orders = await _service.GetAllOrdersForStaffAsync()
-                             ?? new List<Order>();
+                    orders = await _service.GetAllOrdersForStaffAsync() ?? Enumerable.Empty<Order>();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading orders from API");
                 TempData["Error"] = "Cannot load orders from API.";
+                orders = Enumerable.Empty<Order>();
             }
 
-            // pagination
+            // Ensure valid paging parameters
+            if (pageSize <= 0) pageSize = 10;
+            if (page <= 0) page = 1;
+
             var totalItems = orders.Count();
+            var totalPages = totalItems == 0 ? 1 : (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // clamp current page
+            if (page > totalPages) page = totalPages;
 
             var pagedOrders = orders
                 .Skip((page - 1) * pageSize)
@@ -76,15 +89,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalItems = totalItems;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            // giữ lại filter
-            ViewBag.OrderId = orderId;
-            ViewBag.CustomerName = customerName;
-            ViewBag.From = from?.ToString("yyyy-MM-dd");
-            ViewBag.To = to?.ToString("yyyy-MM-dd");
-            ViewBag.ShippingStatus = shippingStatus;
-            ViewBag.PaymentStatus = paymentStatus;
+            ViewBag.TotalPages = totalPages;
 
             return View(pagedOrders);
         }
@@ -103,7 +108,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 if (dto == null)
                     return NotFound();
 
-                return View(dto);
+                // Return the partial view so the caller can render it in a modal or inline.
+                return PartialView("_OrderDetails", dto);
             }
             catch (Exception ex)
             {
@@ -127,6 +133,27 @@ namespace MVCApplication.Areas.Admin.Controllers
             {
                 var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "ADMIN";
 
+                // kiểm tra order
+                var order = await _service.GetOrderDetailForStaffAsync(orderId);
+
+                if (order == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Order not found"
+                    });
+                }
+
+                if (order.PaymentStatus == "Paid")
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Paid orders cannot be modified"
+                    });
+                }
+
                 var result = await _service.UpdateOrderStatusAsync(
                     orderId,
                     newStatus,
@@ -138,14 +165,14 @@ namespace MVCApplication.Areas.Admin.Controllers
                     return Json(new
                     {
                         success = true,
-                        message = "Order status updated"
+                        message = "Order status updated successfully"
                     });
                 }
 
                 return Json(new
                 {
                     success = false,
-                    message = "Order not found"
+                    message = "Update failed"
                 });
             }
             catch (Exception ex)
@@ -155,7 +182,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = "Update failed"
+                    message = "System error"
                 });
             }
         }

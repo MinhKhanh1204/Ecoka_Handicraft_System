@@ -11,7 +11,7 @@ namespace MVCApplication.Areas.Admin.Services
         Task<IEnumerable<Order>> GetAllOrdersForStaffAsync();
         Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,

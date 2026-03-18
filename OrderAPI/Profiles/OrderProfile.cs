@@ -8,11 +8,10 @@ namespace OrderAPI.Profiles
     {
         public OrderProfile()
         {
-            // ========================
-            // Order Mapping
-            // ========================
-
-            CreateMap<Order, OrderReadDto>();
+            // Ensure nested OrderItems are explicitly mapped so DTO always carries items
+            CreateMap<Order, OrderReadDto>()
+                .ForMember(dest => dest.OrderItems,
+                           opt => opt.MapFrom(src => src.OrderItems));
 
             CreateMap<OrderCreateDto, Order>()
                 .ForMember(dest => dest.OrderID, opt => opt.Ignore())
@@ -23,10 +22,7 @@ namespace OrderAPI.Profiles
                 .ForAllMembers(opt =>
                     opt.Condition((src, dest, srcMember) => srcMember != null));
 
-            // ========================
-            // OrderItem Mapping
-            // ========================
-
+            // OrderItem mapping
             CreateMap<OrderItem, OrderItemReadDto>();
 
             CreateMap<OrderItemCreateDto, OrderItem>()

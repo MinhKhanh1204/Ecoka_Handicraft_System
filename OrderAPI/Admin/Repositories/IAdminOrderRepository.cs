@@ -11,7 +11,7 @@ namespace OrderAPI.Admin.Repositories
 
         Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,

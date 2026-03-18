@@ -19,7 +19,7 @@ namespace OrderAPI.Admin.Repositories.Implements
             var paid = PaymentStatus.Paid.ToString();
             var completed = "Completed";
 
-            var data = await _context.Orders
+            var data = await _context.Orders.Include(o => o.OrderItems)
                 .Where(o => o.OrderDate.HasValue
                             && o.OrderDate.Value.Year == year
                             && (o.PaymentStatus == paid || o.PaymentStatus == completed))
@@ -54,7 +54,7 @@ namespace OrderAPI.Admin.Repositories.Implements
 
         public async Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,
@@ -64,6 +64,9 @@ namespace OrderAPI.Admin.Repositories.Implements
 
             if (!string.IsNullOrWhiteSpace(orderId))
                 query = query.Where(o => o.OrderID.Contains(orderId));
+
+            if (!string.IsNullOrWhiteSpace(customerId))
+                query = query.Where(o => o.CustomerID.Contains(customerId));
 
             if (from.HasValue)
                 query = query.Where(o => o.OrderDate >= from.Value);

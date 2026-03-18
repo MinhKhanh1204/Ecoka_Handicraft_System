@@ -13,7 +13,7 @@ namespace OrderAPI.Admin.Services
 
         Task<IEnumerable<OrderReadDto>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,

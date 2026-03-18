@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Models.DTOs;
 
@@ -8,10 +9,12 @@ namespace MVCApplication.Areas.Admin.Services.Implements
     public class AdminOrderService : IAdminOrderService
     {
         private readonly HttpClient _http;
+        private readonly ILogger<AdminOrderService> _logger;
 
-        public AdminOrderService(HttpClient http)
+        public AdminOrderService(HttpClient http, ILogger<AdminOrderService> logger)
         {
             _http = http;
+            _logger = logger;
         }
 
         // ?úng base API
@@ -46,7 +49,7 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         // ===============================
         public async Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,
@@ -55,7 +58,7 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             var query = new Dictionary<string, string?>()
             {
                 ["orderId"] = orderId,
-                ["customerName"] = customerName,
+                ["customerId"] = customerId,
                 ["from"] = from?.ToString("yyyy-MM-dd"),
                 ["to"] = to?.ToString("yyyy-MM-dd"),
                 ["shippingStatus"] = shippingStatus,
@@ -71,12 +74,45 @@ namespace MVCApplication.Areas.Admin.Services.Implements
                 filtered
             );
 
-            var resp = await _http.GetAsync(uri);
+            _logger.LogInformation("AdminOrderService.SearchOrdersForStaffAsync -> GET {Uri}", uri);
 
-            resp.EnsureSuccessStatusCode();
+            try
+            {
+                var resp = await _http.GetAsync(uri);
 
-            return await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>()
-                   ?? Enumerable.Empty<Order>();
+                // if backend returns 204 NoContent -> treat as empty result
+                if (resp.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    _logger.LogDebug("Search returned 204 NoContent for {Uri}", uri);
+                    return Enumerable.Empty<Order>();
+                }
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var body = await resp.Content.ReadAsStringAsync();
+                    _logger.LogWarning("SearchOrdersForStaffAsync returned {Status} {Reason} for {Uri}. Body: {Body}",
+                        resp.StatusCode, resp.ReasonPhrase, uri, body);
+                    return Enumerable.Empty<Order>();
+                }
+
+                // Safe read with try/catch to avoid thrown when content is empty/invalid JSON
+                try
+                {
+                    var result = await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>();
+                    return result ?? Enumerable.Empty<Order>();
+                }
+                catch (Exception ex)
+                {
+                    var body = await resp.Content.ReadAsStringAsync();
+                    _logger.LogError(ex, "Failed to deserialize search response for {Uri}. Response body: {Body}", uri, body);
+                    return Enumerable.Empty<Order>();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "HTTP request failed for search {Uri}", uri);
+                return Enumerable.Empty<Order>();
+            }
         }
 
         // ===============================

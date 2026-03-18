@@ -33,14 +33,14 @@ namespace OrderAPI.Admin.Services.Implements
 
         public async Task<IEnumerable<OrderReadDto>> SearchOrdersForStaffAsync(
             string? orderId,
-            string? customerName,
+            string? customerId,
             DateTime? from,
             DateTime? to,
             string? shippingStatus,
             string? paymentStatus)
         {
             var orders = await _orderRepo.SearchOrdersForStaffAsync(
-                orderId, customerName, from, to, shippingStatus, paymentStatus);
+                orderId, customerId, from, to, shippingStatus, paymentStatus);
 
             return _mapper.Map<IEnumerable<OrderReadDto>>(orders);
         }

@@ -81,7 +81,7 @@ namespace OrderAPI.Admin.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchOrdersForStaff(
             [FromQuery] string? orderId,
-            [FromQuery] string? customerName,
+            [FromQuery] string? customerId,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromQuery] string? shippingStatus,
@@ -90,7 +90,7 @@ namespace OrderAPI.Admin.Controllers
         {
             try
             {
-                var result = await _service.SearchOrdersForStaffAsync(orderId, customerName, from, to, shippingStatus, paymentStatus);
+                var result = await _service.SearchOrdersForStaffAsync(orderId, customerId, from, to, shippingStatus, paymentStatus);
                 return Ok(result);
             }
             catch (Exception ex)

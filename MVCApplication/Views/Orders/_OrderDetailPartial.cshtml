@@ -11,7 +11,7 @@
 
     <div class="col-md-6 text-md-end">
         <h4 class="fw-bold text-success">
-            @Model.TotalAmount?.ToString("N0") $
+            @Model.TotalAmount?.ToString("N0") VND
         </h4>
         <span class="badge bg-info text-dark">
             @Model.PaymentStatus
@@ -29,29 +29,39 @@
 
 <div class="row g-3">
 
-    @foreach (var item in Model.OrderItems)
+    @if (Model.OrderItems != null && Model.OrderItems.Any())
     {
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-4">
+        @foreach (var item in Model.OrderItems)
+        {
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 rounded-4">
 
-                <img src= src="@item.ProductImage"
-                     class="card-img-top rounded-top-4"
-                     style="height:200px; object-fit:cover;" />
+                    <img src="@item.ProductImage"
+                         alt="@item.ProductName"
+                         class="card-img-top rounded-top-4"
+                         style="height:200px; object-fit:cover;" />
 
-                <div class="card-body">
+                    <div class="card-body">
 
-                    <h6 class="fw-bold">@item.ProductName</h6>
+                        <h6 class="fw-bold">@(!string.IsNullOrWhiteSpace(item.ProductName) ? item.ProductName : "Product")</h6>
 
-                    <p class="text-muted mb-1">
-                        Quantity: @item.Quantity
-                    </p>
+                        <p class="text-muted mb-1">
+                            Quantity: @item.Quantity
+                        </p>
 
-                    <p class="fw-bold text-primary">
-                        @item.UnitPrice?.ToString("N0") $
-                    </p>
+                        <p class="fw-bold text-primary">
+                            @item.UnitPrice?.ToString("N0") VND
+                        </p>
 
+                    </div>
                 </div>
             </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-info">No items found for this order.</div>
         </div>
     }
 

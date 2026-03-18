@@ -29,14 +29,43 @@ namespace MVCApplication.Controllers
 
         // GET /customer/orders
         [HttpGet("")]
-        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Index(int currentPage = 1, int historyPage = 1)
         {
             var customerId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrWhiteSpace(customerId))
                 return BadRequest("CustomerId required");
 
             var orders = await _orderService.GetOrdersByCustomerAsync(customerId);
-            return View(orders);
+
+            int pageSize = 6;
+
+            var currentOrders = orders
+                .Where(o => o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled")
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var historyOrders = orders
+                .Where(o => o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled")
+                .Skip((historyPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = currentPage;
+            ViewBag.HistoryPage = historyPage;
+
+            ViewBag.CurrentTotal = orders.Count(o =>
+                o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
+
+            ViewBag.HistoryTotal = orders.Count(o =>
+                o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
+
+            ViewBag.PageSize = pageSize;
+
+            ViewBag.CurrentOrders = currentOrders;
+            ViewBag.HistoryOrders = historyOrders;
+
+            return View();
         }
 
         // GET /customer/orders/{id}
@@ -80,23 +109,19 @@ namespace MVCApplication.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Order detail error for order {OrderId}", id);
-#if DEBUG
-                // In development return the exception message to help debugging (remove in production)
-                return StatusCode(500, $"Failed to load order details: {ex.Message}");
-#else
-                return StatusCode(500, "Failed to load order details");
-#endif
+                return StatusCode(500, "An error occurred while retrieving order details.");
             }
         }
 
         // GET /customer/orders/search
         [HttpGet("search")]
         public async Task<IActionResult> Search(
-            string? orderId,
-            DateTime? from,
-            DateTime? to,
-            string? paymentStatus,
-            string? tabStatus)
+    string? orderId,
+    DateTime? from,
+    DateTime? to,
+    string? paymentStatus,
+    int currentPage = 1,
+    int historyPage = 1)
         {
             var customerId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrWhiteSpace(customerId))
@@ -108,9 +133,37 @@ namespace MVCApplication.Controllers
                 from,
                 to,
                 paymentStatus,
-                tabStatus);
+                null);
 
-            return View("Index", orders);
+            int pageSize = 6;
+
+            var currentOrders = orders
+                .Where(o => o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled")
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var historyOrders = orders
+                .Where(o => o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled")
+                .Skip((historyPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentOrders = currentOrders;
+            ViewBag.HistoryOrders = historyOrders;
+
+            ViewBag.CurrentPage = currentPage;
+            ViewBag.HistoryPage = historyPage;
+
+            ViewBag.CurrentTotal = orders.Count(o =>
+                o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
+
+            ViewBag.HistoryTotal = orders.Count(o =>
+                o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
+
+            ViewBag.PageSize = pageSize;
+
+            return View("Index");
         }
 
         // POST /customer/orders/{id}/cancel

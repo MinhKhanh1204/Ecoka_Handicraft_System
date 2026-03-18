@@ -1,163 +1,334 @@
+@using System.Text.Json
+
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Admin Dashboard";
+
+    var stats = ViewBag.DashboardStats;
+
+    var revenueData = stats?.RevenueData ?? new List<dynamic>();
+    var ordersByMonth = stats?.OrdersByMonth ?? new List<dynamic>();
+
+    var months = new List<string>();
+    var revenues = new List<decimal>();
+
+    foreach (var r in revenueData)
+    {
+        months.Add("Month " + r.Month);
+        revenues.Add(r.Revenue);
+    }
+
+    var orderMonths = new List<string>();
+    var orderCounts = new List<int>();
+
+    foreach (var o in ordersByMonth)
+    {
+        orderMonths.Add("Month " + o.Month);
+        orderCounts.Add(o.Count);
+    }
 }
 
-<div class="pagetitle">
-    <h1>Dashboard Statistics</h1>
-    <nav>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/Admin">Home</a></li>
-            <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-    </nav>
+<h2 class="mb-4">Admin Dashboard</h2>
+
+
+<!-- ================= FILTER ================= -->
+
+<form method="get" class="mb-4">
+
+    <div class="d-flex align-items-center">
+
+        <label class="me-2"><strong>Year:</strong></label>
+
+        <select name="revenueYear"
+                class="form-select w-auto"
+                onchange="this.form.submit()">
+
+            @foreach (var y in ViewBag.Years)
+            {
+                <option value="@y" selected="@(y == ViewBag.SelectedYear)">
+                    @y
+                </option>
+            }
+
+        </select>
+
+    </div>
+
+</form>
+
+
+
+<!-- ================= KPI CARDS ================= -->
+
+<div class="row mb-4">
+
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Total Orders</h6>
+                <h3>@(stats?.TotalOrders ?? 0)</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Total Items Sold</h6>
+                <h3>@(stats?.TotalItemsSold ?? 0)</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Products Pending</h6>
+                <h3>@(stats?.ProductPendingCount ?? 0)</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Vouchers Pending</h6>
+                <h3>@(stats?.VoucherApprovalCount ?? 0)</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <h6>Categories Pending</h6>
+                <h3>@(stats?.CategoryApprovalCount ?? 0)</h3>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<section class="section dashboard">
-    <div class="row">
 
-        <!-- ================= REVENUE CHART ================= -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Revenue by Month</h5>
-                        <form method="get" class="d-flex align-items-center">
-                            <select class="form-select form-select-sm w-auto" name="revenueYear" id="revenueYearFilter">
-                                @{
-                                    var currentYear = DateTime.Now.Year;
-                                    var selectedRevenueYear = (int)(ViewBag.SelectedRevenueYear ?? currentYear);
-                                    for (int y = currentYear - 3; y <= currentYear; y++)
-                                    {
-                                        <option value="@y" selected="@(y == selectedRevenueYear ? "selected" : null)">@y</option>
-                                    }
-                                }
-                            </select>
-                        </form>
-                    </div>
-                    <canvas id="revenueChart" style="height: 350px;"></canvas>
-                </div>
+
+<!-- ================= CHARTS ================= -->
+
+<div class="row">
+
+    <!-- Revenue Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                Revenue by Month (@stats.SelectedRevenueYear)
             </div>
+
+            <div class="card-body">
+                <canvas id="revenueChart"></canvas>
+            </div>
+
         </div>
+    </div>
 
-        <!-- ================= ORDERS CHART ================= -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Orders by Month</h5>
-                        <form method="get" class="d-flex align-items-center">
-                            <select class="form-select form-select-sm w-auto" name="orderYear" id="orderYearFilter">
-                                @{
-                                    var currentYear2 = DateTime.Now.Year;
-                                    var selectedOrderYear = (int)(ViewBag.SelectedOrderYear ?? currentYear2);
-                                    for (int y = currentYear2 - 3; y <= currentYear2; y++)
-                                    {
-                                        <option value="@y" selected="@(y == selectedOrderYear ? "selected" : null)">@y</option>
-                                    }
-                                }
-                            </select>
-                        </form>
-                    </div>
-                    <canvas id="orderChart" style="height: 350px;"></canvas>
-                </div>
+
+    <!-- Orders Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                Orders by Month
             </div>
+
+            <div class="card-body">
+                <canvas id="ordersChart"></canvas>
+            </div>
+
         </div>
+    </div>
 
-        <!-- ================= FEEDBACK PIE CHART ================= -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Feedback Statistics</h5>
-                    <canvas id="feedbackChart" style="height: 350px;"></canvas>
-                </div>
-            </div>
-        </div>
+</div>
 
-        <!-- ================= EMPLOYEE SALES CHART ================= -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Top 10 Employee Sales Performance</h5>
-                    <canvas id="employeeChart" style="height: 350px;"></canvas>
-                </div>
-            </div>
-        </div>
 
-        <!-- ================= LOYAL CUSTOMER CHART ================= -->
-        <div class="col-lg-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Top 10 Loyal Customers</h5>
-                    <canvas id="customerChart" style="height: 400px;"></canvas>
-                </div>
+
+<div class="row">
+
+    <!-- Feedback Chart -->
+    <div class="col-lg-6 mb-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                Feedback Statistics
             </div>
+
+            <div class="card-body">
+
+                <canvas id="feedbackChart"></canvas>
+
+                <div class="mt-3">
+                    <p><strong>Positive:</strong> @(stats?.PositiveFeedbackCount ?? 0)</p>
+                    <p><strong>Negative:</strong> @(stats?.NegativeFeedbackCount ?? 0)</p>
+                </div>
+
+            </div>
+
         </div>
 
     </div>
-</section>
+
+
+    <!-- Summary -->
+    <div class="col-lg-6 mb-4">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header">
+                Dashboard Summary
+            </div>
+
+            <div class="card-body">
+
+                <ul class="list-group">
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Total Orders
+                        <span>@(stats?.TotalOrders ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Total Items Sold
+                        <span>@(stats?.TotalItemsSold ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Positive Feedback
+                        <span>@(stats?.PositiveFeedbackCount ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Negative Feedback
+                        <span>@(stats?.NegativeFeedbackCount ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Products Pending Approval
+                        <span>@(stats?.ProductPendingCount ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Vouchers Pending Approval
+                        <span>@(stats?.VoucherApprovalCount ?? 0)</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between">
+                        Categories Pending Approval
+                        <span>@(stats?.CategoryApprovalCount ?? 0)</span>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 
 @section Scripts {
-    <style>
-        /* Giữ kích thước biểu đồ luôn cố định */
-        #revenueChart, #orderChart, #feedbackChart, #employeeChart, #customerChart {
-            height: 350px !important;
-            width: 100% !important;
-        }
-        /* Khách hàng biểu đồ lớn hơn */
-        #customerChart {
-            height: 400px !important;
-        }
-    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        // ================= REVENUE BY MONTH CHART =================
-        const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.RevenueData, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
-        const revenueLabels = revenueData.map(x => "Month " + x.month);
-        const revenueValues = revenueData.map(x => x.revenue);
-        const selectedRevenueYear = @ViewBag.SelectedRevenueYear;
 
-        const revenueCtx = document.getElementById('revenueChart');
-        new Chart(revenueCtx, {
-            type: 'bar',
-            data: {
-                labels: revenueLabels,
-                datasets: [{
-                    label: 'Revenue ' + selectedRevenueYear,
-                    data: revenueValues,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: '#4bc0c0',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            label: function(context) {
-                                let value = context.parsed.y;
-                                return 'Revenue: ' + value.toLocaleString('vi-VN') + ' VNĐ';
-                            }
-                        }
-                    }
-                },
-                scales: { y: { beginAtZero: true } }
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const revenueLabels = @Html.Raw(JsonSerializer.Serialize(months));
+            const revenueValues = @Html.Raw(JsonSerializer.Serialize(revenues));
+
+            const revenueCtx = document.getElementById("revenueChart");
+
+            if (revenueCtx) {
+
+                new Chart(revenueCtx, {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels: revenueLabels,
+
+                        datasets: [{
+                            label: "Revenue",
+                            data: revenueValues
+                        }]
+
+                    },
+
+                    options: { responsive: true }
+
+                });
+
             }
+
+
+            const orderLabels = @Html.Raw(JsonSerializer.Serialize(orderMonths));
+            const orderValues = @Html.Raw(JsonSerializer.Serialize(orderCounts));
+
+            const orderCtx = document.getElementById("ordersChart");
+
+            if (orderCtx) {
+
+                new Chart(orderCtx, {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels: orderLabels,
+
+                        datasets: [{
+                            label: "Orders",
+                            data: orderValues
+                        }]
+
+                    },
+
+                    options: { responsive: true }
+
+                });
+
+            }
+
+
+            const feedbackCtx = document.getElementById("feedbackChart");
+
+            if (feedbackCtx) {
+
+                new Chart(feedbackCtx, {
+
+                    type: "pie",
+
+                    data: {
+
+                        labels: ["Positive", "Negative"],
+
+                        datasets: [{
+                            data: [
+                                @(stats?.PositiveFeedbackCount ?? 0),
+                                @(stats?.NegativeFeedbackCount ?? 0)
+                            ]
+                        }]
+
+                    }
+
+                });
+
+            }
+
         });
 
-        // ================= REVENUE YEAR FILTER =================
-        document.getElementById('revenueYearFilter').addEventListener('change', function () {
-            const year = this.value;
-            window.location.href = '/Admin/Dashboard?revenueYear=' + year;
-        });
     </script>
+
 }
-
-
