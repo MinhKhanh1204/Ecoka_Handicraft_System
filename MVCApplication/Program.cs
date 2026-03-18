@@ -1,4 +1,4 @@
-using MVCApplication.Extensions;
+﻿using MVCApplication.Extensions;
 using MVCApplication.Services;
 using MVCApplication.Services.Implements;
 using Microsoft.IdentityModel.Tokens;
@@ -37,6 +37,7 @@ builder.Services.AddHttpClient<IAdminOrderService, AdminOrderService>(client =>
 {
     client.BaseAddress = new Uri(gatewayBase);
 });
+builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IVoucherAdminService, MVCApplication.Areas.Admin.Services.Implements.VoucherAdminService>(gatewayBase);
 //setting authen
 builder.Services
     .AddAuthentication(options =>
