@@ -1,0 +1,343 @@
+@model MVCApplication.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #81c408 0%, #6da306 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .checkout-card {
+        background: #fff;
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        transition: var(--transition-base);
+    }
+
+    .section-title {
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+    }
+
+    .form-item .form-control {
+        border-radius: 12px;
+        padding: 12px 20px;
+        border: 1px solid #eee;
+        transition: var(--transition-base);
+    }
+
+    .form-item .form-control:focus {
+        box-shadow: 0 0 0 4px rgba(129, 196, 8, 0.1);
+        border-color: #81c408;
+    }
+
+    .order-summary-table thead th {
+        border-top: none;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        color: #888;
+    }
+
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .payment-method-card {
+        border: 2px solid #eee;
+        border-radius: 15px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: var(--transition-base);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-method-card:hover {
+        border-color: #81c408;
+        background: rgba(129, 196, 8, 0.02);
+    }
+
+    .payment-method-card.active {
+        border-color: #81c408;
+        background: rgba(129, 196, 8, 0.05);
+    }
+
+    .payment-method-card input {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .payment-method-card i {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #81c408;
+    }
+
+    .total-row {
+        font-size: 1.1rem;
+    }
+
+    .grand-total {
+        font-size: 1.5rem;
+        color: #81c408;
+        font-weight: 800;
+    }
+
+    .btn-place-order {
+        background: var(--primary-gradient);
+        color: #fff;
+        border: none;
+        border-radius: 15px;
+        padding: 18px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(129, 196, 8, 0.3);
+        transition: var(--transition-base);
+    }
+
+    .btn-place-order:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(129, 196, 8, 0.4);
+        color: #fff;
+    }
+
+    .voucher-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+</style>
+
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Checkout</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Cart/View">Cart</a></li>
+        <li class="breadcrumb-item active text-white">Checkout</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+
+<!-- Checkout Page Start -->
+<div class="container-fluid py-5 bg-light">
+    <div class="container py-5">
+        <form action="/Orders/CreateOrder" method="post">
+            <input type="hidden" name="cartItemIds" value="@string.Join(",", Model.SelectedItems.Select(i => i.CartItemId))" />
+            <input type="hidden" id="hidVoucherId" name="VoucherId" value="" />
+            <input type="hidden" id="hidPaymentMethod" name="PaymentMethod" value="COD" />
+
+            <div class="row g-5">
+                <!-- Left Column: Billing -->
+                <div class="col-lg-7">
+                    <div class="checkout-card">
+                        <h4 class="section-title"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Shipping Details</h4>
+                        
+                        <div class="form-item mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Full Shipping Address<sup>*</sup></label>
+                            <input type="text" name="ShippingAddress" class="form-control" placeholder="Building, Street Name, Ward, District, City" required>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Order Notes (Optional)</label>
+                            <textarea name="Note" class="form-control" spellcheck="false" rows="5" placeholder="Special instructions for delivery..."></textarea>
+                        </div>
+
+                        <div class="voucher-section mt-5">
+                            <h5 class="mb-3 fw-bold"><i class="fas fa-ticket-alt me-2 text-primary"></i>Have a Voucher?</h5>
+                            <div class="input-group">
+                                <input type="text" id="txtVoucherCode" class="form-control border-0 bg-white" placeholder="Enter coupon code" style="border-radius: 10px 0 0 10px !important;">
+                                <button type="button" class="btn btn-primary px-4" onclick="applyVoucher()" style="border-radius: 0 10px 10px 0 !important;">Apply</button>
+                            </div>
+                            <p id="lblVoucherMessage" class="mt-2 mb-0 small"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Summary & Payment -->
+                <div class="col-lg-5">
+                    <div class="checkout-card mb-4">
+                        <h4 class="section-title"><i class="fas fa-shopping-basket me-2 text-primary"></i>Order Summary</h4>
+                        
+                        <div class="table-responsive">
+                            <table class="table order-summary-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.SelectedItems)
+                                    {
+                                        <tr>
+                                            <td class="py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/default-product.png" : item.ImageUrl)" class="product-img me-3" alt="@item.ProductName">
+                                                    <div>
+                                                        <h6 class="mb-0 fw-bold">@item.ProductName</h6>
+                                                        <span class="text-muted small">Qty: @item.Quantity</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold">@((item.Price * item.Quantity).ToString("N0")) ₫</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span class="fw-bold">@Model.Subtotal.ToString("N0") ₫</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Voucher Discount</span>
+                                <span class="text-danger fw-bold" id="lblDiscount">- 0 ₫</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-3 pt-3 border-top">
+                                <span class="h5 fw-bold mb-0">Total</span>
+                                <span class="grand-total" id="lblFinalTotal">@Model.Subtotal.ToString("N0") ₫</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card">
+                        <h4 class="section-title"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Method</h4>
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="payment-method-card active" onclick="setPaymentType('COD')">
+                                    <input type="radio" name="PaymentCheck" value="COD" checked>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-money-bill-wave me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">Cash on Delivery</h6>
+                                            <small class="text-muted">Pay when you receive the items</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="payment-method-card" onclick="setPaymentType('MOMO')">
+                                    <input type="radio" name="PaymentCheck" value="MOMO">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-wallet me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">MoMo E-Wallet</h6>
+                                            <small class="text-muted">Pay via MoMo Sandbox</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="payment-method-card" onclick="setPaymentType('VNPAY')">
+                                    <input type="radio" name="PaymentCheck" value="VNPAY">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-university me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">VNPay Online</h6>
+                                            <small class="text-muted">Credit Cards / Bank Transfer</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-place-order w-100 mt-4">
+                            PLACE ORDER NOW <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Checkout Page End -->
+
+@section Scripts {
+    <script>
+        const subtotal = @Model.Subtotal;
+        let discount = 0;
+        let maxReducing = null;
+        let formatter = new Intl.NumberFormat('vi-VN');
+
+        function updateTotals() {
+            let discountAmount = subtotal * (discount / 100);
+            
+            if (maxReducing && discountAmount > maxReducing) {
+                discountAmount = maxReducing;
+            }
+
+            let finalTotal = subtotal - discountAmount;
+            if (finalTotal < 0) finalTotal = 0;
+            
+            $('#lblDiscount').text("- " + formatter.format(discountAmount) + " ₫");
+            $('#lblFinalTotal').text(formatter.format(finalTotal) + " ₫");
+        }
+
+        function applyVoucher() {
+            let code = $('#txtVoucherCode').val();
+            if (!code) {
+                $('#lblVoucherMessage').text("Vui lòng nhập mã Voucher.").removeClass('text-success').addClass('text-danger');
+                return;
+            }
+
+            $.ajax({
+                url: '/Voucher/Apply?code=' + encodeURIComponent(code),
+                type: 'GET',
+                success: function (res) {
+                    $('#lblVoucherMessage').text("Voucher applied successfully!").removeClass('text-danger').addClass('text-success fw-bold');
+                    $('#hidVoucherId').val(res.voucherId);
+                    discount = parseFloat(res.discount) || 0;
+                    maxReducing = parseFloat(res.maxReducing) || null;
+                    updateTotals();
+                },
+                error: function (xhr) {
+                    let msg = "Invalid or expired Voucher code.";
+                    if (xhr.status === 404 && xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $('#lblVoucherMessage').text(msg).removeClass('text-success').addClass('text-danger');
+                    $('#hidVoucherId').val("");
+                    discount = 0;
+                    maxReducing = null;
+                    updateTotals();
+                }
+            });
+        }
+        
+        function setPaymentType(type) {
+            $('.payment-method-card').removeClass('active');
+            $(`.payment-method-card input[value="${type}"]`).prop('checked', true);
+            $(`.payment-method-card input[value="${type}"]`).closest('.payment-method-card').addClass('active');
+            $('#hidPaymentMethod').val(type);
+        }
+    </script>
+}

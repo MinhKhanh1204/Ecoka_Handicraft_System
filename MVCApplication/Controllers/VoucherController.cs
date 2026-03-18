@@ -28,5 +28,29 @@ namespace MVCApplication.Controllers
             }
             return View(voucher);
         }
+
+        // Endpoint for AJAX Voucher Application
+        [HttpGet]
+        public async Task<IActionResult> Apply(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return BadRequest("Code is required");
+
+            var allVouchers = await _voucherService.GetAllVouchersAsync();
+            var matchedVoucher = allVouchers.FirstOrDefault(v => 
+                v.Code != null && v.Code.Equals(code, StringComparison.OrdinalIgnoreCase) && 
+                v.IsActive == true && 
+                (v.ExpiryDate == null || v.ExpiryDate >= DateOnly.FromDateTime(DateTime.UtcNow)));
+
+            if (matchedVoucher == null)
+                return NotFound(new { Message = "Voucher không hợp lệ hoặc đã hết hạn!" });
+
+            return Ok(new 
+            { 
+                VoucherId = matchedVoucher.VoucherId, 
+                Discount = matchedVoucher.DiscountPercentage,
+                MaxReducing = matchedVoucher.MaxReducing
+            });
+        }
     }
 }

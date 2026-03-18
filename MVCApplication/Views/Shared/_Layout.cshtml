@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -54,7 +54,7 @@
                     </div>
 
                     <div class="d-flex m-3 me-0">
-                        <a asp-controller="Cart" asp-action="Index" class="position-relative me-4 my-auto">
+                        <a asp-controller="Cart" asp-action="View" class="position-relative me-4 my-auto" title="View Cart">
                             <i class="fa fa-shopping-bag fa-2x"></i>
                         </a>
 
@@ -74,6 +74,9 @@
                                 {
                                     <li>
                                         <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Hello, @User.Identity.Name</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Orders" asp-action="Index">My Orders</a>
                                     </li>
 
                                     <li>
@@ -122,6 +125,7 @@
     <!-- JS (THỨ TỰ QUAN TRỌNG) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
     <!-- Library JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
@@ -132,57 +136,35 @@
     <!-- Custom JS -->
     <script src="~/js/main.js"></script>
 
+    <script type="text/javascript">
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 
     @if (TempData["success"] != null)
     {
-        <script src="~/js/jquery-2.1.0.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-        <script type="text/javascript">
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": true,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
-            toastr.success('@TempData["success"]');
-        </script>
+        <script type="text/javascript">toastr.success('@TempData["success"]');</script>
     }
     @if (TempData["error"] != null)
     {
-        <script src="~/assets/js/jquery-2.1.0.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-        <script type="text/javascript">
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": true,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
-            toastr.error('@TempData["error"]');
-        </script>
+        <script type="text/javascript">toastr.error('@TempData["error"]');</script>
     }
 
 </body>

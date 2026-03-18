@@ -24,6 +24,7 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<IEnumerable<Feedback>> GetAllAsync()
         {
             return await _context.Feedbacks
+                .Include(f => f.FeedbackImages)
                 .OrderByDescending(f => f.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
@@ -32,6 +33,7 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task<Feedback?> GetByIdAsync(int feedbackId)
         {
             return await _context.Feedbacks
+                .Include(f => f.FeedbackImages)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.FeedbackID == feedbackId);
         }
@@ -71,6 +73,7 @@ namespace FeedbackAPI.Repositories.Implements
                 query = query.Where(f => f.CreatedAt <= to.Value);
 
             return await query
+                .Include(f => f.FeedbackImages)
                 .OrderByDescending(f => f.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
@@ -95,7 +98,9 @@ namespace FeedbackAPI.Repositories.Implements
 
         public async Task<Feedback?> UpdateAsync(int feedbackId, Feedback updatedData)
         {
-            var feedback = await _context.Feedbacks.FirstOrDefaultAsync(f => f.FeedbackID == feedbackId);
+            var feedback = await _context.Feedbacks
+                .Include(f => f.FeedbackImages)
+                .FirstOrDefaultAsync(f => f.FeedbackID == feedbackId);
             if (feedback == null)
                 return null;
 
@@ -107,6 +112,19 @@ namespace FeedbackAPI.Repositories.Implements
 
             if (!string.IsNullOrWhiteSpace(updatedData.Status))
                 feedback.Status = updatedData.Status;
+
+            // Replace images if new ones are provided
+            if (updatedData.FeedbackImages.Any())
+            {
+                // Remove existing images from DB
+                _context.FeedbackImages.RemoveRange(feedback.FeedbackImages);
+                
+                // Add new ones
+                foreach (var img in updatedData.FeedbackImages)
+                {
+                    feedback.FeedbackImages.Add(img);
+                }
+            }
 
             feedback.UpdatedAt = DateTime.UtcNow;
 
@@ -122,7 +140,8 @@ namespace FeedbackAPI.Repositories.Implements
             if (feedback == null)
                 return false;
 
-            _context.Feedbacks.Remove(feedback);
+            feedback.Status = "Deleted";
+            feedback.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -130,7 +149,10 @@ namespace FeedbackAPI.Repositories.Implements
         public async Task DeleteEntityAsync(Feedback feedback)
         {
             _context.Feedbacks.Attach(feedback);
-            _context.Feedbacks.Remove(feedback);
+            feedback.Status = "Deleted";
+            feedback.UpdatedAt = DateTime.UtcNow;
+            _context.Entry(feedback).Property(f => f.Status).IsModified = true;
+            _context.Entry(feedback).Property(f => f.UpdatedAt).IsModified = true;
             await _context.SaveChangesAsync();
         }
     }

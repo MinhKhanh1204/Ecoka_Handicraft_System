@@ -10,13 +10,19 @@ namespace OrderAPI.Services.Implements
     {
         private readonly IOrderRepository _orderRepo;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
         public OrderService(
             IOrderRepository orderRepo,
-            IMapper mapper)
+            IMapper mapper,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _orderRepo = orderRepo;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         // ================= CUSTOMER =================
@@ -92,7 +98,6 @@ namespace OrderAPI.Services.Implements
                 throw new ArgumentException("Order must contain at least one item.");
 
             var entity = _mapper.Map<Order>(dto);
-
             decimal total = 0m;
 
             foreach (var item in entity.OrderItems)
@@ -105,18 +110,63 @@ namespace OrderAPI.Services.Implements
 
                 var unitPrice = item.UnitPrice.Value;
                 var discount = item.Discount ?? 0m;
-
-                var priceAfterDiscount =
-                    unitPrice - (unitPrice * discount / 100m);
-
+                var priceAfterDiscount = unitPrice - (unitPrice * discount / 100m);
                 total += priceAfterDiscount * item.Quantity.Value;
             }
 
+            // Apply Voucher
+            if (dto.VoucherID.HasValue && dto.VoucherID > 0)
+            {
+                try
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    string voucherUrl = _configuration["VoucherApiUrl"] + dto.VoucherID;
+                    var response = await client.GetAsync(voucherUrl);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<VoucherApiResponse>();
+                        if (result != null && result.Success && result.Data != null)
+                        {
+                            var v = result.Data;
+                            decimal voucherDiscount = total * ((v.DiscountPercentage ?? 0m) / 100m);
+                            
+                                if (v.MaxReducing.HasValue && voucherDiscount > v.MaxReducing.Value)
+                                {
+                                    voucherDiscount = v.MaxReducing.Value;
+                                }
+                                total -= voucherDiscount;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Handle voucher error (should use ILogger)
+                    }
+            }
+
+            if (total < 0) total = 0;
             entity.TotalAmount = total;
 
             var created = await _orderRepo.CreateAsync(entity);
-
             return _mapper.Map<OrderReadDto>(created);
+        }
+
+        private class VoucherApiResponse
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("success")]
+            public bool Success { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("data")]
+            public VoucherData? Data { get; set; }
+        }
+
+        private class VoucherData
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("discountPercentage")]
+            public decimal? DiscountPercentage { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("maxReducing")]
+            public decimal? MaxReducing { get; set; }
         }
 
         // ================= PAYMENT =================

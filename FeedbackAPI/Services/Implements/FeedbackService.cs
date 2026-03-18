@@ -1,7 +1,5 @@
 using AutoMapper;
-using Microsoft.AspNetCore.SignalR;
 using FeedbackAPI.DTOs;
-using FeedbackAPI.Hubs;
 using FeedbackAPI.Models;
 using FeedbackAPI.Repositories;
 
@@ -11,19 +9,22 @@ namespace FeedbackAPI.Services.Implements
     {
         private readonly IFeedbackRepository _repo;
         private readonly IMapper _mapper;
-        private readonly IHubContext<FeedbackHub> _hub;
         private readonly IAccountService _accountService;
+        private readonly ICloudinaryService _cloudinaryService;
+        private readonly IOrderService _orderService;
 
         public FeedbackService(
             IFeedbackRepository repo,
             IMapper mapper,
-            IHubContext<FeedbackHub> hub,
-            IAccountService accountService)
+            IAccountService accountService,
+            ICloudinaryService cloudinaryService,
+            IOrderService orderService)
         {
             _repo = repo;
             _mapper = mapper;
-            _hub = hub;
             _accountService = accountService;
+            _cloudinaryService = cloudinaryService;
+            _orderService = orderService;
         }
 
         // ================= READ =================
@@ -81,14 +82,33 @@ namespace FeedbackAPI.Services.Implements
                 throw new Exception("You have already reviewed this product.");
             }
 
+            // Check if purchased
+            var hasPurchased = await _orderService.HasPurchasedAsync(dto.ProductID);
+            if (!hasPurchased)
+            {
+                throw new Exception("You must purchase this product before leaving a review.");
+            }
+
             var entity = _mapper.Map<Feedback>(dto);
+
+            // Handle Image Uploads
+            if (dto.Images != null && dto.Images.Any())
+            {
+                foreach (var file in dto.Images)
+                {
+                    var url = await _cloudinaryService.UploadImageAsync(file);
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        entity.FeedbackImages.Add(new FeedbackImage
+                        {
+                            ImageURL = url
+                        });
+                    }
+                }
+            }
+
             var created = await _repo.CreateAsync(entity);
             var result = _mapper.Map<FeedbackReadDto>(created);
-
-            // SignalR notify
-            await _hub.Clients
-                .Group($"product_{result.ProductID}")
-                .SendAsync("FeedbackCreated", result);
 
             return result;
         }
@@ -98,15 +118,33 @@ namespace FeedbackAPI.Services.Implements
         public async Task<FeedbackReadDto?> UpdateAsync(int feedbackId, FeedbackUpdateDto dto)
         {
             var updatedData = _mapper.Map<Feedback>(dto);
+
+            // Handle Image Uploads for Update (Append new images)
+            if (dto.Images != null && dto.Images.Any())
+            {
+                foreach (var file in dto.Images)
+                {
+                    var url = await _cloudinaryService.UploadImageAsync(file);
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        updatedData.FeedbackImages.Add(new FeedbackImage
+                        {
+                            ImageURL = url
+                        });
+                    }
+                }
+            }
+
             var entity = await _repo.UpdateAsync(feedbackId, updatedData);
             if (entity == null) return null;
 
+            // If we added new images, we need to save them. 
+            // The repo's UpdateAsync currently only updates base properties.
+            // Let's modify Repo to handle the collection if updatedData has any.
+            // Wait, I can just do it here if I have the context, but I don't.
+            // Better to update Repo.UpdateAsync to handle the images collection.
+
             var result = _mapper.Map<FeedbackReadDto>(entity);
-
-            await _hub.Clients
-                .Group($"product_{result.ProductID}")
-                .SendAsync("FeedbackUpdated", result);
-
             return result;
         }
 
@@ -119,10 +157,6 @@ namespace FeedbackAPI.Services.Implements
             if (existing == null) return false;
 
             await _repo.DeleteEntityAsync(existing);
-
-            await _hub.Clients
-                .Group($"product_{existing.ProductID}")
-                .SendAsync("FeedbackDeleted", feedbackId);
 
             return true;
         }

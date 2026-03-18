@@ -145,3 +145,9 @@ appsettings.*.json
 
 # Ignore secrets
 secrets.json
+PaymentAPI/appsettings.json
+PaymentAPI/appsettings.*.json
+FeedbackAPI/appsettings.json
+FeedbackAPI/appsettings.*.json
+CartAPI/appsettings.json
+CartAPI/appsettings.*.json

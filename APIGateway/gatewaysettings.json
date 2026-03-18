@@ -142,10 +142,10 @@
                 }
             ],
             "UpstreamPathTemplate": "/feedbacks/{everything}",
-            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+            "UpstreamHttpMethod": [ "GET" ]
         },
         {
-            "DownstreamPathTemplate": "/odata/feedbacks/{everything}",
+            "DownstreamPathTemplate": "/api/feedbacks/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
@@ -153,8 +153,72 @@
                     "Port": 7242
                 }
             ],
-            "UpstreamPathTemplate": "/odata/feedbacks/{everything}",
-            "UpstreamHttpMethod": [ "GET" ]
+            "UpstreamPathTemplate": "/feedbacks/{everything}",
+            "UpstreamHttpMethod": [ "POST", "PUT", "DELETE" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/cart/items",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7273
+                }
+            ],
+            "UpstreamPathTemplate": "/cart/items",
+            "UpstreamHttpMethod": [ "POST", "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/cart/items/{cartItemId}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7273
+                }
+            ],
+            "UpstreamPathTemplate": "/cart/items/{cartItemId}",
+            "UpstreamHttpMethod": [ "PUT", "DELETE" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/odata/carts",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7273
+                }
+            ],
+            "UpstreamPathTemplate": "/odata/carts",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/payment/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7020
+                }
+            ],
+            "UpstreamPathTemplate": "/payment/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
         }
     ],
     "GlobalConfiguration": {

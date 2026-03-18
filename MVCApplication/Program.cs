@@ -16,7 +16,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 //builder.Services.AddScoped<IProductService, MVCApplication.Services.Implements.ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IFeedbackService, FeedbackService>();    
+// Removed duplicate AddScoped for IFeedbackService since it's registered below as GatewayAuthClient
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Read gateway base URL from configuration (appsettings.json)
@@ -31,6 +31,8 @@ builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IStaff
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);
 builder.Services.AddGatewayPublicClient<IVoucherService, VoucherService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<IPaymentService, PaymentService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<ICartService, CartService>(gatewayBase);
 builder.Services.AddHttpClient<IAdminOrderService, AdminOrderService>(client =>
 {
     client.BaseAddress = new Uri(gatewayBase);
@@ -79,7 +81,7 @@ builder.Services
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
 
             NameClaimType = "username",
-            RoleClaimType = ClaimTypes.Role
+            RoleClaimType = "role"
         };
     });
 

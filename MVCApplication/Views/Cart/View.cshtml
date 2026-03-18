@@ -1,0 +1,419 @@
+@model MVCApplication.Models.CartViewModel
+
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #81c408 0%, #6da306 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .cart-card {
+        background: #fff;
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        transition: var(--transition-base);
+    }
+
+    .section-title {
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+    }
+
+    .product-img-cart {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .cart-table thead th {
+        border: none;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        color: #888;
+        padding-bottom: 1.5rem;
+    }
+
+    .cart-table tbody td {
+        border-top: 1px solid #f8f9fa;
+        padding: 1.5rem 0.5rem;
+    }
+
+    .qty-control {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 5px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #eee;
+    }
+
+    .btn-qty {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: var(--transition-base);
+        border: none;
+        background: #fff;
+        color: #555;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .btn-qty:hover {
+        background: #81c408;
+        color: #fff;
+    }
+
+    .qty-input {
+        width: 45px;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Hide spin buttons */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .btn-update-cart {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 12px;
+        border-radius: 8px;
+        margin-top: 8px;
+        transition: var(--transition-base);
+    }
+
+    .btn-delete-item {
+        color: #ff4d4f;
+        background: rgba(255, 77, 79, 0.05);
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        transition: var(--transition-base);
+    }
+
+    .btn-delete-item:hover {
+        background: #ff4d4f;
+        color: #fff;
+    }
+
+    .summary-card {
+        background: #fdfdfd;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 2rem;
+    }
+
+    .btn-checkout {
+        background: var(--primary-gradient);
+        color: #fff;
+        border: none;
+        border-radius: 15px;
+        padding: 18px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(129, 196, 8, 0.3);
+        transition: var(--transition-base);
+        margin-top: 20px;
+    }
+
+    .btn-checkout:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(129, 196, 8, 0.4);
+        color: #fff;
+    }
+
+    .custom-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #81c408;
+    }
+</style>
+
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Shopping Cart</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
+        <li class="breadcrumb-item active text-white">Cart</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+
+<!-- Cart Page Start -->
+<div class="container-fluid py-5 bg-light">
+    <div class="container py-5">
+        @if (Model == null || Model.CartItems == null || !Model.CartItems.Any())
+        {
+            <div class="cart-card text-center py-5">
+                <div class="mb-4">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                        <i class="fa fa-shopping-basket fa-4x text-muted opacity-50"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-3">Your cart is currently empty</h3>
+                <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+                <a href="/Shop" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">START SHOPPING</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-5">
+                <!-- Cart Items List -->
+                <div class="col-xl-8">
+                    <div class="cart-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="section-title mb-0">Products in Cart</h4>
+                            <div class="form-check d-flex align-items-center">
+                                <input type="checkbox" id="selectAll" class="form-check-input custom-checkbox me-2">
+                                <label class="form-check-label text-muted small text-uppercase fw-bold" for="selectAll">Select All</label>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table cart-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"></th>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Total</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.CartItems)
+                                    {
+                                        var itemTotal = item.Price * item.Quantity;
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" class="form-check-input custom-checkbox chk-item" 
+                                                       data-id="@item.CartItemId" 
+                                                       data-price="@item.Price" 
+                                                       data-qty="@item.Quantity">
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/default-product.png" : item.ImageUrl)" class="product-img-cart me-3" alt="@item.ProductName" onerror="this.src='/img/single-item.jpg'">
+                                                    <div>
+                                                        <h6 class="mb-0 fw-bold">@item.ProductName</h6>
+                                                        <span class="text-muted small">Stock: @item.StockQuantity</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">@item.Price.ToString("N0") ₫</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-inline-flex flex-column align-items-center">
+                                                    <div class="qty-control">
+                                                        <button class="btn btn-qty" type="button" onclick="changeQtyValue(@item.CartItemId, -1, @item.StockQuantity)">
+                                                            <i class="fa fa-minus small"></i>
+                                                        </button>
+                                                        <input type="number" min="1" class="qty-input qty-input_@item.CartItemId" value="@item.Quantity">
+                                                        <button class="btn btn-qty" type="button" onclick="changeQtyValue(@item.CartItemId, 1, @item.StockQuantity)">
+                                                            <i class="fa fa-plus small"></i>
+                                                        </button>
+                                                    </div>
+                                                    <button class="btn btn-link btn-update-cart text-primary p-0 fw-bold" 
+                                                            type="button"
+                                                            onclick="performUpdate(@item.CartItemId, @item.StockQuantity, @item.Price)">
+                                                        <i class="fa fa-sync-alt me-1"></i>Update
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="text-primary fw-bold fs-5 row-total_@item.CartItemId">@itemTotal.ToString("N0") ₫</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn-delete-item" type="button" onclick="deleteCartItem(@item.CartItemId)" title="Remove item">
+                                                    <i class="fa fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Sidebar -->
+                <div class="col-xl-4">
+                    <div class="cart-card sticky-top" style="top: 2rem; z-index: 10;">
+                        <h4 class="section-title">Order Summary</h4>
+                        
+                        <div class="summary-card mt-4">
+                            <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                                <span class="text-muted">Selected Items</span>
+                                <span class="fw-bold" id="lblSelectedCount">0</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="h5 fw-bold mb-0">Grand Total</span>
+                                <div class="text-end">
+                                    <span class="h4 fw-bold text-primary mb-0 d-block" id="lblFinalTotal">0 ₫</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-checkout w-100 text-uppercase" type="button" onclick="checkoutSelected()">
+                                PROCEED TO CHECKOUT <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<!-- Cart Page End -->
+
+@section Scripts {
+    <script>
+        function calculateTotal() {
+            let total = 0;
+            let count = 0;
+            $('.chk-item:checked').each(function() {
+                let p = parseFloat($(this).data('price'));
+                let q = parseInt($(this).data('qty'));
+                total += (p * q);
+                count++;
+            });
+            $('#lblSelectedCount').text(count);
+            
+            let formatter = new Intl.NumberFormat('vi-VN');
+            $('#lblFinalTotal').text(formatter.format(total) + " ₫");
+        }
+
+        $('#selectAll').change(function() {
+            $('.chk-item').prop('checked', $(this).prop('checked'));
+            calculateTotal();
+        });
+
+        $(document).on('change', '.chk-item', function() {
+            if (!$(this).prop('checked')) {
+                $('#selectAll').prop('checked', false);
+            }
+            if ($('.chk-item:checked').length === $('.chk-item').length) {
+                $('#selectAll').prop('checked', true);
+            }
+            calculateTotal();
+        });
+
+        function changeQtyValue(id, change, maxStock) {
+            let input = $('.qty-input_' + id);
+            let currentQty = parseInt(input.val()) || 1;
+            let newQty = currentQty + change;
+            
+            if (newQty < 1) newQty = 1;
+            if (maxStock > 0 && newQty > maxStock) {
+                newQty = maxStock;
+            }
+            input.val(newQty);
+        }
+
+        function performUpdate(id, maxStock, price) {
+            let input = $('.qty-input_' + id);
+            let newQty = parseInt(input.val()) || 1;
+
+            if (newQty < 1) {
+                toastr.warning("Số lượng phải ít nhất là 1");
+                input.val(1);
+                return;
+            }
+            if (maxStock > 0 && newQty > maxStock) {
+                toastr.warning("Số lượng yêu cầu vượt quá tồn kho (" + maxStock + ")!");
+                input.val(maxStock);
+                return;
+            }
+
+            $.ajax({
+                url: `/Cart/UpdateItem?cartItemId=${id}&quantity=${newQty}`,
+                type: "PUT",
+                success: function() {
+                    let chk = $(`.chk-item[data-id="${id}"]`);
+                    chk.data('qty', newQty);
+                    chk.attr('data-qty', newQty);
+
+                    let formatter = new Intl.NumberFormat('vi-VN');
+                    let newRowTotal = newQty * price;
+                    $('.row-total_' + id).text(formatter.format(newRowTotal) + " ₫");
+                    calculateTotal();
+                    
+                    toastr.success("Cart updated successfully!");
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) window.location.href = '/Account/Login';
+                    else toastr.error("Failed to update cart. Please try again!");
+                }
+            });
+        }
+
+        function deleteCartItem(id) {
+            if (!confirm('Are you sure you want to remove this item?')) return;
+            $.ajax({
+                url: `/Cart/DeleteItem?cartItemId=${id}`,
+                type: "DELETE",
+                success: function() {
+                    toastr.success("Item removed from cart.");
+                    setTimeout(() => location.reload(), 1000);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) window.location.href = '/Account/Login';
+                    else toastr.error("Failed to delete item!");
+                }
+            });
+        }
+
+        function checkoutSelected() {
+            let selectedIds = [];
+            $('.chk-item:checked').each(function() {
+                selectedIds.push($(this).data('id'));
+            });
+            if (selectedIds.length === 0) {
+                toastr.info('Please select at least 1 item to proceed to checkout!');
+                return;
+            }
+            window.location.href = `/Orders/Checkout?cartItemIds=${selectedIds.join(',')}`;
+        }
+    </script>
+}

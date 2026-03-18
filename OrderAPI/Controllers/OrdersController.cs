@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -94,6 +94,14 @@ namespace OrderAPI.Controllers
             var result = await _orderService.CancelOrderAsync(orderId, reason);
             if (!result) return BadRequest("Cannot cancel this order");
 
+            return NoContent();
+        }
+
+        // ================= UPDATE PAYMENT =================
+        [HttpPut("{orderId}/payment-status")]
+        public async Task<IActionResult> UpdatePaymentStatus(string orderId, [FromBody] PaymentStatusUpdateDto dto)
+        {
+            await _orderService.UpdatePaymentStatusAsync(orderId, dto.PaymentMethod, dto.Status, dto.Note);
             return NoContent();
         }
 
