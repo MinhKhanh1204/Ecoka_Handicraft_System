@@ -7,6 +7,7 @@ namespace FeedbackAPI.Models
         public DBContext(DbContextOptions<DBContext> options) : base(options) { }
 
         public DbSet<Feedback> Feedbacks => Set<Feedback>();
+        public DbSet<FeedbackImage> FeedbackImages => Set<FeedbackImage>();
         
     }
 }

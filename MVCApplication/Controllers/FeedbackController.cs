@@ -30,7 +30,7 @@ namespace MVCApplication.Controllers
 
         // ================= CREATE =================
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
+        public async Task<IActionResult> Create([FromForm] FeedbackCreateDto dto)
         {
             var accountId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrEmpty(accountId))
@@ -53,7 +53,7 @@ namespace MVCApplication.Controllers
         // ================= UPDATE =================
         [HttpPut]
         [Route("Feedback/Update/{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] FeedbackUpdateDto dto)
+        public async Task<IActionResult> Update(int id, [FromForm] FeedbackUpdateDto dto)
         {
             try
             {

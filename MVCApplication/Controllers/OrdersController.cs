@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Models;
 using MVCApplication.Services;
 
 namespace MVCApplication.Controllers
 {
+    [Authorize]
     public class OrdersController : Controller
     {
         private readonly IOrderService _orderService;
@@ -149,6 +151,7 @@ namespace MVCApplication.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> PaymentCallback()
         {
             // PaymentCallback là trang return cho người dùng xem
@@ -179,7 +182,7 @@ namespace MVCApplication.Controllers
                 TempData["PaymentMsg"] = "Giao dịch không thành công hoặc đã bị người dùng hủy.";
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", "Orders");
         }
         // --- END CHECKOUT FLOW ---
 

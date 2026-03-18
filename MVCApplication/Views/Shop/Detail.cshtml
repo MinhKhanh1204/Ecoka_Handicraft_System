@@ -145,6 +145,13 @@
                             <i class="fa fa-star" data-value="4"></i>
                             <i class="fa fa-star" data-value="5"></i>
                         </div>
+                        
+                        <div class="mt-3">
+                            <label for="feedbackImages" class="form-label fw-bold">Attach Photos (Optional)</label>
+                            <input type="file" id="feedbackImages" class="form-control" multiple accept="image/*" onchange="previewImages()">
+                            <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+
                         <button id="btnSubmitFeedback"
                                 class="btn btn-primary mt-3">
                             Post Comment
@@ -199,20 +206,22 @@
 
             // Validation
             if (isNaN(qty) || qty < 1) {
-                alert('Số lượng phải ít nhất là 1.');
+                toastr.warning('Số lượng phải ít nhất là 1.');
                 $('#inputQty').val(1).focus();
                 return;
             }
             if (qty > stockQty) {
-                alert(`Số lượng không được vượt quá tồn kho (${stockQty}).`);
+                toastr.warning(`Số lượng không được vượt quá tồn kho (${stockQty}).`);
                 $('#inputQty').val(stockQty).focus();
                 return;
             }
 
             // Check Login trước khi gửi
             if (!currentUserId) {
-                alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
-                window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(window.location.pathname);
+                toastr.info('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
+                setTimeout(() => {
+                    window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(window.location.pathname);
+                }, 1500);
                 return;
             }
 
@@ -225,7 +234,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({ ProductId: productId, Quantity: qty }),
                 success: function () {
-                    alert(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
+                    toastr.success(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
                     
                     // Reset trạng thái nút thay vì chuyển trang
                     btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
@@ -237,7 +246,7 @@
                     if (xhr.status === 401) {
                         window.location.href = '/Account/Login';
                     } else {
-                        alert('Thêm vào giỏ hàng thất bại!\n' + (xhr.responseText || ''));
+                        toastr.error('Thêm vào giỏ hàng thất bại!\n' + (xhr.responseText || ''));
                     }
                     btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
                 }
@@ -277,19 +286,31 @@
                 for (let i = 1; i <= 5; i++) {
                     stars += `<i class="fa fa-star ${i <= fb.rating ? 'text-warning' : ''}"></i>`;
                 }
+                let imagesHtml = '';
+                if (fb.imageUrls && fb.imageUrls.length > 0) {
+                    imagesHtml = '<div class="d-flex flex-wrap gap-2 mt-2">';
+                    fb.imageUrls.forEach(url => {
+                        imagesHtml += `<img src="${url}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;" onclick="window.open('${url}', '_blank')">`;
+                    });
+                    imagesHtml += '</div>';
+                }
+
                 html += `
                 <div class="border-bottom mb-3 pb-3">
                     <div class="d-flex justify-content-between">
                         <strong>${fb.username || fb.customerID}</strong>
                         <div>${stars}</div>
                     </div>
-                    <p>${fb.comment || ''}</p>
-                    ${fb.customerID == currentUserId ? `
-                        <button class="btn btn-sm btn-warning me-2"
-                            onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Edit</button>
-                        <button class="btn btn-sm btn-danger"
-                            onclick="deleteFeedback(${fb.feedbackID})">Delete</button>
-                    ` : ''}
+                    <p class="mb-1">${fb.comment || ''}</p>
+                    ${imagesHtml}
+                    <div class="mt-2">
+                        ${fb.customerID == currentUserId ? `
+                            <button class="btn btn-sm btn-warning me-2"
+                                onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Edit</button>
+                            <button class="btn btn-sm btn-danger"
+                                onclick="deleteFeedback(${fb.feedbackID})">Delete</button>
+                        ` : ''}
+                    </div>
                 </div>`;
             });
             document.getElementById('feedback-list').innerHTML = html;
@@ -318,10 +339,19 @@
 
         async function deleteFeedback(id) {
             if (!confirm("Delete this review?")) return;
-            await fetch(`/Feedback/Delete/${id}`, {
-                method: 'DELETE'
-            });
-            loadFeedbacks();
+            try {
+                const res = await fetch(`/Feedback/Delete/${id}`, {
+                    method: 'DELETE'
+                });
+                if(res.ok) {
+                    toastr.success("Review deleted successfully.");
+                    loadFeedbacks();
+                } else {
+                    toastr.error("Failed to delete review.");
+                }
+            } catch (e) {
+                toastr.error("Err: " + e.message);
+            }
         }
 
         function editFeedback(id, rating, comment) {
@@ -352,20 +382,42 @@
                 });
             });
 
+        function previewImages() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            const files = document.getElementById('feedbackImages').files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.objectFit = 'cover';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
         document.getElementById('btnSubmitFeedback')
             .addEventListener('click', async function () {
+                const btn = $(this);
                 const comment =
                     document.getElementById('feedbackComment')
                         .value.trim();
 
                 // Custom Validations
                 if (!selectedRating) {
-                    alert('Qúy khách vui lòng chọn số sao (Rating).');
+                    toastr.warning('Qúy khách vui lòng chọn số sao (Rating).');
                     return;
                 }
                 
                 if (comment.length < 10) {
-                    alert('Bình luận quá ngắn. Vui lòng nhập tối thiểu 10 ký tự để tụi mình hiểu rõ hơn ý kiến của bạn.');
+                    toastr.warning('Bình luận quá ngắn. Vui lòng nhập tối thiểu 10 ký tự để tụi mình hiểu rõ hơn ý kiến của bạn.');
                     return;
                 }
 
@@ -373,41 +425,68 @@
                 const badWords = ["dm", "vcl", "cc", "đm", "địt", "lồn", "cặc", "chó"];
                 const lowerComment = comment.toLowerCase();
                 const hasBadWord = badWords.some(word => {
-                    // check whole word match
                     const regex = new RegExp(`\\b${word}\\b`, 'g');
                     return regex.test(lowerComment);
                 });
 
                 if (hasBadWord) {
-                    alert('Bình luận của bạn chứa từ ngữ không phù hợp. Vui lòng dùng từ ngữ lịch sự nhé!');
+                    toastr.error('Bình luận của bạn chứa từ ngữ không phù hợp. Vui lòng dùng từ ngữ lịch sự nhé!');
                     return;
                 }
-                if (editingId) {
-                    await fetch(`/Feedback/Update/${editingId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            rating: selectedRating,
-                            comment: comment
-                        })
-                    });
-                    editingId = null;
-                } else {
-                    await fetch('/Feedback/Create', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            productID: productId,
-                            rating: selectedRating,
-                            comment: comment
-                        })
-                    });
+
+                btn.prop('disabled', true).text('Đang gửi...');
+
+                const formData = new FormData();
+                formData.append('ProductID', productId);
+                formData.append('Rating', selectedRating);
+                formData.append('Comment', comment);
+
+                const files = document.getElementById('feedbackImages').files;
+                const maxSize = 10 * 1024 * 1024; // 10MB limit for Cloudinary free plan
+                for (let i = 0; i < files.length; i++) {
+                    if (files[i].size > maxSize) {
+                        toastr.warning(`Ảnh "${files[i].name}" quá lớn (${(files[i].size / 1024 / 1024).toFixed(2)}MB). Vui lòng chọn ảnh dưới 10MB.`);
+                        btn.prop('disabled', false).text('Post Comment');
+                        return;
+                    }
+                    formData.append('Images', files[i]);
                 }
-                document.getElementById('feedbackComment').value = '';
-                selectedRating = 0;
-                document.querySelectorAll('#star-rating .fa-star')
-                    .forEach(s => s.classList.remove('text-warning'));
-                loadFeedbacks();
+
+                try {
+                    if (editingId) {
+                        const res = await fetch(`/Feedback/Update/${editingId}`, {
+                            method: 'PUT',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (!res.ok || !data.success) {
+                            throw new Error(data.message || 'Lỗi khi cập nhật feedback');
+                        }
+                        editingId = null;
+                    } else {
+                        const res = await fetch('/Feedback/Create', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (!res.ok || !data.success) {
+                            throw new Error(data.message || 'Lỗi khi gửi feedback');
+                        }
+                    }
+
+                    document.getElementById('feedbackComment').value = '';
+                    document.getElementById('feedbackImages').value = '';
+                    document.getElementById('imagePreview').innerHTML = '';
+                    selectedRating = 0;
+                    document.querySelectorAll('#star-rating .fa-star')
+                        .forEach(s => s.classList.remove('text-warning'));
+                    loadFeedbacks();
+                    toastr.success('Phản hồi của bạn đã được đăng thành công!');
+                } catch (e) {
+                    toastr.error('Lỗi: ' + e.message);
+                } finally {
+                    btn.prop('disabled', false).text('Post Comment');
+                }
             });
 
         // LOAD PAGE

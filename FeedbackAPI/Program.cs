@@ -8,6 +8,8 @@ using FeedbackAPI.Repositories;
 using FeedbackAPI.Repositories.Implements;
 using FeedbackAPI.Services;
 using FeedbackAPI.Services.Implements;
+using FeedbackAPI.Helpers;
+using FeedbackAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,11 +47,22 @@ builder.Services.AddDbContext<DBContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ========================
+// Cloudinary Settings
+// ========================
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+// ========================
 // Application services
 // ========================
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IAccountService, AccountService>(c =>
+{
+    c.BaseAddress = new Uri("https://localhost:5000");
+});
+builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
 {
     c.BaseAddress = new Uri("https://localhost:5000");
 });
@@ -74,6 +87,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 // ========================
 // HTTP pipeline

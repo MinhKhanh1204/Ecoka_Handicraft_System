@@ -130,23 +130,18 @@ namespace OrderAPI.Services.Implements
                             var v = result.Data;
                             decimal voucherDiscount = total * ((v.DiscountPercentage ?? 0m) / 100m);
                             
-                            Console.WriteLine($"[Voucher] Total before: {total}");
-                            Console.WriteLine($"[Voucher] Found: {v.DiscountPercentage}% (Max: {v.MaxReducing})");
-
-                            if (v.MaxReducing.HasValue && voucherDiscount > v.MaxReducing.Value)
-                            {
-                                Console.WriteLine($"[Voucher] Capping discount from {voucherDiscount} to {v.MaxReducing.Value}");
-                                voucherDiscount = v.MaxReducing.Value;
+                                if (v.MaxReducing.HasValue && voucherDiscount > v.MaxReducing.Value)
+                                {
+                                    voucherDiscount = v.MaxReducing.Value;
+                                }
+                                total -= voucherDiscount;
                             }
-                            total -= voucherDiscount;
-                            Console.WriteLine($"[Voucher] Total after: {total}");
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error applying voucher: " + ex.Message);
-                }
+                    catch (Exception)
+                    {
+                        // Handle voucher error (should use ILogger)
+                    }
             }
 
             if (total < 0) total = 0;

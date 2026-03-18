@@ -13,7 +13,8 @@ namespace FeedbackAPI.Profiles
             // ========================
 
             // Entity -> ReadDto
-            CreateMap<Feedback, FeedbackReadDto>();
+            CreateMap<Feedback, FeedbackReadDto>()
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.FeedbackImages.Select(i => i.ImageURL)));
 
             // CreateDto -> Entity
             CreateMap<FeedbackCreateDto, Feedback>()

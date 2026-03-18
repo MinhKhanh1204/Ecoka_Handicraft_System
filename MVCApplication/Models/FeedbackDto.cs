@@ -13,6 +13,7 @@ namespace MVCApplication.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
+        public List<string> ImageUrls { get; set; } = new();
     }
     public class FeedbackViewDto
     {
@@ -37,6 +38,7 @@ namespace MVCApplication.Models
         public int Rating { get; set; }
 
         public string? Comment { get; set; }
+        public List<IFormFile>? Images { get; set; }
     }
 
     public class FeedbackFilterDto
@@ -57,5 +59,6 @@ namespace MVCApplication.Models
         public string? Comment { get; set; }
 
         public string? Status { get; set; }
+        public List<IFormFile>? Images { get; set; }
     }
 }

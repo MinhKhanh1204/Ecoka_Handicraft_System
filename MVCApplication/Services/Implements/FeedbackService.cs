@@ -65,7 +65,24 @@ namespace MVCApplication.Services.Implements
 
         public async Task<Feedback> CreateAsync(FeedbackCreateDto dto)
         {
-            var response = await _http.PostAsJsonAsync("/feedbacks", dto);
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(dto.CustomerID), "CustomerID");
+            content.Add(new StringContent(dto.ProductID), "ProductID");
+            content.Add(new StringContent(dto.Rating.ToString()), "Rating");
+            if (!string.IsNullOrEmpty(dto.Comment))
+                content.Add(new StringContent(dto.Comment), "Comment");
+
+            if (dto.Images != null && dto.Images.Any())
+            {
+                foreach (var file in dto.Images)
+                {
+                    var fileContent = new StreamContent(file.OpenReadStream());
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                    content.Add(fileContent, "Images", file.FileName);
+                }
+            }
+
+            var response = await _http.PostAsync("/feedbacks", content);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Feedback>()
                    ?? throw new InvalidOperationException("Feedback creation returned null response");
@@ -73,7 +90,28 @@ namespace MVCApplication.Services.Implements
 
         public async Task<Feedback?> UpdateAsync(int feedbackId, FeedbackUpdateDto dto)
         {
-            var response = await _http.PutAsJsonAsync($"/feedbacks/{feedbackId}", dto);
+            using var content = new MultipartFormDataContent();
+            
+            if (dto.Rating.HasValue)
+                content.Add(new StringContent(dto.Rating.Value.ToString()), "Rating");
+            
+            if (dto.Comment != null)
+                content.Add(new StringContent(dto.Comment), "Comment");
+            
+            if (!string.IsNullOrEmpty(dto.Status))
+                content.Add(new StringContent(dto.Status), "Status");
+
+            if (dto.Images != null && dto.Images.Any())
+            {
+                foreach (var file in dto.Images)
+                {
+                    var fileContent = new StreamContent(file.OpenReadStream());
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                    content.Add(fileContent, "Images", file.FileName);
+                }
+            }
+
+            var response = await _http.PutAsync($"/feedbacks/{feedbackId}", content);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return null;
             response.EnsureSuccessStatusCode();

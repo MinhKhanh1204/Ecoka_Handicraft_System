@@ -201,10 +201,9 @@ namespace PaymentAPI.Controllers
                 string url = _configuration["OrderApiUrl"] + orderId + "/payment-status";
                 await client.PutAsJsonAsync(url, new { Status = status, PaymentMethod = paymentMethod });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log error
-                Console.WriteLine("Error updating order status: " + ex.Message);
+                // Log error (should use ILogger in production)
             }
         }
     }

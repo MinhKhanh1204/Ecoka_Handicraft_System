@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace FeedbackAPI.DTOs    // ← PHẢI ĐÚNG namespace này
 {
@@ -13,6 +13,7 @@ namespace FeedbackAPI.DTOs    // ← PHẢI ĐÚNG namespace này
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string? Status { get; set; }
+        public List<string> ImageUrls { get; set; } = new();
     }
     public class CustomerDto
     {
@@ -32,6 +33,7 @@ namespace FeedbackAPI.DTOs    // ← PHẢI ĐÚNG namespace này
         public int Rating { get; set; }
 
         public string? Comment { get; set; }
+        public List<IFormFile>? Images { get; set; }
     }
 
     public class FeedbackUpdateDto
@@ -42,6 +44,7 @@ namespace FeedbackAPI.DTOs    // ← PHẢI ĐÚNG namespace này
         public string? Comment { get; set; }
 
         public string? Status { get; set; }
+        public List<IFormFile>? Images { get; set; }
     }
 
     public class FeedbackFilterDto

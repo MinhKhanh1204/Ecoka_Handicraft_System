@@ -44,7 +44,7 @@ namespace FeedbackAPI.Controllers
         // ================= CREATE =================
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] FeedbackCreateDto dto)
+        public async Task<IActionResult> Create([FromForm] FeedbackCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -60,7 +60,7 @@ namespace FeedbackAPI.Controllers
         // ================= UPDATE =================
         [HttpPut("{feedbackId:int}")]
         [Authorize]
-        public async Task<IActionResult> Update(int feedbackId, [FromBody] FeedbackUpdateDto dto)
+        public async Task<IActionResult> Update(int feedbackId, [FromForm] FeedbackUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
