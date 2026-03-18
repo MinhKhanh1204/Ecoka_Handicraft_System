@@ -29,6 +29,50 @@ namespace MVCApplication.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            await _accountService.ForgotPasswordAsync(model);
+            TempData["success"] = "If an account exists with this email, a password reset link has been sent.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string? token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["error"] = "Invalid reset link.";
+                return RedirectToAction(nameof(Login));
+            }
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var success = await _accountService.ResetPasswordAsync(model);
+            if (!success)
+            {
+                TempData["error"] = "Invalid or expired reset link. Please request a new one.";
+                return View(model);
+            }
+            TempData["success"] = "Your password has been reset. You can now log in.";
+            return RedirectToAction(nameof(Login));
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -37,15 +81,15 @@ namespace MVCApplication.Controllers
 
             var result = await _accountService.LoginAsync(model);
 
-            if (result == null || string.IsNullOrEmpty(result.AccessToken))
+            if (!result.Success)
             {
-                TempData["error"] = "Email hoặc Password không đúng";
+                TempData["error"] = result.Message;
                 return View(model);
             }
 
             // Store JWT in HttpOnly
             Response.Cookies.Append("AccessToken",
-                result.AccessToken,
+                result.Data.AccessToken,
                 new CookieOptions
                 {
                     HttpOnly = true,
@@ -77,13 +121,13 @@ namespace MVCApplication.Controllers
 
             var result = await _accountService.RegisterAsync(model);
 
-            if (!result)
+            if (!result.Success)
             {
-                TempData["error"] = "Username/Email đã tồn tại hoặc đăng ký thất bại";
+                TempData["error"] = result.Message;
                 return View(model);
             }
 
-            TempData["success"] = "Đăng ký thành công. Vui lòng đăng nhập.";
+            TempData["success"] = result.Message;
 
             return RedirectToAction("Login");
         }
@@ -97,6 +141,32 @@ namespace MVCApplication.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.ChangePasswordAsync(model);
+
+            if (!result.Success)
+            {
+                TempData["error"] = result.Message;
+                return View(model);
+            }
+
+            TempData["success"] = "Đổi mật khẩu thành công";
+            return RedirectToAction("RedirectByRole");
         }
     }
 }

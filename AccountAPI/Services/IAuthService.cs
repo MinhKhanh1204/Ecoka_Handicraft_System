@@ -1,12 +1,20 @@
-﻿using AccountAPI.DTOs;
+using AccountAPI.DTOs;
 
 namespace AccountAPI.Services
 {
     public interface IAuthService
     {
-        LoginResponseDto Login(LoginRequestDto request);
+        Task<LoginResponseDto> Login(LoginRequestDto request);
 
         Task RegisterCustomerAsync(RegisterCustomerRequestDto request);
-    }
+        Task ChangePasswordAsync(string accountId, ChangePasswordDto request);
 
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
+
+		Task<ProfileResponseDto> GetProfileAsync(string accountId);
+
+		Task UpdateProfileAsync(string accountId, UpdateProfileRequestDto request);
+	}
 }

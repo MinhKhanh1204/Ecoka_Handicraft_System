@@ -21,17 +21,22 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
-// AccountService → PUBLIC (No attach JWT)
-builder.Services.AddGatewayPublicClient<IAccountService, AccountService>(gatewayBase);
+// AccountService → AUTH (Need to attach JWT for change-password)
+builder.Services.AddGatewayAuthClient<IAccountService, AccountService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IOrderService, OrderService>(gatewayBase);
 //builder.Services.AddGatewayAuthClient<IProductService, ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IProductService, MVCApplication.Services.Implements.ProductService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IProductAdminService, MVCApplication.Areas.Admin.Services.Implements.ProductService>(gatewayBase);
+builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IStaffAdminService, MVCApplication.Areas.Admin.Services.Implements.StaffAdminService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICategoryService, CategoryService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IFeedbackService, FeedbackService>(gatewayBase);
 builder.Services.AddGatewayPublicClient<IVoucherService, VoucherService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<IPaymentService, PaymentService>(gatewayBase);
 builder.Services.AddGatewayAuthClient<ICartService, CartService>(gatewayBase);
+builder.Services.AddHttpClient<IAdminOrderService, AdminOrderService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayBase);
+});
 //setting authen
 builder.Services
     .AddAuthentication(options =>

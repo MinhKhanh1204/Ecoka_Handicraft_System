@@ -10,6 +10,7 @@ namespace AccountAPI.Models
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<Staff> Staffs => Set<Staff>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,6 +19,11 @@ namespace AccountAPI.Models
                 .HasOne(a => a.Customer)
                 .WithOne(c => c.Account)
                 .HasForeignKey<Customer>(c => c.CustomerID);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(a => a.Staff)
+                .WithOne(s => s.StaffNavigation)
+                .HasForeignKey<Staff>(s => s.StaffId);
 
             modelBuilder.Entity<UserRole>()
                 .HasKey(x => new { x.AccountID, x.RoleID });

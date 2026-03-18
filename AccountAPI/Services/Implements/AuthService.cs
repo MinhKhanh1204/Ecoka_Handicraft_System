@@ -1,9 +1,9 @@
-ï»¿using AccountAPI.DTOs;
+using AccountAPI.DTOs;
 using AccountAPI.Exceptions;
 using AccountAPI.Helpers;
-using AccountAPI.Mappers;
 using AccountAPI.Models;
 using AccountAPI.Repositories;
+using AutoMapper;
 
 namespace AccountAPI.Services.Implements
 {
@@ -11,24 +11,30 @@ namespace AccountAPI.Services.Implements
     {
         private readonly IAccountRepository _repo;
         private readonly JwtTokenHelper _jwt;
-        private readonly IAccountMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IEmailService _emailService;
+        private readonly PasswordResetSettings _resetSettings;
+        private readonly IMapper _mapper;
 
         public AuthService(
             IAccountRepository repo,
             JwtTokenHelper jwt,
-            IAccountMapper mapper,
-            ICloudinaryService cloudinaryService)
+            IMapper mapper,
+            ICloudinaryService cloudinaryService,
+            IEmailService emailService,
+            Microsoft.Extensions.Options.IOptions<PasswordResetSettings> resetSettings)
         {
             _repo = repo;
             _jwt = jwt;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
+            _emailService = emailService;
+            _resetSettings = resetSettings.Value;
         }
 
-        public LoginResponseDto Login(LoginRequestDto request)
+        public async Task<LoginResponseDto> Login(LoginRequestDto request)
         {
-            var account = _repo.GetByUsername(request.Username);
+            var account = await _repo.GetByEmailAsync(request.Email);
             if (account == null)
                 throw new UnauthorizedException("Invalid username or password");
 
@@ -40,7 +46,7 @@ namespace AccountAPI.Services.Implements
 
             var token = _jwt.GenerateToken(account);
 
-            return _mapper.ToLoginResponse(token);
+            return _mapper.Map<LoginResponseDto>(token);
         }
 
         public async Task RegisterCustomerAsync(RegisterCustomerRequestDto request)
@@ -107,10 +113,103 @@ namespace AccountAPI.Services.Implements
             catch
             {
                 await transaction.RollbackAsync();
-                throw;
+                throw new BadRequestException("Register fail");
             }
         }
 
-    }
+        public async Task ChangePasswordAsync(string accountId, ChangePasswordDto request)
+        {
+            var account = await _repo.GetByIdAsync(accountId);
+            if (account == null)
+                throw new NotFoundException("Account not found");
 
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, account.Password))
+                throw new BadRequestException("Old password is incorrect");
+
+            account.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            
+            await _repo.SaveChangesAsync();
+        }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        {
+            var account = await _repo.GetByEmailAsync(request.Email);
+            if (account == null)
+                return; // Do not reveal whether email exists; always return success to caller
+
+            if (account.Status != "Active")
+                return;
+
+            var token = Guid.NewGuid().ToString("N");
+            var expiry = DateTime.UtcNow.AddMinutes(_resetSettings.TokenExpiryMinutes);
+            await _repo.SetPasswordRecoveryTokenAsync(account.AccountID, token, expiry);
+            await _emailService.SendPasswordResetEmailAsync(account.Email, token);
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequestDto request)
+        {
+            var account = await _repo.GetByPasswordRecoveryTokenAsync(request.Token);
+            if (account == null)
+                throw new BadRequestException("Invalid or expired reset link.");
+
+            if (account.TokenExpiry == null || account.TokenExpiry.Value < DateTime.UtcNow)
+                throw new BadRequestException("Reset link has expired. Please request a new one.");
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _repo.UpdatePasswordAsync(account.AccountID, hashedPassword);
+
+            // Send confirmation email
+            await _emailService.SendPasswordResetConfirmationEmailAsync(account.Email);
+        }
+
+		public async Task<ProfileResponseDto> GetProfileAsync(string accountId)
+		{
+			var account = await _repo.GetProfileAsync(accountId);
+
+			if (account == null)
+				throw new BadRequestException("Account not found");
+
+			return new ProfileResponseDto
+			{
+				AccountId = account.AccountID,
+				Username = account.Username,
+				Email = account.Email,
+				Avatar = account.Avatar,
+
+				FullName = account.Customer?.FullName!,
+				DateOfBirth = account.Customer?.DateOfBirth,
+				Gender = account.Customer?.Gender,
+				Phone = account.Customer?.Phone,
+				Address = account.Customer?.Address
+			};
+		}
+
+		public async Task UpdateProfileAsync(string accountId, UpdateProfileRequestDto request)
+		{
+			var account = await _repo.GetProfileAsync(accountId);
+
+			if (account == null)
+				throw new BadRequestException("Account not found");
+
+			var customer = account.Customer;
+
+			if (customer == null)
+				throw new BadRequestException("Customer not found");
+
+			// update customer
+			customer.FullName = request.FullName;
+			customer.DateOfBirth = request.DateOfBirth;
+			customer.Gender = request.Gender;
+			customer.Phone = request.Phone;
+			customer.Address = request.Address;
+
+			// upload avatar n?u có
+			if (request.Avatar != null)
+			{
+				account.Avatar = await _cloudinaryService.UploadImageAsync(request.Avatar);
+			}
+
+			await _repo.UpdateAsync();
+		}
+	}
 }

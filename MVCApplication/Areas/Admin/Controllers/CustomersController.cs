@@ -28,14 +28,11 @@ namespace MVCApplication.Areas.Admin.Controllers
             ViewBag.SortBy = sortBy;
             ViewBag.CurrentPage = page;
 
-            // Áp dụng sắp xếp
+            // Áp dụng sắp xếp theo ID (chỉ id_asc và id_desc)
             var sortedCustomers = sortBy switch
             {
-                "id_asc" => customers.OrderBy(c => c.CustomerID),
                 "id_desc" => customers.OrderByDescending(c => c.CustomerID),
-                "newest" => customers.OrderByDescending(c => c.CreatedAt),
-                "oldest" => customers.OrderBy(c => c.CreatedAt),
-                _ => customers.OrderBy(c => c.CustomerID) // default: id tăng dần
+                _ => customers.OrderBy(c => c.CustomerID) // default & id_asc: ID thấp -> cao
             };
 
             // Tính phân trang

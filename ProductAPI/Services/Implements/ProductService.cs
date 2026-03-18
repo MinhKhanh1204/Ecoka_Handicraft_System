@@ -1,6 +1,6 @@
-﻿using ProductAPI.DTOs;
+﻿using AutoMapper;
+using ProductAPI.DTOs;
 using ProductAPI.Exceptions;
-using ProductAPI.Mappers;
 using ProductAPI.Repositories;
 
 namespace ProductAPI.Services.Implements
@@ -8,11 +8,11 @@ namespace ProductAPI.Services.Implements
 	public class ProductService : IProductService
 	{
 		private readonly IProductRepository _repo;
-		private readonly IProductMapper _mapper;
+        private readonly IMapper _mapper;
 
-		public ProductService(
+        public ProductService(
 			IProductRepository repo,
-			IProductMapper mapper)
+            IMapper mapper)
 		{
 			_repo = repo;
 			_mapper = mapper;
@@ -20,7 +20,7 @@ namespace ProductAPI.Services.Implements
 
 		public List<ProductDto> GetAllProducts()
 		{
-			return _repo.GetAll().Select(p => _mapper.ToDto(p)).ToList();
+			return _repo.GetAll().Select(p => _mapper.Map<ProductDto>(p)).ToList();
 		}
 
         public async Task<ProductDetailResponseDto> GetProductDetailAsync(string productId)
@@ -33,7 +33,7 @@ namespace ProductAPI.Services.Implements
             var mainImage = product.ProductImages?
                 .FirstOrDefault(x => x.IsMain == true)?.ImageURL;
 
-            return _mapper.ToDto(product, mainImage);
+            return _mapper.Map<ProductDetailResponseDto>(product, opt => opt.Items["MainImage"] = mainImage);
         }
     }
 }

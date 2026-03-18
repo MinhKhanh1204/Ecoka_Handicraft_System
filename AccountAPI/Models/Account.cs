@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace AccountAPI.Models
@@ -31,6 +31,7 @@ namespace AccountAPI.Models
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
         public Customer? Customer { get; set; }
+        public Staff? Staff { get; set; }
     }
 
 }
