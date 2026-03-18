@@ -31,13 +31,13 @@
 
                     <!-- Header -->
                     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
-                        <h5 class="card-title mb-0">Products Management</h5>
+                        <h5 class="card-title mb-0">Product Management</h5>
 
                         <a class="btn btn-primary"
                            asp-area="Admin"
                            asp-controller="Products"
                            asp-action="Create">
-                            <i class="bi bi-plus-circle me-1"></i> Thêm mới
+                            <i class="bi bi-plus-circle me-1"></i> Add New
                         </a>
                     </div>
 
@@ -50,7 +50,7 @@
                                     <input name="keyword"
                                            value="@keyword"
                                            class="form-control"
-                                           placeholder="Tìm theo tên sản phẩm..." />
+                                           placeholder="Search by product name..." />
                                     <button class="btn btn-primary" type="submit">
                                         <i class="bi bi-search me-1"></i> Search
                                     </button>
@@ -72,11 +72,11 @@
                         <form method="get" class="row g-2 align-items-center">
                             <input type="hidden" name="keyword" value="@keyword" />
                             <div class="col-auto">
-                                <label class="fw-bold me-2">Bộ lọc trạng thái:</label>
+                                <label class="fw-bold me-2">Filter by status:</label>
                             </div>
                             <div class="col-md-3">
                                 <select name="status" class="form-select border-primary" onchange="this.form.submit()">
-                                    <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">Tất cả hợp lệ</option>
+                                    <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">All</option>
                                     <option value="Active" selected="@(status == "Active")">Active</option>
                                     <option value="Pending" selected="@(status == "Pending")">Pending</option>
                                     <option value="Inactive" selected="@(status == "Inactive")">Inactive</option>
@@ -94,14 +94,14 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width:60px;">STT</th>
-                                    <th>Ảnh</th>
-                                    <th>Sản phẩm</th>
-                                    <th>Danh mục</th>
-                                    <th>Giá</th>
-                                    <th>Tồn kho</th>
-                                    <th>Trạng thái</th>
-                                    <th class="text-end">Thao tác</th>
+                                    <th style="width:60px;">No.</th>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
 
@@ -111,7 +111,7 @@
                                     <tr>
                                         <td colspan="8" class="text-center text-muted py-5">
                                             <i class="bi bi-box-seam display-4 d-block mb-3"></i>
-                                            Không tìm thấy sản phẩm nào
+                                            No products found
                                         </td>
                                     </tr>
                                 }
@@ -203,13 +203,14 @@
                                                         </form>
                                                     }
 
-                                                    @if (isAdmin && p.Status != "Inactive")
+                                                    @* Delete button now visible for both Admin and Staff *@
+                                                    @if ((isAdmin || isStaff) && p.Status != "Inactive")
                                                     {
                                                         <form asp-action="Delete"
                                                               asp-route-id="@p.ProductID"
                                                               method="post"
                                                               class="d-inline"
-                                                              onsubmit="return confirm('Ngừng kinh doanh sản phẩm này?');">
+                                                              onsubmit="return confirm('Stop selling this product?');">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                                 <i class="bi bi-slash-circle"></i>

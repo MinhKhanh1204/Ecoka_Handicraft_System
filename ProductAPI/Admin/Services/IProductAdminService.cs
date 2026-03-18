@@ -1,4 +1,4 @@
-﻿using ProductAPI.Admin.DTOs;
+using ProductAPI.Admin.DTOs;
 using ProductAPI.CustomFormatter;
 
 namespace ProductAPI.Admin.Services

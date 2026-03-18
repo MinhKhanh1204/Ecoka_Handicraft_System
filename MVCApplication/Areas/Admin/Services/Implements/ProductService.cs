@@ -19,18 +19,11 @@ namespace MVCApplication.Areas.Admin.Services.Implements
 
         private async Task<ApiResponse<T>?> ReadApiResponseAsync<T>(HttpResponseMessage resp)
         {
-            if (resp.Content == null)
-                return null;
-
+            if (resp.Content == null) return null;
             return await resp.Content.ReadFromJsonAsync<ApiResponse<T>>();
         }
 
-        public async Task<PagedResult<ReadProductDto>> GetPagedAsync(
-            string? keyword,
-            string? status,
-            string? userRole,
-            int pageNumber,
-            int pageSize)
+        public async Task<PagedResult<ReadProductDto>> GetPagedAsync(string? keyword, string? status, int pageNumber, int pageSize)
         {
             var queryParams = new Dictionary<string, string?>
             {
@@ -44,16 +37,12 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             if (!string.IsNullOrWhiteSpace(status))
                 queryParams["status"] = status;
 
-            if (!string.IsNullOrWhiteSpace(userRole))
-                queryParams["userRole"] = userRole;
-
             var uri = QueryHelpers.AddQueryString(BasePath, queryParams);
 
             var resp = await _http.GetAsync(uri);
-            resp.EnsureSuccessStatusCode();  
+            resp.EnsureSuccessStatusCode();
 
             var api = await ReadApiResponseAsync<PagedResult<ReadProductDto>>(resp);
-
             if (api == null || !api.Success || api.Data == null)
                 return new PagedResult<ReadProductDto>
                 {
@@ -69,8 +58,7 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         public async Task<ProductDetailDto?> GetByIdAsync(string id)
         {
             var resp = await _http.GetAsync($"{BasePath}/{id}");
-            if (resp.StatusCode == HttpStatusCode.NotFound)
-                return null;
+            if (resp.StatusCode == HttpStatusCode.NotFound) return null;
 
             resp.EnsureSuccessStatusCode();
             var api = await ReadApiResponseAsync<ProductDetailDto>(resp);
@@ -92,21 +80,20 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             {
                 var img = dto.Images[i];
                 if (!string.IsNullOrWhiteSpace(img.ImageUrl))
-                {
                     content.Add(new StringContent(img.ImageUrl), $"Images[{i}].ImageUrl");
-                }
+
                 if (img.ImageFile != null)
                 {
                     var fileContent = new StreamContent(img.ImageFile.OpenReadStream());
                     fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.ImageFile.ContentType);
                     content.Add(fileContent, $"Images[{i}].ImageFile", img.ImageFile.FileName);
                 }
+
                 content.Add(new StringContent(img.IsMain.ToString().ToLower()), $"Images[{i}].IsMain");
             }
 
             var resp = await _http.PostAsync(BasePath, content);
-            if (!resp.IsSuccessStatusCode)
-                return false;
+            if (!resp.IsSuccessStatusCode) return false;
 
             var api = await ReadApiResponseAsync<object>(resp);
             return api?.Success == true;
@@ -128,21 +115,20 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             {
                 var img = dto.Images[i];
                 if (!string.IsNullOrWhiteSpace(img.ImageUrl))
-                {
                     content.Add(new StringContent(img.ImageUrl), $"Images[{i}].ImageUrl");
-                }
+
                 if (img.ImageFile != null)
                 {
                     var fileContent = new StreamContent(img.ImageFile.OpenReadStream());
                     fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.ImageFile.ContentType);
                     content.Add(fileContent, $"Images[{i}].ImageFile", img.ImageFile.FileName);
                 }
+
                 content.Add(new StringContent(img.IsMain.ToString().ToLower()), $"Images[{i}].IsMain");
             }
 
             var resp = await _http.PutAsync($"{BasePath}/{id}", content);
-            if (!resp.IsSuccessStatusCode)
-                return false;
+            if (!resp.IsSuccessStatusCode) return false;
 
             var api = await ReadApiResponseAsync<object>(resp);
             return api?.Success == true;
@@ -151,28 +137,7 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         public async Task<bool> DeleteAsync(string id)
         {
             var resp = await _http.DeleteAsync($"{BasePath}/{id}");
-            if (!resp.IsSuccessStatusCode)
-                return false;
-
-            var api = await ReadApiResponseAsync<object>(resp);
-            return api?.Success == true;
-        }
-
-        public async Task<bool> ApproveAsync(string id)
-        {
-            var resp = await _http.PutAsync($"{BasePath}/approve/{id}", null);
-            if (!resp.IsSuccessStatusCode)
-                return false;
-
-            var api = await ReadApiResponseAsync<object>(resp);
-            return api?.Success == true;
-        }
-
-        public async Task<bool> RejectAsync(string id)
-        {
-            var resp = await _http.PutAsync($"{BasePath}/reject/{id}", null);
-            if (!resp.IsSuccessStatusCode)
-                return false;
+            if (!resp.IsSuccessStatusCode) return false;
 
             var api = await ReadApiResponseAsync<object>(resp);
             return api?.Success == true;

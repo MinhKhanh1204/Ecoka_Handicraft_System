@@ -1,4 +1,4 @@
-﻿namespace ProductAPI.Admin.DTOs
+namespace ProductAPI.Admin.DTOs
 {
     public class ProductListDto
     {

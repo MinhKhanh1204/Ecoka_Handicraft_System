@@ -93,28 +93,51 @@ namespace AccountAPI.Admin.Services.Implements
 
         public async Task<bool> CreateStaffAsync(CreateStaffDto dto)
         {
-            // Check email uniqueness
+            // ===== VALIDATION =====
+
             if (await _repo.EmailExistsAsync(dto.Email))
                 throw new InvalidOperationException("EMAIL_EXISTS");
 
-            // Use email prefix as username, ensure uniqueness
+            if (await _repo.PhoneExistsAsync(dto.Phone))
+                throw new InvalidOperationException("PHONE_EXISTS");
+
+            if (!string.IsNullOrEmpty(dto.CitizenId))
+            {
+                var existsCitizen = _repo.GetAll()
+                    .Any(s => s.CitizenId == dto.CitizenId);
+
+                if (existsCitizen)
+                    throw new InvalidOperationException("CITIZENID_EXISTS"); // ✅ FIX
+            }
+
+            if (dto.DateOfBirth.HasValue)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var age = today.Year - dto.DateOfBirth.Value.Year;
+
+                if (dto.DateOfBirth.Value > today.AddYears(-age))
+                    age--;
+
+                if (age < 18)
+                    throw new InvalidOperationException("INVALID_AGE");
+            }
+
+            // ===== USERNAME AUTO =====
             string baseUsername = dto.Email.Split('@')[0];
             string username = baseUsername;
             int suffix = 1;
+
             while (await _repo.UsernameExistsAsync(username))
             {
-                username = baseUsername + suffix;
-                suffix++;
+                username = baseUsername + suffix++;
             }
 
             await _repo.BeginTransactionAsync();
 
             try
             {
-                // 1. Generate Account ID
                 var accountId = await _repo.GenerateStaffAccountIdAsync();
 
-                // 2. Create Account
                 var account = new Account
                 {
                     AccountID = accountId,
@@ -122,18 +145,15 @@ namespace AccountAPI.Admin.Services.Implements
                     Email = dto.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     CreatedAt = DateTime.UtcNow,
-                    Status = "Active"
+                    Status = "Active",
+                    Avatar = dto.Avatar
                 };
 
                 await _repo.AddAccountAsync(account);
 
-                // 3. Assign Role — MUST exist in DB
                 var role = await _repo.GetRoleByIdAsync(dto.RoleID);
-
                 if (role == null)
-                {
                     throw new InvalidOperationException("ROLE_NOT_FOUND");
-                }
 
                 await _repo.AddUserRoleAsync(new UserRole
                 {
@@ -142,7 +162,6 @@ namespace AccountAPI.Admin.Services.Implements
                     Status = "Active"
                 });
 
-                // 4. Create Staff profile
                 var staff = new Staff
                 {
                     StaffId = accountId,
@@ -172,22 +191,43 @@ namespace AccountAPI.Admin.Services.Implements
         public async Task<bool> UpdateStaffAsync(UpdateStaffDto dto)
         {
             var staff = await _repo.GetByIdAsync(dto.StaffId);
+            if (staff == null) return false;
 
-            if (staff == null)
-                return false;
+            // ===== VALIDATION =====
+            if (dto.DateOfBirth.HasValue)
+            {
+                var age = DateTime.Now.Year - dto.DateOfBirth.Value.Year;
+                if (age < 18)
+                    throw new InvalidOperationException("INVALID_AGE");
+            }
 
-            // Only update allowed fields (NOT StaffId, NOT CitizenId)
+            if (!string.IsNullOrEmpty(dto.CitizenId))
+            {
+                var existsCitizen = _repo.GetAll()
+                    .Any(s => s.CitizenId == dto.CitizenId && s.StaffId != dto.StaffId);
+
+                if (existsCitizen)
+                    throw new InvalidOperationException("CITIZENID_EXISTS");
+            }
+
+            // ===== UPDATE =====
             staff.FullName = dto.FullName;
             staff.Phone = dto.Phone;
             staff.Address = dto.Address;
             staff.Gender = dto.Gender;
             staff.DateOfBirth = dto.DateOfBirth;
+            staff.CitizenId = dto.CitizenId;
             staff.Status = dto.Status ? "Active" : "Deleted";
 
-            // Also update Account status to sync
+            // Sync Account
             if (staff.StaffNavigation != null)
             {
                 staff.StaffNavigation.Status = dto.Status ? "Active" : "Deleted";
+
+                if (!string.IsNullOrEmpty(dto.Avatar))
+                {
+                    staff.StaffNavigation.Avatar = dto.Avatar;
+                }
             }
 
             _repo.Update(staff);

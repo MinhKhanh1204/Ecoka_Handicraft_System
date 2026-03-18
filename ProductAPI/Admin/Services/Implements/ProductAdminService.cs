@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Repositories;
 using ProductAPI.Admin.Services;

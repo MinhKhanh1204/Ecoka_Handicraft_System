@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Services;
@@ -20,10 +20,10 @@ namespace ProductAPI.Admin.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetPaged(
-            [FromQuery] string? keyword, 
-            [FromQuery] string? status, 
+            [FromQuery] string? keyword,
+            [FromQuery] string? status,
             [FromQuery] string? userRole,
-            [FromQuery] int pageNumber = 1, 
+            [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetPagedAsync(keyword, status, userRole, pageNumber, pageSize);
@@ -107,7 +107,7 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.RejectAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Rejected successfully", "Rejected successfully")); 
+                return Ok(ApiResponse<string>.SuccessResponse("Rejected successfully", "Rejected successfully"));
             }
             catch (Exception ex)
             {
@@ -122,7 +122,7 @@ namespace ProductAPI.Admin.Controllers
         {
             try
             {
-                await _service.DeleteAsync(id); 
+                await _service.DeleteAsync(id);
                 return Ok(ApiResponse<string>.SuccessResponse("Product inactivated successfully", "Product inactivated successfully"));
             }
             catch (Exception ex)
