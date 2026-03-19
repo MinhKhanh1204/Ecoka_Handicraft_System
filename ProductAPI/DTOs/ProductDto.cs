@@ -4,6 +4,7 @@
 	{
 		public string ProductID { get; set; }
 		public string ProductName { get; set; } = null!;
+		public string CategoryId { get; set; } = null!;
 		public string CategoryName { get; set; } = null!;
 		public decimal OriginalPrice { get; set; }
 		public decimal FinalPrice { get; set; }
