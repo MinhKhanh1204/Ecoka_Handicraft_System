@@ -22,32 +22,7 @@ namespace OrderAPI.Services
 
         Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId);
 
-        // ================= STAFF =================
-
-        Task<IEnumerable<OrderReadDto>> GetAllOrdersForStaffAsync();
-
-        Task<IEnumerable<OrderReadDto>> SearchOrdersForStaffAsync(
-            string? orderId,
-            string? customerName,
-            DateTime? from,
-            DateTime? to,
-            string? shippingStatus,
-            string? paymentStatus);
-
-        Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId);
-
-        Task<OrderReadDto?> GetOrderDetailForStaffAsync(string orderId);
-
-        // ================= GENERAL =================
-
         Task<OrderReadDto> CreateAsync(OrderCreateDto dto);
 
-        Task UpdatePaymentStatusAsync(
-            string orderId,
-            string paymentMethod,
-            string paymentStatus,
-            string? note);
-
-        Task<OrderReadDto?> GetByIdAsync(string orderId);
     }
 }

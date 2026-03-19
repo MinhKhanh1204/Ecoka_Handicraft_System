@@ -5,6 +5,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CustomFormatter\**" />
+    <Content Remove="CustomFormatter\**" />
+    <EmbeddedResource Remove="CustomFormatter\**" />
+    <None Remove="CustomFormatter\**" />
+  </ItemGroup>
 	
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
@@ -16,7 +23,6 @@
     <Folder Include="Admin\Controllers\" />
     <Folder Include="Models\" />
     <Folder Include="DTOs\" />
-    <Folder Include="CustomFormatter\" />
   </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="12.0.0" />

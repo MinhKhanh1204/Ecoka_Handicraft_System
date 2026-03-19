@@ -1,0 +1,247 @@
+﻿@using MVCApplication.Areas.Admin.DTOs
+@using MVCApplication.Models.DTOs
+@using MVCApplication.CustomFormatter
+@{
+    ViewData["Title"] = "Approvals";
+
+    // Safe reflection-based extraction: the controller may pass a typed view model or place lists in ViewData.
+    object? vm = Model;
+
+    PagedResult<ReadProductDto> pendingProducts = vm?.GetType().GetProperty("PendingProducts")?.GetValue(vm) as PagedResult<ReadProductDto>
+        ?? ViewData["PendingProducts"] as PagedResult<ReadProductDto>
+        ?? new PagedResult<ReadProductDto> { Items = new List<ReadProductDto>(), PageNumber = 1, PageSize = 10, TotalCount = 0 };
+
+    IReadOnlyList<ReadCategoryDto> pendingCategories = vm?.GetType().GetProperty("PendingCategories")?.GetValue(vm) as IReadOnlyList<ReadCategoryDto>
+        ?? ViewData["PendingCategories"] as IReadOnlyList<ReadCategoryDto>
+        ?? Array.Empty<ReadCategoryDto>();
+
+    IList<VoucherDto> pendingVouchers = vm?.GetType().GetProperty("PendingVouchers")?.GetValue(vm) as IList<VoucherDto>
+        ?? ViewData["PendingVouchers"] as IList<VoucherDto>
+        ?? new List<VoucherDto>();
+}
+
+<div class="pagetitle">
+    <h1>Approvals</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item active">Approvals</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <ul class="nav nav-tabs mb-3" id="approvalsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Products (@pendingProducts.TotalCount)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">Categories (@pendingCategories.Count)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="vouchers-tab" data-bs-toggle="tab" data-bs-target="#vouchers" type="button" role="tab">Vouchers (@pendingVouchers.Count)</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="approvalsTabContent">
+
+                <!-- PRODUCTS TAB -->
+                <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:60px;">#</th>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (pendingProducts.Items == null || !pendingProducts.Items.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending products</td></tr>
+                                }
+                                else
+                                {
+                                    int idx = (pendingProducts.PageNumber - 1) * pendingProducts.PageSize;
+                                    foreach (var p in pendingProducts.Items)
+                                    {
+                                        idx++;
+                                        <tr>
+                                            <td class="fw-bold">@idx</td>
+                                            <td>
+                                                <img src="@(string.IsNullOrEmpty(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
+                                                     style="width:55px;height:55px;object-fit:cover" class="rounded" />
+                                            </td>
+                                            <td>@p.ProductName</td>
+                                            <td>@p.CategoryName</td>
+                                            <td class="text-danger fw-bold">@p.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                            <td>@p.StockQuantity</td>
+                                            <td class="text-end">
+                                                <div class="btn-group">
+
+                                                    <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductID">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+
+                                                    <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveProduct" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@p.ProductID" />
+                                                        <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectProduct" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@p.ProductID" />
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Reject">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CATEGORIES TAB -->
+                <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width:90px;">ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th style="width:140px;">Status</th>
+                                    <th style="width:180px;" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!pendingCategories.Any())
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted py-4">No pending categories</td></tr>
+                                }
+                                else
+                                {
+                                    foreach (var c in pendingCategories)
+                                    {
+                                        <tr>
+                                            <td>@c.CategoryID</td>
+                                            <td class="fw-semibold">@c.CategoryName</td>
+                                            <td class="text-truncate" style="max-width:420px;">@c.Description</td>
+                                            <td>
+                                                <span class="badge @(string.Equals(c.Status, "Active", System.StringComparison.OrdinalIgnoreCase) ? "bg-success" :
+                                                                    string.Equals(c.Status, "Deleted", System.StringComparison.OrdinalIgnoreCase) ? "bg-danger" : "bg-secondary")">
+                                                    @c.Status
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveCategory" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@c.CategoryID" />
+                                                    <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i></button>
+                                                </form>
+
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectCategory" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@c.CategoryID" />
+                                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                                                </form>
+
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VOUCHERS TAB -->
+                <div class="tab-pane fade" id="vouchers" role="tabpanel" aria-labelledby="vouchers-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Expiry</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!pendingVouchers.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending vouchers</td></tr>
+                                }
+                                else
+                                {
+                                    foreach (var v in pendingVouchers)
+                                    {
+                                        <tr>
+                                            <td>@v.VoucherId</td>
+                                            <td>@v.Code</td>
+                                            <td>@v.VoucherName</td>
+                                            <td>@(v.ExpiryDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                            <td>@v.Quantity</td>
+                                            <td>
+                                                <span class="badge @(v.IsActive == true ? "bg-success" : "bg-secondary")">
+                                                    @(v.IsActive == true ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveVoucher" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@v.VoucherId" />
+                                                    <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i></button>
+                                                </form>
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectVoucher" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@v.VoucherId" />
+                                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Ensure Bootstrap tab behavior works when navigating with anchors
+        (function () {
+            var triggerTabList = [].slice.call(document.querySelectorAll('#approvalsTabs button'))
+            triggerTabList.forEach(function (triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl)
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault()
+                    tabTrigger.show()
+                })
+            })
+        })();
+    </script>
+}

@@ -4,7 +4,21 @@
 @{
     ViewData["Title"] = "My Orders";
 }
+@{
+    var currentOrders = ViewBag.CurrentOrders as List<Order>;
+    var historyOrders = ViewBag.HistoryOrders as List<Order>;
 
+    int currentPage = ViewBag.CurrentPage;
+    int historyPage = ViewBag.HistoryPage;
+
+    int pageSize = ViewBag.PageSize;
+
+    int currentTotal = ViewBag.CurrentTotal;
+    int historyTotal = ViewBag.HistoryTotal;
+
+    int currentTotalPages = (int)Math.Ceiling((double)currentTotal / pageSize);
+    int historyTotalPages = (int)Math.Ceiling((double)historyTotal / pageSize);
+}
 <div class="container py-5">
     <h2 class="mb-4">My Orders</h2>
 
@@ -17,11 +31,12 @@
     }
 
     <!-- SEARCH FORM -->
-    <form asp-action="Search" method="get" class="mb-4">
+    <form asp-action="Search" id="searchForm" method="get" class="mb-4">
         <div class="row g-2">
 
             <div class="col-md-3">
-                <input type="text" name="orderId"
+                <input type="text"
+                       name="orderId"
                        class="form-control"
                        placeholder="Order ID" />
             </div>
@@ -44,14 +59,6 @@
             </div>
 
             <div class="col-md-2">
-                <select name="tabStatus" class="form-select">
-                    <option value="">All</option>
-                    <option value="current">Current</option>
-                    <option value="history">History</option>
-                </select>
-            </div>
-
-            <div class="col-md-1">
                 <button class="btn btn-primary w-100">
                     Search
                 </button>
@@ -60,81 +67,182 @@
         </div>
     </form>
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">
-            You have no orders yet.
-        </div>
-    }
+    <!-- ORDER TABS -->
+    <ul class="nav nav-tabs mb-4">
 
-    <div class="row">
-        @foreach (var order in Model)
-        {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card shadow-sm h-100 border-0">
+        <li class="nav-item">
+            <button class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#currentOrders">
+                Current Orders
+            </button>
+        </li>
 
-                    <!-- HEADER -->
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <strong>#@order.OrderID</strong>
-                        <span class="badge bg-primary">
-                            @order.PaymentStatus
-                        </span>
-                    </div>
+        <li class="nav-item">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#historyOrders">
+                Order History
+            </button>
+        </li>
 
-                    <!-- BODY -->
-                    <div class="card-body">
-                        <p>
-                            <strong>Date:</strong>
-                            @order.OrderDate?.ToString("dd/MM/yyyy")
-                        </p>
+    </ul>
+    <div id="ordersContainer">
+    <div class="tab-content">
 
-                        <p>
-                            <strong>Shipping:</strong>
-                            <span class="badge bg-warning text-dark">
-                                @order.ShippingStatus
-                            </span>
-                        </p>
+        <!-- CURRENT ORDERS -->
+        <div class="tab-pane fade show active" id="currentOrders">
 
-                        <p>
-                            <strong>Address:</strong>
-                            @order.ShippingAddress
-                        </p>
-
-                        <hr />
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="text-danger mb-0">
-                                @order.TotalAmount?.ToString("N0") $
-                            </h5>
-
-                            <button class="btn btn-sm btn-primary"
-                                    onclick="showOrderDetail('@order.OrderID')">
-                                View Details
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- FOOTER -->
-                    @if (order.ShippingStatus == "Pending")
-                    {
-                        <div class="card-footer bg-white text-end border-0">
-                            <form asp-action="Cancel" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@order.OrderID" />
-
-                                <button class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Are you sure you want to cancel this order?');">
-                                    Cancel
-                                </button>
-                            </form>
-                        </div>
-                    }
-
+                @if (!currentOrders.Any())
+            {
+                <div class="alert alert-info">
+                    No current orders.
                 </div>
+            }
+
+            <div class="row">
+
+                    @foreach (var order in currentOrders)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm h-100 border-0">
+
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <strong>#@order.OrderID</strong>
+                                <span class="badge bg-primary">
+                                    @order.PaymentStatus
+                                </span>
+                            </div>
+
+                            <div class="card-body">
+
+                                <p>
+                                    <strong>Date:</strong>
+                                    @order.OrderDate?.ToString("dd/MM/yyyy")
+                                </p>
+
+                                <p>
+                                    <strong>Shipping:</strong>
+                                    <span class="badge bg-warning text-dark">
+                                        @order.ShippingStatus
+                                    </span>
+                                </p>
+
+                                <p>
+                                    <strong>Address:</strong>
+                                    @order.ShippingAddress
+                                </p>
+
+                                <hr />
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="text-danger mb-0">
+                                            @order.TotalAmount?.ToString("N0") VND
+                                    </h5>
+
+                                    <button class="btn btn-sm btn-primary"
+                                            onclick="showOrderDetail('@order.OrderID')">
+                                        View Details
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            @if (order.ShippingStatus == "Pending")
+                            {
+                                <div class="card-footer bg-white text-end border-0">
+                                    <form asp-action="Cancel" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@order.OrderID" />
+
+                                        <button class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Cancel this order?');">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                }
+
             </div>
-        }
+
+        </div>
+
+
+        <!-- ORDER HISTORY -->
+        <div class="tab-pane fade" id="historyOrders">
+
+                @if (currentOrders == null || !currentOrders.Any())
+            {
+                <div class="alert alert-info">
+                    No order history.
+                </div>
+            }
+
+            <div class="row">
+
+                    @foreach (var order in historyOrders ?? new List<Order>())
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm h-100 border-0">
+
+                            <div class="card-header bg-white d-flex justify-content-between">
+                                <strong>#@order.OrderID</strong>
+                                <span class="badge bg-secondary">
+                                    @order.PaymentStatus
+                                </span>
+                            </div>
+
+                            <div class="card-body">
+
+                                <p>
+                                    <strong>Date:</strong>
+                                    @order.OrderDate?.ToString("dd/MM/yyyy")
+                                </p>
+
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-success">
+                                        @order.ShippingStatus
+                                    </span>
+                                </p>
+
+                                <p>
+                                    <strong>Address:</strong>
+                                    @order.ShippingAddress
+                                </p>
+
+                                <hr />
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="text-danger mb-0">
+                                        @order.TotalAmount?.ToString("N0") VND
+                                    </h5>
+
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            onclick="showOrderDetail('@order.OrderID')">
+                                        View Details
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+        </div>
     </div>
 </div>
+
 
 <!-- MODAL -->
 <div class="modal fade" id="orderDetailModal" tabindex="-1">
@@ -143,49 +251,87 @@
 
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title fw-bold">
-                    🧾 Order Details
+                    Order Details
                 </h5>
+
                 <button type="button"
                         class="btn-close btn-close-white"
                         data-bs-dismiss="modal">
                 </button>
             </div>
 
-            <div class="modal-body p-4" id="orderDetailContent">
+            <div class="modal-body p-4"
+                 id="orderDetailContent">
+
                 <div class="text-center py-5">
                     <div class="spinner-border text-dark"></div>
                 </div>
+
             </div>
 
         </div>
     </div>
 </div>
 
+
 <script>
-    async function showOrderDetail(orderId) {
 
-        const modal = new bootstrap.Modal(
-            document.getElementById('orderDetailModal')
-        );
+async function showOrderDetail(orderId) {
 
-        modal.show();
+    const modal = new bootstrap.Modal(
+        document.getElementById('orderDetailModal')
+    );
+
+    modal.show();
+
+    document.getElementById("orderDetailContent").innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-dark"></div>
+        </div>`;
+
+    const response = await fetch(`/customer/orders/${orderId}`);
+
+    if (!response.ok) {
 
         document.getElementById("orderDetailContent").innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-border text-dark"></div>
+            <div class="alert alert-danger">
+                Failed to load order details
             </div>`;
 
-        const response = await fetch(`/Orders/Details/${orderId}`);
+        return;
+    }
+
+    const html = await response.text();
+
+    document.getElementById("orderDetailContent").innerHTML = html;
+}
+
+    document.getElementById("searchForm").addEventListener("submit", async function(e){
+
+        e.preventDefault(); // ngăn reload page
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const query = new URLSearchParams(formData).toString();
+
+        const response = await fetch(`/customer/orders/search?${query}`);
 
         if (!response.ok) {
-            document.getElementById("orderDetailContent").innerHTML = `
-                <div class="alert alert-danger">
-                    Failed to load order details
-                </div>`;
+            alert("Search failed");
             return;
         }
 
         const html = await response.text();
-        document.getElementById("orderDetailContent").innerHTML = html;
-    }
+
+        // parse HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const newOrders = doc.querySelector("#ordersContainer");
+
+        document.querySelector("#ordersContainer").innerHTML =
+            newOrders.innerHTML;
+
+    });
 </script>

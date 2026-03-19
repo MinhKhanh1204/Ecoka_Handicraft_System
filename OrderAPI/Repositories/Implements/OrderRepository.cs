@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using OrderAPI.DTOs;
 using OrderAPI.Models;
 using OrderAPI.Repositories;
 
@@ -93,9 +94,22 @@ namespace OrderAPI.Repositories.Implements
 
         public async Task<Order?> GetOrderDetailAsync(string orderId)
         {
-            return await _context.Orders
+            // Eagerly include OrderItems and defensively ensure collection is loaded.
+            var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.OrderID == orderId);
+
+            if (order == null)
+                return null;
+
+            // Defensive load in case Include did not populate (rare, but helps debugging)
+            var itemsLoaded = order.OrderItems != null && order.OrderItems.Any();
+            if (!itemsLoaded)
+            {
+                await _context.Entry(order).Collection(o => o.OrderItems).LoadAsync();
+            }
+
+            return order;
         }
 
         public async Task<bool> CancelOrderAsync(string orderId, string cancelReason)
@@ -132,89 +146,12 @@ namespace OrderAPI.Repositories.Implements
                 .AnyAsync(o => o.OrderItems
                     .Any(oi => oi.ProductID == productId));
         }
+        // ================= CREATE ORDER =================
 
-        // ================= STAFF =================
-
-        public async Task<IEnumerable<Order>> GetAllOrdersForStaffAsync()
+        private string GenerateOrderId()
         {
-            return await _context.Orders
-                .OrderByDescending(o => o.OrderDate)
-                .AsNoTracking()
-                .ToListAsync();
+            return $"ORD{DateTime.UtcNow:yyyyMMddHHmmssfff}";
         }
-
-        public async Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
-            string? orderId,
-            string? customerName,
-            DateTime? from,
-            DateTime? to,
-            string? shippingStatus,
-            string? paymentStatus)
-        {
-            var query = _context.Orders.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(orderId))
-                query = query.Where(o => o.OrderID.Contains(orderId));
-
-            if (from.HasValue)
-                query = query.Where(o => o.OrderDate >= from.Value);
-
-            if (to.HasValue)
-                query = query.Where(o => o.OrderDate <= to.Value);
-
-            if (!string.IsNullOrWhiteSpace(shippingStatus))
-            {
-                if (Enum.TryParse<ShippingStatus>(shippingStatus, true, out var ss))
-                    query = query.Where(o => o.ShippingStatus == ss.ToString());
-                else
-                    query = query.Where(o => o.ShippingStatus == shippingStatus);
-            }
-
-            if (!string.IsNullOrWhiteSpace(paymentStatus))
-            {
-                if (Enum.TryParse<PaymentStatus>(paymentStatus, true, out var ps))
-                    query = query.Where(o => o.PaymentStatus == ps.ToString());
-                else
-                    query = query.Where(o => o.PaymentStatus == paymentStatus);
-            }
-
-            // optional: join on customerName if customers table exists (left out here)
-            return await query
-                .OrderByDescending(o => o.OrderDate)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        public async Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId)
-        {
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.OrderID == orderId);
-
-            if (order == null)
-                return false;
-
-            // try to interpret newStatus as ShippingStatus enum; fall back to raw string
-            if (Enum.TryParse<ShippingStatus>(newStatus, true, out var ss))
-                order.ShippingStatus = ss.ToString();
-            else
-                order.ShippingStatus = newStatus;
-
-            order.StaffID = staffId;
-            order.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<Order?> GetOrderDetailForStaffAsync(string orderId)
-        {
-            return await _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.OrderID == orderId);
-        }
-
-        // ================= GENERAL =================
-
         public async Task<Order> CreateAsync(Order order)
         {
             order.OrderID = GenerateOrderId();
@@ -231,18 +168,6 @@ namespace OrderAPI.Repositories.Implements
             await _context.SaveChangesAsync();
 
             return order;
-        }
-
-        private string GenerateOrderId()
-        {
-            return $"ORD{DateTime.UtcNow:yyyyMMddHHmmssfff}";
-        }
-
-        public async Task<Order?> GetByIdAsync(string orderId)
-        {
-            return await _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.OrderID == orderId);
         }
 
         public async Task UpdatePaymentStatusAsync(
@@ -265,23 +190,6 @@ namespace OrderAPI.Repositories.Implements
             order.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-        }
-
-        // Approve order (admin action) — set shipping status to Approved and optionally set staff
-        public async Task<bool> ApproveOrderAsync(string orderId, string? approverStaffId = null)
-        {
-            if (string.IsNullOrWhiteSpace(orderId)) return false;
-
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderID == orderId);
-            if (order == null) return false;
-
-            order.ShippingStatus = ShippingStatus.Approved.ToString();
-            if (!string.IsNullOrWhiteSpace(approverStaffId))
-                order.StaffID = approverStaffId;
-            order.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return true;
         }
     }
 }
