@@ -17,6 +17,7 @@ namespace MVCApplication.Areas.Admin.DTOs
     {
         public string ProductID { get; set; } = null!;
         public string ProductName { get; set; } = null!;
+        public int CategoryID { get; set; }
         public string? Description { get; set; }
         public string? Material { get; set; }
 

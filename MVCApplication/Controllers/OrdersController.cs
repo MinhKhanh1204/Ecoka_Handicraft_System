@@ -20,29 +20,43 @@ namespace MVCApplication.Controllers
         private readonly ICartService _cartService;
         private readonly IConfiguration _configuration;
         private readonly IPaymentService _paymentService;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService service, IProductService productService, ICartService cartService, IConfiguration configuration, IPaymentService paymentService)
+        public OrdersController(
+            IOrderService orderService,
+            IProductService productService,
+            ICartService cartService,
+            IConfiguration configuration,
+            IPaymentService paymentService,
+            ILogger<OrdersController> logger)
         {
-            _orderService = service;
+            _orderService = orderService;
             _productService = productService;
             _cartService = cartService;
             _configuration = configuration;
             _paymentService = paymentService;
+            _logger = logger;
         }
 
-        // --- CHECKOUT FLOW ---
-        [HttpGet]
+        // GET: /customer/orders/checkout?cartItemIds=1,2,3
+        [HttpGet("checkout")]
         public async Task<IActionResult> Checkout(string cartItemIds)
         {
             if (string.IsNullOrWhiteSpace(cartItemIds))
                 return RedirectToAction("View", "Cart");
 
-            var ids = cartItemIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                 .Select(int.Parse)
-                                 .ToList();
+            var ids = cartItemIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : (int?)null)
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .ToList();
+
+            if (!ids.Any())
+                return RedirectToAction("View", "Cart");
 
             var cart = await _cartService.GetCartAsync();
-            if (cart == null || cart.CartItems == null)
+            if (cart?.CartItems == null)
                 return RedirectToAction("View", "Cart");
 
             var selectedItems = cart.CartItems.Where(i => ids.Contains(i.CartItemId)).ToList();
@@ -63,7 +77,10 @@ namespace MVCApplication.Controllers
                         subtotal += item.Price * item.Quantity;
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error loading product detail for ProductId: {ProductId}", item.ProductId);
+                }
             }
 
             var model = new CheckoutViewModel
@@ -75,7 +92,9 @@ namespace MVCApplication.Controllers
             return View(model);
         }
 
-        [HttpPost]
+        // POST: /customer/orders/create
+        [HttpPost("create")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateOrder(CheckoutViewModel model, string cartItemIds)
         {
             var customerId = User.FindFirst("accountID")?.Value;
@@ -85,15 +104,22 @@ namespace MVCApplication.Controllers
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(cartItemIds))
                 return BadRequest("Invalid order data");
 
-            // Extract selected Cart items
-            var ids = cartItemIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+            var ids = cartItemIds
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : (int?)null)
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .ToList();
+
+            if (!ids.Any())
+                return BadRequest("No valid cart item ids");
+
             var cart = await _cartService.GetCartAsync();
             var selectedItems = cart?.CartItems?.Where(i => ids.Contains(i.CartItemId)).ToList();
 
             if (selectedItems == null || !selectedItems.Any())
                 return BadRequest("No items selected for checkout");
 
-            // Enrich Prices
             foreach (var item in selectedItems)
             {
                 try
@@ -102,10 +128,12 @@ namespace MVCApplication.Controllers
                     if (product != null)
                         item.Price = product.FinalPrice > 0 ? product.FinalPrice : product.Price;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error enriching product price for ProductId: {ProductId}", item.ProductId);
+                }
             }
 
-            // Create OrderDto
             var orderDto = new MVCApplication.Models.DTOs.OrderCreateDto
             {
                 CustomerID = customerId,
@@ -121,60 +149,71 @@ namespace MVCApplication.Controllers
                 }).ToList()
             };
 
-            // Send to OrderAPI
             var newOrder = await _orderService.CreateAsync(orderDto);
-            
-            if (newOrder != null)
+
+            if (newOrder == null)
+                return BadRequest("Failed to create order");
+
+            foreach (var id in ids)
             {
-                // Xóa cart items đã mua
-                foreach (var id in ids)
-                {
-                    await _cartService.DeleteCartItemAsync(id);
-                }
-
-                // Chuyển hướng thanh toán qua PaymentService
-                if (model.PaymentMethod == "VNPAY")
-                {
-                    string returnUrl = Url.Action("PaymentCallback", "Orders", null, Request.Scheme)!;
-                    string? url = await _paymentService.GetVnPayUrlAsync(newOrder.OrderID.ToString(), newOrder.TotalAmount ?? 0, "Thanh toan don hang " + newOrder.OrderID, returnUrl);
-                    if (!string.IsNullOrEmpty(url)) return Redirect(url);
-                }
-                else if (model.PaymentMethod == "MOMO")
-                {
-                    string returnUrl = Url.Action("PaymentCallback", "Orders", null, Request.Scheme)!;
-                    string? url = await _paymentService.GetMomoUrlAsync(newOrder.OrderID.ToString(), newOrder.TotalAmount ?? 0, "Thanh toan don hang " + newOrder.OrderID, returnUrl);
-                    if (!string.IsNullOrEmpty(url)) return Redirect(url);
-                }
-
-                return RedirectToAction("Details", new { id = newOrder.OrderID });
+                await _cartService.DeleteCartItemAsync(id);
             }
 
-            return BadRequest("Failed to create order");
+            if (model.PaymentMethod == "VNPAY")
+            {
+                string returnUrl = Url.Action(nameof(PaymentCallback), "Orders", null, Request.Scheme)!;
+                string? url = await _paymentService.GetVnPayUrlAsync(
+                    newOrder.OrderID.ToString(),
+                    newOrder.TotalAmount ?? 0,
+                    "Thanh toan don hang " + newOrder.OrderID,
+                    returnUrl);
+
+                if (!string.IsNullOrEmpty(url))
+                    return Redirect(url);
+            }
+            else if (model.PaymentMethod == "MOMO")
+            {
+                string returnUrl = Url.Action(nameof(PaymentCallback), "Orders", null, Request.Scheme)!;
+                string? url = await _paymentService.GetMomoUrlAsync(
+                    newOrder.OrderID.ToString(),
+                    newOrder.TotalAmount ?? 0,
+                    "Thanh toan don hang " + newOrder.OrderID,
+                    returnUrl);
+
+                if (!string.IsNullOrEmpty(url))
+                    return Redirect(url);
+            }
+
+            return RedirectToAction(nameof(Details), new { id = newOrder.OrderID });
         }
 
-        [HttpGet]
+        [HttpGet("payment-callback")]
         [AllowAnonymous]
         public async Task<IActionResult> PaymentCallback()
         {
-            // PaymentCallback là trang return cho người dùng xem
             string? vnp_ResponseCode = Request.Query["vnp_ResponseCode"];
-            string? memo_ResultCode = Request.Query["resultCode"];
-            string? orderIdRaw = Request.Query["orderId"]; // MoMo
-            string? vnp_TxnRef = Request.Query["vnp_TxnRef"]; // VNPay
+            string? momo_ResultCode = Request.Query["resultCode"];
+            string? orderIdRaw = Request.Query["orderId"];
+            string? vnp_TxnRef = Request.Query["vnp_TxnRef"];
 
-            if (vnp_ResponseCode == "00" || memo_ResultCode == "0")
+            if (vnp_ResponseCode == "00" || momo_ResultCode == "0")
             {
-                string? orderId = !string.IsNullOrEmpty(orderIdRaw) ? orderIdRaw.Split('_')[0] : vnp_TxnRef;
+                string? orderId = !string.IsNullOrEmpty(orderIdRaw)
+                    ? orderIdRaw.Split('_')[0]
+                    : vnp_TxnRef;
+
                 string paymentMethod = !string.IsNullOrEmpty(orderIdRaw) ? "MoMo" : "VNPay";
-                
+
                 if (!string.IsNullOrEmpty(orderId))
                 {
-                    // Fallback update status nếu IPN chưa tới (đặc biệt hữu ích khi chạy localhost)
-                    try 
+                    try
                     {
                         await _orderService.UpdatePaymentStatusAsync(orderId, paymentMethod, "Paid", "Thanh toan thanh cong");
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to update payment status for OrderId: {OrderId}", orderId);
+                    }
                 }
 
                 TempData["PaymentMsg"] = "Thành công! Đơn hàng của bạn đã được ghi nhận và đang chờ xử lý.";
@@ -184,25 +223,10 @@ namespace MVCApplication.Controllers
                 TempData["PaymentMsg"] = "Giao dịch không thành công hoặc đã bị người dùng hủy.";
             }
 
-            return RedirectToAction("Index", "Orders");
-        }
-        // --- END CHECKOUT FLOW ---
-
-        // Danh sách order của customer
-        public async Task<IActionResult> Index(string? search);
-        private readonly ILogger<OrdersController> _logger;
-
-        public OrdersController(
-            IOrderService service,
-            IProductService productService,
-            ILogger<OrdersController> logger)
-        {
-            _orderService = service;
-            _productService = productService;
-            _logger = logger;
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET /customer/orders
+        // GET: /customer/orders
         [HttpGet("")]
         public async Task<IActionResult> Index(int currentPage = 1, int historyPage = 1)
         {
@@ -228,22 +252,16 @@ namespace MVCApplication.Controllers
 
             ViewBag.CurrentPage = currentPage;
             ViewBag.HistoryPage = historyPage;
-
-            ViewBag.CurrentTotal = orders.Count(o =>
-                o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
-
-            ViewBag.HistoryTotal = orders.Count(o =>
-                o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
-
+            ViewBag.CurrentTotal = orders.Count(o => o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
+            ViewBag.HistoryTotal = orders.Count(o => o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
             ViewBag.PageSize = pageSize;
-
             ViewBag.CurrentOrders = currentOrders;
             ViewBag.HistoryOrders = historyOrders;
 
             return View();
         }
 
-        // GET /customer/orders/{id}
+        // GET: /customer/orders/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> Details(string id)
         {
@@ -288,15 +306,15 @@ namespace MVCApplication.Controllers
             }
         }
 
-        // GET /customer/orders/search
+        // GET: /customer/orders/search
         [HttpGet("search")]
         public async Task<IActionResult> Search(
-    string? orderId,
-    DateTime? from,
-    DateTime? to,
-    string? paymentStatus,
-    int currentPage = 1,
-    int historyPage = 1)
+            string? orderId,
+            DateTime? from,
+            DateTime? to,
+            string? paymentStatus,
+            int currentPage = 1,
+            int historyPage = 1)
         {
             var customerId = User.FindFirst("accountID")?.Value;
             if (string.IsNullOrWhiteSpace(customerId))
@@ -326,22 +344,16 @@ namespace MVCApplication.Controllers
 
             ViewBag.CurrentOrders = currentOrders;
             ViewBag.HistoryOrders = historyOrders;
-
             ViewBag.CurrentPage = currentPage;
             ViewBag.HistoryPage = historyPage;
-
-            ViewBag.CurrentTotal = orders.Count(o =>
-                o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
-
-            ViewBag.HistoryTotal = orders.Count(o =>
-                o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
-
+            ViewBag.CurrentTotal = orders.Count(o => o.ShippingStatus != "Delivered" && o.ShippingStatus != "Cancelled");
+            ViewBag.HistoryTotal = orders.Count(o => o.ShippingStatus == "Delivered" || o.ShippingStatus == "Cancelled");
             ViewBag.PageSize = pageSize;
 
             return View("Index");
         }
 
-        // POST /customer/orders/{id}/cancel
+        // POST: /customer/orders/{id}/cancel
         [HttpPost("{id}/cancel")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(string id)

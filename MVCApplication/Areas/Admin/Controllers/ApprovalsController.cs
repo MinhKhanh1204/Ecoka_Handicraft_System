@@ -41,7 +41,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             var pendingProducts = await _productService.GetPagedAsync(
                 keyword: null,
                 status: "Pending",
-                userRole: null,
                 pageNumber: 1,
                 pageSize: 50);
 

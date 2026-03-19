@@ -66,7 +66,7 @@ namespace OrderAPI.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetDetail(string orderId)
         {
-            var order = await _orderService.GetOrderDetailAsync(orderId);
+            var order = await _orderService.GetByIdAsync(orderId);
             if (order == null) return NotFound();
 
             return Ok(order);

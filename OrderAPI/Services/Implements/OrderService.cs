@@ -143,7 +143,7 @@ namespace OrderAPI.Services.Implements
 
         public async Task<OrderReadDto?> GetByIdAsync(string orderId)
         {
-            var order = await _orderRepo.GetByIdAsync(orderId);
+            var order = await _orderRepo.GetOrderDetailAsync(orderId);
             return order == null ? null : _mapper.Map<OrderReadDto>(order);
         }
 

@@ -10,5 +10,8 @@ namespace MVCApplication.Areas.Admin.Services
         Task<bool> CreateAsync(CreateProductDto dto);
         Task<bool> UpdateAsync(string id, UpdateProductDto dto);
         Task<bool> DeleteAsync(string id);
+
+        Task<bool> ApproveAsync(string id);
+        Task<bool> RejectAsync(string id);
     }
 }

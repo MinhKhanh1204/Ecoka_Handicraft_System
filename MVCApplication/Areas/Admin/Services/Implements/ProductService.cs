@@ -142,5 +142,31 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             var api = await ReadApiResponseAsync<object>(resp);
             return api?.Success == true;
         }
+
+        public async Task<bool> ApproveAsync(string id)
+        {
+            var product = await GetByIdAsync(id);
+            if (product == null) return false;
+
+            var dto = new UpdateProductDto
+            {
+                Status = "Active"
+            };
+
+            return await UpdateAsync(id, dto);
+        }
+
+        public async Task<bool> RejectAsync(string id)
+        {
+            var product = await GetByIdAsync(id);
+            if (product == null) return false;
+
+            var dto = new UpdateProductDto
+            {
+                Status = "Rejected"
+            };
+
+            return await UpdateAsync(id, dto);
+        }
     }
 }

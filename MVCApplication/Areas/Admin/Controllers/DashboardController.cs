@@ -40,7 +40,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             var revenueTask = _adminOrderService.GetRevenueByYearAsync(year);
             var ordersTask = _adminOrderService.GetAllOrdersForStaffAsync();
             var feedbackTask = _feedbackService.GetAllAsync();
-            var productsPendingTask = _productService.GetPagedAsync(null, "Pending", "Admin", 1, 1);
+            var productsPendingTask = _productService.GetPagedAsync(null, "Pending", 1, 1);
             var vouchersTask = _voucherService.GetAllVouchersAsync();
 
             await Task.WhenAll(
