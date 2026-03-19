@@ -43,82 +43,84 @@ namespace MVCApplication.Areas.Admin.DTOs
     // Create staff form
     public class CreateStaffViewModel
     {
-        [Required(ErrorMessage = "Full Name is required")]
-        [StringLength(100, ErrorMessage = "Full Name cannot exceed 100 characters")]
-        [Display(Name = "Full Name")]
+        [Required(ErrorMessage = "Full name is required")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be 3-100 characters")]
         public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
-        [Display(Name = "Email")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(0[1-9][0-9]{8,9})$", ErrorMessage = "Phone must be 10-11 digits starting with 0")]
-        [Display(Name = "Phone")]
+        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
         public string Phone { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$",
+            ErrorMessage = "Password must contain uppercase, lowercase, number and special character")]
         public string Password { get; set; } = null!;
 
-        [Display(Name = "Role")]
-        [Required]
-        public int RoleID { get; set; } = 2;
+        [Required(ErrorMessage = "Role is required")]
+        public int RoleID { get; set; }
 
-        [StringLength(255)]
-        [Display(Name = "Address")]
-        public string? Address { get; set; }
+        // ✅ Address (bắt buộc + độ dài)
+        [Required(ErrorMessage = "Address is required")]
+        [StringLength(200, MinimumLength = 5, ErrorMessage = "Address must be 5-200 characters")]
+        public string Address { get; set; } = null!;
 
-        [Display(Name = "Gender")]
-        public string? Gender { get; set; }
+        // ✅ Gender (bắt buộc)
+        [Required(ErrorMessage = "Gender is required")]
+        public string Gender { get; set; } = null!;
 
-        [Display(Name = "Citizen ID")]
-        [RegularExpression(@"^[0-9]{9,12}$", ErrorMessage = "Citizen ID must be 9-12 digits")]
-        public string? CitizenId { get; set; }
+        // ✅ CCCD
+        [Required(ErrorMessage = "Citizen ID is required")]
+        [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "Citizen ID must be 9 or 12 digits")]
+        public string CitizenId { get; set; } = null!;
 
+        // ✅ DOB
+        [Required(ErrorMessage = "Date of birth is required")]
         [DataType(DataType.Date)]
-        [Display(Name = "Date of Birth")]
         public DateOnly? DateOfBirth { get; set; }
+
+        // 🖼 Avatar (optional)
+        public IFormFile? AvatarFile { get; set; }
+        public string? Avatar { get; set; }
     }
 
-    // Edit staff form — StaffId and CitizenId are NOT editable
     public class EditStaffViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Staff ID is required")]
         public string StaffId { get; set; } = null!;
 
-        [Required(ErrorMessage = "Full Name is required")]
-        [StringLength(100, ErrorMessage = "Full Name cannot exceed 100 characters")]
-        [Display(Name = "Full Name")]
+        [Required(ErrorMessage = "Full name is required")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters")]
         public string FullName { get; set; } = null!;
 
-        [EmailAddress(ErrorMessage = "Invalid email format")]
-        [Display(Name = "Email")]
+        // Not editable (readonly in UI) -> no validation rules here
         public string Email { get; set; } = null!;
 
-        [Display(Name = "Phone")]
-        [RegularExpression(@"^(0[1-9][0-9]{8,9})$", ErrorMessage = "Phone must be 10-11 digits starting with 0")]
+        [Required(ErrorMessage = "Phone is required")]
+        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
         public string Phone { get; set; } = null!;
 
-        [StringLength(255)]
-        [Display(Name = "Address")]
-        public string? Address { get; set; }
+        [Required(ErrorMessage = "Address is required")]
+        [StringLength(200, MinimumLength = 5, ErrorMessage = "Address must be 5-200 characters")]
+        public string Address { get; set; } = null!;
 
-        [Display(Name = "Gender")]
-        public string? Gender { get; set; }
+        [Required(ErrorMessage = "Gender is required")]
+        public string Gender { get; set; } = null!;
 
-        // Read-only in edit — displayed but not submitted
-        [Display(Name = "Citizen ID")]
-        public string? CitizenId { get; set; }
+        // Not editable (readonly in UI) -> no validation rules here
+        public string CitizenId { get; set; } = null!;
 
+        [Required(ErrorMessage = "Date of birth is required")]
         [DataType(DataType.Date)]
-        [Display(Name = "Date of Birth")]
         public DateOnly? DateOfBirth { get; set; }
 
-        [Display(Name = "Status")]
         public bool Status { get; set; }
+
+        public IFormFile? AvatarFile { get; set; }
+        public string? Avatar { get; set; }
     }
 }

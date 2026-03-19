@@ -24,13 +24,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             ViewBag.Keyword = keyword;
             ViewBag.Status = status;
 
-            // Role-based logic
-            bool isAdmin = User.IsInRole("Admin");
-            bool isStaff = User.IsInRole("Staff");
-
-            string userRole = isAdmin ? "Admin" : "Staff";
-            
-            var pagedResult = await _productService.GetPagedAsync(keyword, status, userRole, pageNumber, pageSize);
+            var pagedResult = await _productService.GetPagedAsync(keyword, status, pageNumber, pageSize);
 
             return View(pagedResult);
         }
@@ -65,7 +59,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             var ok = await _productService.CreateAsync(dto);
             if (!ok)
             {
-                ModelState.AddModelError(string.Empty, "Tạo sản phẩm thất bại.");
+                ModelState.AddModelError(string.Empty, "Failed to create product.");
                 var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 return View(dto);
@@ -83,17 +77,14 @@ namespace MVCApplication.Areas.Admin.Controllers
             var categories = await _categoryService.GetAllAsync();
             var category = categories.FirstOrDefault(c => c.CategoryName == product.CategoryName);
 
-            // Ensure 4 images for edit
-            var imageDtos = product.Images.Select(img => new UpdateProductImageDto 
-            { 
-                ImageUrl = img, 
-                IsMain = (product.Images.IndexOf(img) == 0) 
+            var imageDtos = product.Images.Select((img, idx) => new UpdateProductImageDto
+            {
+                ImageUrl = img,
+                IsMain = (idx == 0)
             }).ToList();
 
             while (imageDtos.Count < 4)
-            {
                 imageDtos.Add(new UpdateProductImageDto { ImageUrl = "", IsMain = false });
-            }
 
             var dto = new UpdateProductDto
             {
@@ -127,7 +118,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             var ok = await _productService.UpdateAsync(id, dto);
             if (!ok)
             {
-                ModelState.AddModelError(string.Empty, "Cập nhật sản phẩm thất bại.");
+                ModelState.AddModelError(string.Empty, "Failed to update product.");
                 var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
@@ -141,20 +132,6 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             await _productService.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Approve(string id)
-        {
-            await _productService.ApproveAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Reject(string id)
-        {
-            await _productService.RejectAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

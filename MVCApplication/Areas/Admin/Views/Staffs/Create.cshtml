@@ -13,47 +13,54 @@
                     <h3 class="card-title">Create New Staff</h3>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                        <!-- FullName -->
                         <div class="row mb-3">
                             <label asp-for="FullName" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" required />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Email -->
                         <div class="row mb-3">
                             <label asp-for="Email" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                                <input asp-for="Email" class="form-control" placeholder="example@gmail.com" required />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Phone -->
                         <div class="row mb-3">
                             <label asp-for="Phone" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                                <input asp-for="Phone" class="form-control" placeholder="0901234567" required />
                                 <span asp-validation-for="Phone" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Password -->
                         <div class="row mb-3">
                             <label asp-for="Password" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Password" class="form-control" placeholder="Enter password" />
+                                <input asp-for="Password" type="password" class="form-control"
+                                       placeholder="At least 6 chars, include A-Z, a-z, number, special char" required />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Role -->
                         <div class="row mb-3">
                             <label asp-for="RoleID" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <select asp-for="RoleID" class="form-control">
+                                <select asp-for="RoleID" class="form-control" required>
+                                    <option value="">-- Select role --</option>
                                     <option value="2">Employee</option>
                                     <option value="1">Admin</option>
                                 </select>
@@ -61,48 +68,67 @@
                             </div>
                         </div>
 
+                        <!-- Address -->
                         <div class="row mb-3">
                             <label asp-for="Address" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                                <input asp-for="Address" class="form-control" placeholder="Enter address" required />
                                 <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Gender -->
                         <div class="row mb-3">
                             <label asp-for="Gender" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <select asp-for="Gender" class="form-control">
-                                    <option value="">Select gender</option>
+                                <select asp-for="Gender" class="form-control" required>
+                                    <option value="">-- Select gender --</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                     <option value="Other">Other</option>
                                 </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- CitizenId -->
                         <div class="row mb-3">
                             <label asp-for="CitizenId" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="CitizenId" class="form-control" placeholder="Enter citizen ID" />
+                                <input asp-for="CitizenId" class="form-control"
+                                       placeholder="9 or 12 digit ID" required />
+                                <span asp-validation-for="CitizenId" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- DateOfBirth -->
                         <div class="row mb-3">
                             <label asp-for="DateOfBirth" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Avatar -->
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label">Avatar</label>
+                            <div class="col-sm-9">
+                                <input asp-for="AvatarFile" type="file" class="form-control" accept="image/*" />
+                                <small class="text-muted">Optional</small>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
                         <div class="row">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle"></i> Create Staff
+                                    Create Staff
                                 </button>
                                 <a asp-action="Index" class="btn btn-secondary">Cancel</a>
                             </div>
                         </div>
+
                     </form>
                 </div>
             </div>

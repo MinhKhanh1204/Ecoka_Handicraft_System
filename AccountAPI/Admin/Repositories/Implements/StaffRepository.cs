@@ -1,4 +1,4 @@
-using AccountAPI.Models;
+﻿using AccountAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -14,6 +14,7 @@ namespace AccountAPI.Admin.Repositories.Implements
             _context = context;
         }
 
+        // 🔹 Lấy tất cả staff (include account + role)
         public IQueryable<Staff> GetAll()
         {
             return _context.Staffs
@@ -23,6 +24,7 @@ namespace AccountAPI.Admin.Repositories.Implements
                 .AsQueryable();
         }
 
+        // 🔹 Lấy staff theo ID
         public async Task<Staff?> GetByIdAsync(string id)
         {
             return await _context.Staffs
@@ -31,29 +33,40 @@ namespace AccountAPI.Admin.Repositories.Implements
                         .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(s => s.StaffId == id);
         }
+
+        // 🔹 Lấy role theo ID
         public async Task<Role?> GetRoleByIdAsync(int roleId)
         {
             return await _context.Roles
                 .FirstOrDefaultAsync(r => r.RoleID == roleId);
         }
 
+        // 🔹 Lấy role theo tên
+        public async Task<Role?> GetRoleByNameAsync(string roleName)
+        {
+            return await _context.Roles
+                .FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+        }
+
+        // 🔹 Thêm staff
         public async Task AddAsync(Staff staff)
         {
             await _context.Staffs.AddAsync(staff);
         }
 
+        // 🔹 Cập nhật staff
         public void Update(Staff staff)
         {
             _context.Staffs.Update(staff);
         }
 
+        // 🔹 Lưu thay đổi
         public async Task SaveAsync()
         {
             await _context.SaveChangesAsync();
         }
 
-        // ===== Account-related methods =====
-
+        // 🔹 Account-related methods
         public async Task<string> GenerateStaffAccountIdAsync()
         {
             var lastAccount = await _context.Accounts
@@ -68,16 +81,6 @@ namespace AccountAPI.Admin.Repositories.Implements
             return $"STF{(number + 1).ToString("D3")}";
         }
 
-        public async Task<bool> EmailExistsAsync(string email)
-        {
-            return await _context.Accounts.AnyAsync(x => x.Email == email);
-        }
-
-        public async Task<bool> UsernameExistsAsync(string username)
-        {
-            return await _context.Accounts.AnyAsync(x => x.Username == username);
-        }
-
         public async Task AddAccountAsync(Account account)
         {
             await _context.Accounts.AddAsync(account);
@@ -88,16 +91,34 @@ namespace AccountAPI.Admin.Repositories.Implements
             await _context.UserRoles.AddAsync(userRole);
         }
 
-        public async Task<Role?> GetRoleByNameAsync(string roleName)
+        // 🔹 Kiểm tra tồn tại
+        public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _context.Roles.FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+            return await _context.Accounts.AnyAsync(x => x.Email == email);
         }
 
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _context.Accounts.AnyAsync(x => x.Username == username);
+        }
+
+        public async Task<bool> PhoneExistsAsync(string phone)
+        {
+            return await _context.Staffs.AnyAsync(x => x.Phone == phone);
+        }
+
+        public async Task<bool> CitizenIdExistsAsync(string citizenId)
+        {
+            return await _context.Staffs.AnyAsync(x => x.CitizenId == citizenId);
+        }
+
+        // 🔹 Role management
         public async Task AddRoleAsync(Role role)
         {
             await _context.Roles.AddAsync(role);
         }
 
+        // 🔹 Transaction
         public async Task BeginTransactionAsync()
         {
             _transaction = await _context.Database.BeginTransactionAsync();

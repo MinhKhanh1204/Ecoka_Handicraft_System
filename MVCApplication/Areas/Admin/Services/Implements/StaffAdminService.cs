@@ -86,21 +86,38 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             }
         }
 
-        public async Task<bool> UpdateStaffAsync(EditStaffViewModel model)
+        public async Task<(bool Success, string? ErrorMessage)> UpdateStaffAsync(EditStaffViewModel model)
         {
+            // API expects JSON body ([FromBody] UpdateStaffDto), not multipart/form-data.
             var payload = new
             {
-                StaffId = model.StaffId,
-                FullName = model.FullName,
-                Email = model.Email,
-                Phone = model.Phone,
-                Address = model.Address,
-                Gender = model.Gender,
-                DateOfBirth = model.DateOfBirth,
-                Status = model.Status
+                staffId = model.StaffId,
+                fullName = model.FullName,
+                email = model.Email,
+                phone = model.Phone ?? "",
+                address = model.Address ?? "",
+                gender = model.Gender ?? "",
+                citizenId = model.CitizenId ?? "",
+                dateOfBirth = model.DateOfBirth?.ToString("yyyy-MM-dd"),
+                status = model.Status,
+                avatar = model.Avatar
             };
-            var response = await _http.PutAsJsonAsync("/admin/staffs", payload);
-            return response.IsSuccessStatusCode;
+
+            var response = await _http.PutAsJsonAsync($"/admin/staffs/{Uri.EscapeDataString(model.StaffId)}", payload);
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            try
+            {
+                var errorJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorJson);
+                var message = doc.RootElement.TryGetProperty("message", out var msgEl) ? msgEl.GetString() : null;
+                return (false, message ?? $"Failed to update staff (HTTP {(int)response.StatusCode})");
+            }
+            catch
+            {
+                return (false, $"Failed to update staff (HTTP {(int)response.StatusCode})");
+            }
         }
 
         public async Task<bool> DeleteStaffAsync(string id)

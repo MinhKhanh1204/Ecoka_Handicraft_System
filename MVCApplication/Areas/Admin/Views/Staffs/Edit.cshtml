@@ -1,8 +1,25 @@
 @model MVCApplication.Areas.Admin.DTOs.EditStaffViewModel
 
+@using Microsoft.AspNetCore.Mvc.Rendering
+
 @{
     ViewData["Title"] = "Edit Staff";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+
+    // Gender select list
+    var genderList = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Male", Value = "Male" },
+        new SelectListItem { Text = "Female", Value = "Female" },
+        new SelectListItem { Text = "Other", Value = "Other" }
+    };
+
+    // Status select list
+    var statusList = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Active", Value = "true" },
+        new SelectListItem { Text = "Deleted", Value = "false" }
+    };
 }
 
 <div class="container-fluid">
@@ -13,88 +30,120 @@
                     <h3 class="card-title">Edit Staff: @Model.StaffId</h3>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post">
+                    @* Hiển thị TempData Toast *@
+                    @if (TempData["ToastMessage"] != null)
+                    {
+                        var type = TempData["ToastType"]?.ToString() ?? "info";
+                        var alertClass = type == "success" ? "alert-success" :
+                        type == "error" ? "alert-danger" : "alert-info";
+                        <div class="alert @alertClass alert-dismissible fade show" role="alert">
+                            @TempData["ToastMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="StaffId" />
 
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
+                        <!-- Staff ID -->
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label">Staff ID</label>
+                            <label asp-for="StaffId" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="@Model.StaffId" disabled />
+                                <input asp-for="StaffId" class="form-control" readonly style="background-color:#e9ecef;" />
                             </div>
                         </div>
 
+                        <!-- Full Name -->
                         <div class="row mb-3">
                             <label asp-for="FullName" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="FullName" class="form-control" />
+                                <input asp-for="FullName" class="form-control" required />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Email -->
                         <div class="row mb-3">
                             <label asp-for="Email" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Email" class="form-control" readonly />
-                                <span asp-validation-for="Email" class="text-danger"></span>
+                                <input asp-for="Email" class="form-control" readonly style="background-color:#e9ecef;" />
                             </div>
                         </div>
 
+                        <!-- Phone -->
                         <div class="row mb-3">
                             <label asp-for="Phone" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Phone" class="form-control" />
+                                <input asp-for="Phone" class="form-control" required />
                                 <span asp-validation-for="Phone" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Address -->
                         <div class="row mb-3">
                             <label asp-for="Address" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="Address" class="form-control" />
+                                <input asp-for="Address" class="form-control" required />
                                 <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Gender -->
                         <div class="row mb-3">
                             <label asp-for="Gender" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <select asp-for="Gender" class="form-control">
+                                <select asp-for="Gender" asp-items="genderList" class="form-control" required>
                                     <option value="">Select gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
                                 </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Citizen ID -->
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label">Citizen ID</label>
+                            <label asp-for="CitizenId" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="@Model.CitizenId" disabled />
+                                <input asp-for="CitizenId" class="form-control" readonly style="background-color:#e9ecef;" />
                                 <small class="text-muted">Citizen ID cannot be changed after creation</small>
                             </div>
                         </div>
 
+                        <!-- Date of Birth -->
                         <div class="row mb-3">
                             <label asp-for="DateOfBirth" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Status -->
                         <div class="row mb-3">
                             <label asp-for="Status" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <select asp-for="Status" class="form-control">
-                                    <option value="true">Active</option>
-                                    <option value="false">Deleted</option>
+                                <select asp-for="Status" asp-items="statusList" class="form-control">
                                 </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
                             </div>
                         </div>
 
+                        <!-- Avatar Upload -->
+                        <div class="row mb-3">
+                            <label asp-for="AvatarFile" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="AvatarFile" type="file" class="form-control" />
+                                @if (!string.IsNullOrEmpty(Model.Avatar))
+                                {
+                                    <img src="@Url.Content(Model.Avatar)" alt="Avatar" class="img-thumbnail mt-2" style="max-height:120px;" />
+                                }
+                                <span asp-validation-for="AvatarFile" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
                         <div class="row">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary">
