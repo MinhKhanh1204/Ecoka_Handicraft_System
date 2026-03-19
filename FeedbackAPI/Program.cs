@@ -58,13 +58,14 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
+// NOTE: base addresses must match the actual running API ports (see AccountAPI and OrderAPI launchSettings)
 builder.Services.AddHttpClient<IAccountService, AccountService>(c =>
 {
-    c.BaseAddress = new Uri("https://localhost:5000");
+    c.BaseAddress = new Uri("https://localhost:7018");
 });
 builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
 {
-    c.BaseAddress = new Uri("https://localhost:5000");
+    c.BaseAddress = new Uri("https://localhost:7289");
 });
 
 // ========================
