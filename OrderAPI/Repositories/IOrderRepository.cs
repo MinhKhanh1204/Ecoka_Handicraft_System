@@ -24,23 +24,6 @@ namespace OrderAPI.Repositories
 
         Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId);
 
-
-        // ===== STAFF =====
-        Task<IEnumerable<Order>> GetAllOrdersForStaffAsync();
-
-        Task<IEnumerable<Order>> SearchOrdersForStaffAsync(
-            string? orderId,
-            string? customerName,
-            DateTime? from,
-            DateTime? to,
-            string? shippingStatus,
-            string? paymentStatus);
-
-        Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId);
-
-        Task<Order?> GetOrderDetailForStaffAsync(string orderId);
-
-
         // ===== GENERAL =====
         Task<Order> CreateAsync(Order order);
 
@@ -50,6 +33,5 @@ namespace OrderAPI.Repositories
             string paymentStatus,
             string note);
 
-        Task<Order?> GetByIdAsync(string orderId);
     }
 }

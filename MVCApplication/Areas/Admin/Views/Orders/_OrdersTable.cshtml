@@ -1,0 +1,116 @@
+﻿@model IEnumerable<MVCApplication.Models.DTOs.Order>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <table class="table table-hover table-bordered align-middle">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Order Date</th>
+                    <th class="text-end">Total</th>
+                    <th>Payment</th>
+                    <th>Shipping</th>
+                    <th class="text-center" style="width:220px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No orders found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var o in Model)
+                    {
+                        <tr>
+
+                            <td><strong>@o.OrderID</strong></td>
+
+                            <td>@(string.IsNullOrWhiteSpace(o.CustomerID) ? "-" : o.CustomerID)</td>
+
+                            <td>@(o.OrderDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+
+                            <td class="text-end">
+                                @((o.TotalAmount ?? 0).ToString("C"))
+                            </td>
+
+                            <td>
+                                <span class="badge bg-success">
+                                    @(o.PaymentStatus ?? "-")
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-info text-dark">
+                                    @(o.ShippingStatus ?? "-")
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+
+                                <a class="btn btn-sm btn-info"
+                                   href="/Admin/Orders/Details/@o.OrderID">
+                                    Details
+                                </a>
+
+                                <form method="post"
+                                      action="/Admin/Orders/UpdateStatus"
+                                      class="d-inline">
+
+                                    <input type="hidden" name="orderId" value="@o.OrderID" />
+
+                                    <select name="newStatus"
+                                            class="form-select form-select-sm d-inline w-auto">
+
+                                        <option value="Pending">Pending</option>
+                                        <option value="Shipping">Shipping</option>
+                                        <option value="Completed">Completed</option>
+
+                                    </select>
+
+                                    <button class="btn btn-warning btn-sm">
+                                        Update
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- PAGINATION -->
+
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+
+                <a class="page-link page-btn"
+                   data-page="@i">
+                    @i
+                </a>
+
+            </li>
+        }
+
+    </ul>
+</nav>

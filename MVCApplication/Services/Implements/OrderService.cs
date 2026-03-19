@@ -32,7 +32,8 @@ namespace MVCApplication.Services.Implements
             if (string.IsNullOrWhiteSpace(customerId))
                 return Enumerable.Empty<Order>();
 
-            var response = await _http.GetAsync($"/customer/orders");
+            // call API route (API controllers are under "api/customer/orders")
+            var response = await _http.GetAsync("customer/orders");
 
             if (!response.IsSuccessStatusCode)
                 return Enumerable.Empty<Order>();
@@ -45,7 +46,7 @@ namespace MVCApplication.Services.Implements
         {
             var q = new Dictionary<string, string?>
             {
-                ["customerId"] = customerId,
+                // API reads customerId from JWT/claims; including it in query is optional
                 ["orderId"] = orderId,
                 ["from"] = from?.ToString("o"),
                 ["to"] = to?.ToString("o"),
@@ -58,7 +59,12 @@ namespace MVCApplication.Services.Implements
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             var uri = QueryHelpers.AddQueryString("customer/orders/search", filtered);
-            var res = await _http.GetFromJsonAsync<IEnumerable<Order>>(uri);
+
+            var resp = await _http.GetAsync(uri);
+            if (!resp.IsSuccessStatusCode)
+                return Enumerable.Empty<Order>();
+
+            var res = await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>();
             return res ?? Enumerable.Empty<Order>();
         }
 
@@ -84,7 +90,8 @@ namespace MVCApplication.Services.Implements
 
         public async Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId)
         {
-            var resp = await _http.GetAsync($"customer/orders/{Uri.EscapeDataString(customerId)}/purchased/{Uri.EscapeDataString(productId)}");
+            // API reads customerId from claims; supply productId as query parameter
+            var resp = await _http.GetAsync($"customer/orders/has-purchased?productId={Uri.EscapeDataString(productId)}");
             if (!resp.IsSuccessStatusCode) return false;
             return await resp.Content.ReadFromJsonAsync<bool>();
         }

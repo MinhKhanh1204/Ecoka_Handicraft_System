@@ -18,7 +18,6 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 // Removed duplicate AddScoped for IFeedbackService since it's registered below as GatewayAuthClient
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-
 // Read gateway base URL from configuration (appsettings.json)
 var gatewayBase = builder.Configuration["ApiGateway:ApiBaseUrl"] ?? "https://localhost:5000/";
 // AccountService → AUTH (Need to attach JWT for change-password)

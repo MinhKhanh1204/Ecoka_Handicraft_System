@@ -2,7 +2,6 @@ using AutoMapper;
 using OrderAPI.DTOs;
 using OrderAPI.Models;
 using OrderAPI.Repositories;
-using OrderAPI.Services;
 
 namespace OrderAPI.Services.Implements
 {
@@ -12,17 +11,20 @@ namespace OrderAPI.Services.Implements
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<OrderService> _logger;
 
         public OrderService(
             IOrderRepository orderRepo,
             IMapper mapper,
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<OrderService> logger)
         {
             _orderRepo = orderRepo;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _logger = logger;
         }
 
         // ================= CUSTOMER =================
@@ -47,51 +49,6 @@ namespace OrderAPI.Services.Implements
             return _mapper.Map<IEnumerable<OrderReadDto>>(orders);
         }
 
-        public async Task<OrderReadDto?> GetOrderDetailAsync(string orderId)
-        {
-            var order = await _orderRepo.GetOrderDetailAsync(orderId);
-            return order == null ? null : _mapper.Map<OrderReadDto>(order);
-        }
-
-        public Task<bool> CancelOrderAsync(string orderId, string cancelReason)
-            => _orderRepo.CancelOrderAsync(orderId, cancelReason);
-
-        public Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId)
-            => _orderRepo.HasCustomerPurchasedProductAsync(customerId, productId);
-
-        // ================= STAFF =================
-
-        public async Task<IEnumerable<OrderReadDto>> GetAllOrdersForStaffAsync()
-        {
-            var orders = await _orderRepo.GetAllOrdersForStaffAsync();
-            return _mapper.Map<IEnumerable<OrderReadDto>>(orders);
-        }
-
-        public async Task<IEnumerable<OrderReadDto>> SearchOrdersForStaffAsync(
-            string? orderId,
-            string? customerName,
-            DateTime? from,
-            DateTime? to,
-            string? shippingStatus,
-            string? paymentStatus)
-        {
-            var orders = await _orderRepo.SearchOrdersForStaffAsync(
-                orderId, customerName, from, to, shippingStatus, paymentStatus);
-
-            return _mapper.Map<IEnumerable<OrderReadDto>>(orders);
-        }
-
-        public Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId)
-            => _orderRepo.UpdateOrderStatusAsync(orderId, newStatus, staffId);
-
-        public async Task<OrderReadDto?> GetOrderDetailForStaffAsync(string orderId)
-        {
-            var order = await _orderRepo.GetOrderDetailForStaffAsync(orderId);
-            return order == null ? null : _mapper.Map<OrderReadDto>(order);
-        }
-
-        // ================= CREATE ORDER =================
-
         public async Task<OrderReadDto> CreateAsync(OrderCreateDto dto)
         {
             if (dto.OrderItems == null || !dto.OrderItems.Any())
@@ -109,39 +66,57 @@ namespace OrderAPI.Services.Implements
                     throw new ArgumentException("UnitPrice must be greater than 0.");
 
                 var unitPrice = item.UnitPrice.Value;
+                var quantity = item.Quantity.Value;
                 var discount = item.Discount ?? 0m;
+
+                if (discount < 0 || discount > 100)
+                    throw new ArgumentException("Discount must be between 0 and 100.");
+
                 var priceAfterDiscount = unitPrice - (unitPrice * discount / 100m);
-                total += priceAfterDiscount * item.Quantity.Value;
+                total += priceAfterDiscount * quantity;
             }
 
             // Apply Voucher
-            if (dto.VoucherID.HasValue && dto.VoucherID > 0)
+            if (dto.VoucherID.HasValue && dto.VoucherID.Value > 0)
             {
                 try
                 {
                     var client = _httpClientFactory.CreateClient();
-                    string voucherUrl = _configuration["VoucherApiUrl"] + dto.VoucherID;
+
+                    string baseUrl = _configuration["VoucherApiUrl"]
+                        ?? throw new InvalidOperationException("VoucherApiUrl is missing.");
+
+                    string voucherUrl = $"{baseUrl.TrimEnd('/')}/{dto.VoucherID.Value}";
+
                     var response = await client.GetAsync(voucherUrl);
+
                     if (response.IsSuccessStatusCode)
                     {
                         var result = await response.Content.ReadFromJsonAsync<VoucherApiResponse>();
+
                         if (result != null && result.Success && result.Data != null)
                         {
                             var v = result.Data;
-                            decimal voucherDiscount = total * ((v.DiscountPercentage ?? 0m) / 100m);
-                            
+                            decimal discountPercentage = v.DiscountPercentage ?? 0m;
+
+                            if (discountPercentage > 0)
+                            {
+                                decimal voucherDiscount = total * discountPercentage / 100m;
+
                                 if (v.MaxReducing.HasValue && voucherDiscount > v.MaxReducing.Value)
                                 {
                                     voucherDiscount = v.MaxReducing.Value;
                                 }
+
                                 total -= voucherDiscount;
                             }
                         }
                     }
-                    catch (Exception)
-                    {
-                        // Handle voucher error (should use ILogger)
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error while applying voucher {VoucherId}", dto.VoucherID);
+                }
             }
 
             if (total < 0) total = 0;
@@ -149,24 +124,6 @@ namespace OrderAPI.Services.Implements
 
             var created = await _orderRepo.CreateAsync(entity);
             return _mapper.Map<OrderReadDto>(created);
-        }
-
-        private class VoucherApiResponse
-        {
-            [System.Text.Json.Serialization.JsonPropertyName("success")]
-            public bool Success { get; set; }
-
-            [System.Text.Json.Serialization.JsonPropertyName("data")]
-            public VoucherData? Data { get; set; }
-        }
-
-        private class VoucherData
-        {
-            [System.Text.Json.Serialization.JsonPropertyName("discountPercentage")]
-            public decimal? DiscountPercentage { get; set; }
-
-            [System.Text.Json.Serialization.JsonPropertyName("maxReducing")]
-            public decimal? MaxReducing { get; set; }
         }
 
         // ================= PAYMENT =================
@@ -188,6 +145,36 @@ namespace OrderAPI.Services.Implements
         {
             var order = await _orderRepo.GetByIdAsync(orderId);
             return order == null ? null : _mapper.Map<OrderReadDto>(order);
+        }
+
+        public async Task<OrderReadDto?> GetOrderDetailAsync(string orderId)
+        {
+            var order = await _orderRepo.GetOrderDetailAsync(orderId);
+            return order == null ? null : _mapper.Map<OrderReadDto>(order);
+        }
+
+        public Task<bool> CancelOrderAsync(string orderId, string cancelReason)
+            => _orderRepo.CancelOrderAsync(orderId, cancelReason);
+
+        public Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId)
+            => _orderRepo.HasCustomerPurchasedProductAsync(customerId, productId);
+
+        private class VoucherApiResponse
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("success")]
+            public bool Success { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("data")]
+            public VoucherData? Data { get; set; }
+        }
+
+        private class VoucherData
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("discountPercentage")]
+            public decimal? DiscountPercentage { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("maxReducing")]
+            public decimal? MaxReducing { get; set; }
         }
     }
 }
