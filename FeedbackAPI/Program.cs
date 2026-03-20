@@ -74,6 +74,34 @@ builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Prefer Authorization header, but if missing try cookie named "AccessToken"
+                if (string.IsNullOrEmpty(context.Token))
+                {
+                    var token = context.Request.Cookies["AccessToken"];
+                    if (!string.IsNullOrEmpty(token))
+                        context.Token = token;
+                }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                try
+                {
+                    var logger = context.HttpContext.RequestServices
+                        .GetRequiredService<ILoggerFactory>()
+                        .CreateLogger("JwtAuth");
+                    logger.LogError(context.Exception, "JWT authentication failed");
+                }
+                catch { }
+
+                return Task.CompletedTask;
+            }
+        };
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

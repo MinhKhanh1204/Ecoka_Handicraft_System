@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderAPI.DTOs;
 using OrderAPI.Services;
+using Microsoft.Extensions.Logging;
 
 namespace OrderAPI.Controllers
 {
@@ -14,10 +15,12 @@ namespace OrderAPI.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger)
         {
             _orderService = orderService;
+            _logger = logger;
         }
 
         // ================= GET ALL =================
@@ -108,14 +111,30 @@ namespace OrderAPI.Controllers
         // ================= CHECK PURCHASE =================
         [HttpGet("has-purchased")]
         public async Task<IActionResult> HasPurchased(
-            [FromQuery] string productId)
+            [FromQuery] string productId,
+            [FromQuery] string? customerId)
         {
-            var customerId = User.FindFirst("accountID")?.Value;
-            if (string.IsNullOrEmpty(customerId))
+            var claimId = User.FindFirst("accountID")?.Value;
+            _logger.LogDebug("HasPurchased called. ClaimId='{ClaimId}', QueryCustomerId='{QueryCustomerId}', ProductId='{ProductId}'", claimId, customerId, productId);
+
+            if (string.IsNullOrEmpty(claimId) && string.IsNullOrEmpty(customerId))
+            {
+                _logger.LogWarning("HasPurchased unauthorized: missing accountID claim and customerId query");
                 return Unauthorized();
+            }
+
+            if (!string.IsNullOrEmpty(claimId) && !string.IsNullOrEmpty(customerId) && !string.Equals(claimId, customerId, StringComparison.Ordinal))
+            {
+                _logger.LogWarning("HasPurchased forbidden: claimId and query customerId mismatch (Claim={Claim}, Query={Query})", claimId, customerId);
+                return Forbid();
+            }
+
+            var effectiveCustomerId = !string.IsNullOrEmpty(claimId) ? claimId : customerId!;
 
             var result = await _orderService
-                .HasCustomerPurchasedProductAsync(customerId, productId);
+                .HasCustomerPurchasedProductAsync(effectiveCustomerId, productId);
+
+            _logger.LogInformation("HasPurchased result for CustomerId='{CustomerId}', ProductId='{ProductId}' => {Result}", effectiveCustomerId, productId, result);
 
             return Ok(result);
         }

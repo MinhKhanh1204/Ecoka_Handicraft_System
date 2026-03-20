@@ -50,7 +50,8 @@ namespace FeedbackAPI.Services.Implements
 
         // ================= FILTER =================
 
-        public async Task<IEnumerable<FeedbackReadDto>> FilterAsync(FeedbackFilterDto filter)
+        public async Task<IEnumerable<FeedbackReadDto>> FilterAsync(FeedbackFilterDto filter
+        )
         {
             var feedbacks = await _repo.FilterAsync(
                 filter.CustomerID,
@@ -73,7 +74,10 @@ namespace FeedbackAPI.Services.Implements
 
         // ================= CREATE =================
 
-        public async Task<FeedbackReadDto> CreateAsync(FeedbackCreateDto dto)
+        public async Task
+        <
+            FeedbackReadDto
+        > CreateAsync(FeedbackCreateDto dto)
         {
             var existed = await _repo.ExistsAsync(dto.CustomerID, dto.ProductID);
 
@@ -83,7 +87,7 @@ namespace FeedbackAPI.Services.Implements
             }
 
             // Check if purchased
-            var hasPurchased = await _orderService.HasPurchasedAsync(dto.ProductID);
+            var hasPurchased = await _orderService.HasPurchasedAsync(dto.ProductID, dto.CustomerID);
             if (!hasPurchased)
             {
                 throw new Exception("You must purchase this product before leaving a review.");
@@ -140,9 +144,7 @@ namespace FeedbackAPI.Services.Implements
 
             // If we added new images, we need to save them. 
             // The repo's UpdateAsync currently only updates base properties.
-            // Let's modify Repo to handle the collection if updatedData has any.
-            // Wait, I can just do it here if I have the context, but I don't.
-            // Better to update Repo.UpdateAsync to handle the images collection.
+            // Let's modify Repo.UpdateAsync to handle the images collection.
 
             var result = _mapper.Map<FeedbackReadDto>(entity);
             return result;
