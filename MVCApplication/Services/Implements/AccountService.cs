@@ -1,3 +1,4 @@
+using Microsoft.SqlServer.Server;
 using MVCApplication.Models;
 using MVCApplication.Models.DTOs;
 using System.Text;
@@ -23,7 +24,7 @@ namespace MVCApplication.Services.Implements
             return result!;
         }
 
-        public async Task<ApiResponse<object>> RegisterAsync(RegisterViewModel model)
+        public async Task<CustomFormatter.ApiResponse<object>> RegisterAsync(RegisterViewModel model)
         {
             using var formData = new MultipartFormDataContent();
 
@@ -54,7 +55,7 @@ namespace MVCApplication.Services.Implements
                 formData.Add(streamContent, "Avatar", model.Avatar.FileName);
             }
             var response = await _httpClient.PostAsync("auth/register-customer", formData);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+            var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
             return result!;
         }
 
@@ -98,6 +99,48 @@ namespace MVCApplication.Services.Implements
                 model.NewPassword
             });
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<ProfileViewModel> GetProfileAsync()
+        {
+            var response = await _httpClient.GetAsync("auth/profile");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<ProfileViewModel>>();
+            return result?.Data;
+        }
+
+        public async Task<CustomFormatter.ApiResponse<object>> UpdateProfileAsync(ProfileViewModel model, IFormFile? avatar)
+        {
+            var form = new MultipartFormDataContent();
+
+            form.Add(new StringContent(model.FullName ?? ""), "FullName");
+
+            if (model.DateOfBirth != null)
+                form.Add(new StringContent(model.DateOfBirth.Value.ToString("yyyy-MM-dd")), "DateOfBirth");
+
+            if (model.Gender != null)
+                form.Add(new StringContent(model.Gender), "Gender");
+
+            if (model.Phone != null)
+                form.Add(new StringContent(model.Phone), "Phone");
+
+            if (model.Address != null)
+                form.Add(new StringContent(model.Address), "Address");
+
+            if (avatar != null)
+            {
+                var streamContent = new StreamContent(avatar.OpenReadStream());
+                streamContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(avatar.ContentType);
+
+                form.Add(streamContent, "Avatar", avatar.FileName);
+            }
+
+            var response = await _httpClient.PutAsync("auth/profile", form);
+
+            var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
+            return result!;
         }
     }
 }
