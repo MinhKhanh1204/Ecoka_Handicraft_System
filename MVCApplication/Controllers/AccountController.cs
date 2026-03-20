@@ -168,5 +168,36 @@ namespace MVCApplication.Controllers
             TempData["success"] = "Đổi mật khẩu thành công";
             return RedirectToAction("RedirectByRole");
         }
+
+        // =========================
+        // VIEW PROFILE
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var profile = await _accountService.GetProfileAsync();
+            return View(profile);
+        }
+
+        // =========================
+        // UPDATE PROFILE
+        // =========================
+        [HttpPost]
+        public async Task<IActionResult> Profile(ProfileViewModel model, IFormFile? Avatar)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var result = await _accountService.UpdateProfileAsync(model, Avatar);
+
+            if (!result.Success)
+            {
+                TempData["error"] = result.Message;
+                return View(model);
+            }
+
+            TempData["success"] = result.Message;
+            return RedirectToAction("Profile");
+        }
     }
 }

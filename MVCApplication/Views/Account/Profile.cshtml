@@ -1,0 +1,105 @@
+﻿@model ProfileViewModel
+@{
+    ViewData["Title"] = "Profle";
+}
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Profile</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="Home">Home</a></li>
+        <li class="breadcrumb-item active text-white">Profile</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <h1 class="mb-4">Your Profile</h1>
+        <form asp-action="Profile" asp-controller="Account"
+              method="post" enctype="multipart/form-data">
+            <div class="row g-5">
+                <div class="col-md-12 col-lg-12 col-xl-12">
+                    <div class="form-item">
+                        <input type="hidden" asp-for="AccountId" />
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Username</label>
+                        <input type="text" class="form-control" asp-for="Username" readonly>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Email</label>
+                        <input type="text" class="form-control" asp-for="Email" readonly>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div class="form-item w-100">
+                                <label class="form-label my-3">Full Name<sup>*</sup></label>
+                                <input type="text" asp-for="FullName" class="form-control">
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Avatar</label>
+                        <input type="file" asp-for="Avatar" id="avatarInput" accept="image/*" class="form-control" style="background-color: white">
+                        @if (Model.Avatar != null)
+                        {
+                            <img id="avatarPreview" src="@Model.Avatar" width="200" class="img-thumbnail mb-3" />
+                        }
+                        else
+                        {
+                            <img id="avatarPreview" src="https://via.placeholder.com/200"
+                                 width="200" class="img-thumbnail mb-3" />
+                        }
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Date Of Birth</label>
+                        <input class="form-control" asp-for="DateOfBirth" type="date">
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Gender</label>
+                        <select asp-for="Gender" class="form-control" style="background-color: white">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Phone</label>
+                        <input type="text" class="form-control" asp-for="Phone">
+                    </div>
+                    <div class="form-item">
+                        <label class="form-label my-3">Address</label>
+                        <input type="text" class="form-control" asp-for="Address">
+                    </div>
+                    
+                    <div class="row g-4 text-center align-items-center justify-content-center pt-4">
+                        <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Save Profile</button>
+                    </div>
+                </div>
+               
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+<script>
+    const avatarInput = document.getElementById("avatarInput");
+    const avatarPreview = document.getElementById("avatarPreview");
+
+    avatarInput.addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                avatarPreview.src = e.target.result;
+            }
+
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
