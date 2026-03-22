@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using FeedbackAPI.DTOs;
 using FeedbackAPI.Services;
-using System.Security.Claims;
 
 namespace FeedbackAPI.Controllers
 {
@@ -39,20 +38,6 @@ namespace FeedbackAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Create([FromForm] FeedbackCreateDto dto)
         {
-            // If client didn't provide CustomerID, use the authenticated user's id from JWT
-            var userId = User.FindFirst("accountID")?.Value
-                         ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? User.FindFirst("sub")?.Value;
-
-            if (string.IsNullOrWhiteSpace(dto.CustomerID) && !string.IsNullOrWhiteSpace(userId))
-            {
-                dto.CustomerID = userId;
-
-                // Remove model state error for CustomerID if it was added during model binding
-                if (ModelState.ContainsKey(nameof(dto.CustomerID)))
-                    ModelState.Remove(nameof(dto.CustomerID));
-            }
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 

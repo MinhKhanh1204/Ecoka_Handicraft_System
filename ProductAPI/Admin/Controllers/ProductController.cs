@@ -83,41 +83,9 @@ namespace ProductAPI.Admin.Controllers
             }
         }
 
-        // ================= APPROVE =================
-        [HttpPut("approve/{id}")]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Approve(string id)
-        {
-            try
-            {
-                await _service.ApproveAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Approved successfully", "Approved successfully"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.Fail(ex.Message, 400));
-            }
-        }
-
-        // ================= REJECT =================
-        [HttpPut("reject/{id}")]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Reject(string id)
-        {
-            try
-            {
-                await _service.RejectAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Rejected successfully", "Rejected successfully"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.Fail(ex.Message, 400));
-            }
-        }
-
         // ================= DELETE (INACTIVE) =================
+        //[Authorize(Roles = "Admin,Staff")]
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
             try

@@ -204,7 +204,7 @@
                                                     }
 
                                                     @* Delete button now visible for both Admin and Staff *@
-                                                    @if ((isAdmin || isStaff) && p.Status != "Inactive")
+                                                    @if (p.Status != "Inactive")
                                                     {
                                                         <form asp-action="Delete"
                                                               asp-route-id="@p.ProductID"
@@ -213,7 +213,7 @@
                                                               onsubmit="return confirm('Stop selling this product?');">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                                <i class="bi bi-slash-circle"></i>
+                                                                <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
                                                     }

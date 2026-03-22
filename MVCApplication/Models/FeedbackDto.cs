@@ -51,6 +51,19 @@ namespace MVCApplication.Models
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
     }
+
+    public class HomepageFeedbackDto
+    {
+        public int FeedbackID { get; set; }
+        public string? CustomerID { get; set; }
+        public string? CustomerName { get; set; }
+        public string? ProductID { get; set; }
+        public string? ProductName { get; set; }
+        public string? ProductImage { get; set; }
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
     public class FeedbackUpdateDto
     {
         [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]

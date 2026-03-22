@@ -12,6 +12,18 @@
     var endItem = Math.Min(currentPage * pageSize, totalStaffs);
 }
 
+<div class="pagetitle">
+    <h1>Staffs</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a>
+            </li>
+            <li class="breadcrumb-item active">Staffs</li>
+        </ol>
+    </nav>
+</div>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -60,9 +72,9 @@
                     </form>
 
                     <!-- Staff Table -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped">
-                            <thead class="table-dark">
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Avatar</th>
                                     <th>ID</th>

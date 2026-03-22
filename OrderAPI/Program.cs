@@ -60,7 +60,6 @@ builder.Services.AddDbContext<DBContext>(opt =>
 
 // Register application services (scoped)
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Register Admin services (scoped)
