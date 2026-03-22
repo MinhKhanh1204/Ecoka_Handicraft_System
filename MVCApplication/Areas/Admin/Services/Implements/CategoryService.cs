@@ -98,5 +98,23 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             var api = await ReadApiResponseAsync<bool>(resp);
             return api?.Data == true;
         }
+
+        public async Task<bool> ApproveAsync(int id)
+        {
+            var resp = await _http.PutAsync($"{BasePath}/approve/{id}", null);
+            if (!resp.IsSuccessStatusCode) return false;
+
+            var api = await ReadApiResponseAsync<bool>(resp);
+            return api?.Data == true;
+        }
+
+        public async Task<bool> RejectAsync(int id)
+        {
+            var resp = await _http.PutAsync($"{BasePath}/reject/{id}", null);
+            if (!resp.IsSuccessStatusCode) return false;
+
+            var api = await ReadApiResponseAsync<bool>(resp);
+            return api?.Data == true;
+        }
     }
 }

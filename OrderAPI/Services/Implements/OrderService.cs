@@ -101,6 +101,16 @@ namespace OrderAPI.Services.Implements
 
                             if (discountPercentage > 0)
                             {
+                                // 🛑 CHECK: MaxUsagePerUser
+                                if (v.MaxUsagePerUser.HasValue && v.MaxUsagePerUser.Value > 0)
+                                {
+                                    int usageCount = await _orderRepo.GetVoucherUsageCountAsync(dto.CustomerID, dto.VoucherID.Value);
+                                    if (usageCount >= v.MaxUsagePerUser.Value)
+                                    {
+                                        throw new InvalidOperationException($"Voucher usage limit reached. Max: {v.MaxUsagePerUser.Value}");
+                                    }
+                                }
+
                                 decimal voucherDiscount = total * discountPercentage / 100m;
 
                                 if (v.MaxReducing.HasValue && voucherDiscount > v.MaxReducing.Value)
@@ -193,6 +203,9 @@ namespace OrderAPI.Services.Implements
         public Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId)
             => _orderRepo.HasCustomerPurchasedProductAsync(customerId, productId);
 
+        public Task<int> GetVoucherUsageCountAsync(string customerId, int voucherId)
+            => _orderRepo.GetVoucherUsageCountAsync(customerId, voucherId);
+
         private class VoucherApiResponse
         {
             [System.Text.Json.Serialization.JsonPropertyName("success")]
@@ -209,6 +222,9 @@ namespace OrderAPI.Services.Implements
 
             [System.Text.Json.Serialization.JsonPropertyName("maxReducing")]
             public decimal? MaxReducing { get; set; }
+
+            [System.Text.Json.Serialization.JsonPropertyName("maxUsagePerUser")]
+            public int? MaxUsagePerUser { get; set; }
         }
     }
 }

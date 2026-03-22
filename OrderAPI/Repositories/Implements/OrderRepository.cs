@@ -191,5 +191,11 @@ namespace OrderAPI.Repositories.Implements
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> GetVoucherUsageCountAsync(string customerId, int voucherId)
+        {
+            return await _context.Orders
+                .CountAsync(o => o.CustomerID == customerId && o.VoucherID == voucherId);
+        }
     }
 }

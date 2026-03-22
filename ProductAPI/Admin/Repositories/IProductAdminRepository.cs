@@ -1,4 +1,4 @@
-﻿using ProductAPI.Models;
+using ProductAPI.Models;
 
 namespace ProductAPI.Admin.Repositories
 {
@@ -17,5 +17,6 @@ namespace ProductAPI.Admin.Repositories
         void Remove(Product product);
 
         Task SaveChangesAsync();
+        Task InactivateByCategoryIdAsync(int categoryId);
     }
 }

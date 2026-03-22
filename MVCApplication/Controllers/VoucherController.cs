@@ -7,10 +7,12 @@ namespace MVCApplication.Controllers
     public class VoucherController : Controller
     {
         private readonly IVoucherService _voucherService;
+        private readonly IOrderService _orderService;
 
-        public VoucherController(IVoucherService voucherService)
+        public VoucherController(IVoucherService voucherService, IOrderService orderService)
         {
             _voucherService = voucherService;
+            _orderService = orderService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +46,16 @@ namespace MVCApplication.Controllers
 
             if (matchedVoucher == null)
                 return NotFound(new { Message = "Voucher không hợp lệ hoặc đã hết hạn!" });
+
+            // 🛑 CHECK: MaxUsagePerUser
+            if (matchedVoucher.MaxUsagePerUser.HasValue && matchedVoucher.MaxUsagePerUser.Value > 0)
+            {
+                var usageCount = await _orderService.GetVoucherUsageCountAsync(matchedVoucher.VoucherId);
+                if (usageCount >= matchedVoucher.MaxUsagePerUser.Value)
+                {
+                    return BadRequest(new { Message = $"Bạn đã sử dụng hết lượt cho Voucher này (Tối đa: {matchedVoucher.MaxUsagePerUser.Value} lần)!" });
+                }
+            }
 
             return Ok(new 
             { 

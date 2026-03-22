@@ -138,5 +138,17 @@ namespace OrderAPI.Controllers
 
             return Ok(result);
         }
+
+        // ================= VOUCHER USAGE =================
+        [HttpGet("voucher-usage/{voucherId}")]
+        public async Task<IActionResult> GetVoucherUsage(int voucherId)
+        {
+            var customerId = User.FindFirst("accountID")?.Value;
+            if (string.IsNullOrEmpty(customerId))
+                return Unauthorized();
+
+            var count = await _orderService.GetVoucherUsageCountAsync(customerId, voucherId);
+            return Ok(count);
+        }
     }
 }

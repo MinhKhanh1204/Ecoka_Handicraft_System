@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 
 namespace ProductAPI.Admin.Repositories.Implements
@@ -53,6 +53,13 @@ namespace ProductAPI.Admin.Repositories.Implements
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task InactivateByCategoryIdAsync(int categoryId)
+        {
+            await _context.Products
+                .Where(p => p.CategoryID == categoryId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, ProductStatus.Inactive));
         }
     }
 }

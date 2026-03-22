@@ -12,5 +12,6 @@ namespace MVCApplication.Services
         Task<Order> CreateAsync(OrderCreateDto dto);
         Task UpdatePaymentStatusAsync(string orderId, string paymentMethod, string paymentStatus, string? note);
         Task<Order?> GetByIdAsync(string orderId);
+        Task<int> GetVoucherUsageCountAsync(int voucherId);
     }
 }

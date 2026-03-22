@@ -50,7 +50,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var categories = await _categoryService.GetAllAsync();
+            var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
             ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName");
             
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -62,9 +62,10 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateProductDto dto)
         {
+            var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
+
             if (!ModelState.IsValid)
             {
-                var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -77,7 +78,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!ok)
             {
                 ModelState.AddModelError(string.Empty, "Failed to create product.");
-                var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -99,8 +99,15 @@ namespace MVCApplication.Areas.Admin.Controllers
             var product = await _productService.GetByIdAsync(id);
             if (product == null) return NotFound();
 
-            var categories = await _categoryService.GetAllAsync();
-            var category = categories.FirstOrDefault(c => c.CategoryName == product.CategoryName);
+            var allCategories = await _categoryService.GetAllAsync();
+            var activeCategories = allCategories.Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            // Ensure current category is in the list even if inactive, so it can be displayed
+            var currentCategory = allCategories.FirstOrDefault(c => c.CategoryName == product.CategoryName);
+            if (currentCategory != null && !activeCategories.Any(c => c.CategoryID == currentCategory.CategoryID))
+            {
+                activeCategories.Add(currentCategory);
+            }
 
             var imageDtos = product.Images.Select((img, idx) => new UpdateProductImageDto
             {
@@ -113,7 +120,7 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             var dto = new UpdateProductDto
             {
-                CategoryID = category?.CategoryID ?? 0,
+                CategoryID = currentCategory?.CategoryID ?? 0,
                 ProductName = product.ProductName,
                 Description = product.Description,
                 Material = product.Material,
@@ -125,21 +132,30 @@ namespace MVCApplication.Areas.Admin.Controllers
             };
 
             ViewBag.ProductID = id;
-            ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
-            
+            ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
+
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 return PartialView("Edit", dto);
-                
+
             return View(dto);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(string id, UpdateProductDto dto)
         {
+            var allCategories = await _categoryService.GetAllAsync();
+            var activeCategories = allCategories.Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
+
             if (!ModelState.IsValid)
             {
-                var categories = await _categoryService.GetAllAsync();
-                ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
+                // Ensure current category is in the list for validation return
+                if (!activeCategories.Any(c => c.CategoryID == dto.CategoryID))
+                {
+                    var current = allCategories.FirstOrDefault(c => c.CategoryID == dto.CategoryID);
+                    if (current != null) activeCategories.Add(current);
+                }
+
+                ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -152,8 +168,14 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!ok)
             {
                 ModelState.AddModelError(string.Empty, "Failed to update product.");
-                var categories = await _categoryService.GetAllAsync();
-                ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
+                
+                if (!activeCategories.Any(c => c.CategoryID == dto.CategoryID))
+                {
+                    var current = allCategories.FirstOrDefault(c => c.CategoryID == dto.CategoryID);
+                    if (current != null) activeCategories.Add(current);
+                }
+
+                ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
