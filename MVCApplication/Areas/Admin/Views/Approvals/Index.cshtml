@@ -392,23 +392,7 @@
             const status = product.status || product.Status || 'Pending';
 
             const row = document.createElement('tr');
-            row.id = `product-row-${pid}`;
-            row.innerHTML = `
-                <td>New</td>
-                <td>${escapeHtml(pid)}</td>
-                <td><img src="${escapeHtml(img)}" width="55" height="55" style="object-fit:cover" class="rounded" alt="Product image" /></td>
-                <td>${escapeHtml(productName)}</td>
-                <td>${escapeHtml(categoryName)}</td>
-                <td>${escapeHtml(price)}</td>
-                <td>${escapeHtml(stock)}</td>
-                <td>${escapeHtml(status)}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('${String(pid).replaceAll("'", "\\'")}')">Approve</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('${String(pid).replaceAll("'", "\\'")}')">Reject</button>
-                </td>
-            `;
-
-            tbody.prepend(row);
+               (row);
             updateCount('product-count', 1);
             showToast('New pending product', true);
         }

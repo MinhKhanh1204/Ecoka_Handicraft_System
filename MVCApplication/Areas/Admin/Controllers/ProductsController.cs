@@ -111,6 +111,8 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             ViewBag.ProductID = id;
             ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
+            if (dto.Status == "Pending")
+                await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
             return View(dto);
         }
 
