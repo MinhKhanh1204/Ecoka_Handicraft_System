@@ -28,18 +28,6 @@ namespace CartAPI.Controllers
             return Ok(result);
         }
 
-        // GET api/cart/items
-        [HttpGet("items")]
-        public async Task<IActionResult> GetCart()
-        {
-            string? CustomerId = User.FindFirst("accountID")?.Value;
-            if (string.IsNullOrEmpty(CustomerId)) return Unauthorized();
-
-            var cart = await _service.GetCartOfCustomerAsync(CustomerId);
-            if (cart == null) return NotFound();
-            return Ok(cart);
-        }
-
         // PUT api/cart/items/{cartItemId}
         [HttpPut("items/{cartItemId}")]
         public async Task<IActionResult> UpdateCartItem(int cartItemId, [FromBody] CartItemUpdateDto dto)

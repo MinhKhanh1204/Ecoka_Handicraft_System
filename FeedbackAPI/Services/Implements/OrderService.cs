@@ -39,8 +39,8 @@ namespace FeedbackAPI.Services.Implements
                     return false;
                 }
 
-                // Call Order API passing both productId and customerId as query
-                var requestUri = $"api/customer/orders/has-purchased?productId={Uri.EscapeDataString(productId)}&customerId={Uri.EscapeDataString(customerId)}";
+                // Call Order API passing both productId and customerId as query (Gateway Upstream: /customer/orders/...)
+                var requestUri = $"customer/orders/has-purchased?productId={Uri.EscapeDataString(productId)}&customerId={Uri.EscapeDataString(customerId)}";
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
                 // Set Authorization header properly

@@ -1,4 +1,4 @@
-﻿using ProductAPI.DTOs;
+using ProductAPI.DTOs;
 
 namespace ProductAPI.Services
 {
@@ -6,5 +6,6 @@ namespace ProductAPI.Services
 	{
 		List<ProductDto> GetAllProducts();
         Task<ProductDetailResponseDto> GetProductDetailAsync(string productId);
+        Task<bool> UpdateStockAsync(string productId, int quantityChange);
     }
 }

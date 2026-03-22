@@ -37,7 +37,40 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Feedback API",
+        Version = "v1"
+    });
+
+    // 🔐 Thêm định nghĩa bảo mật JWT
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Nhập token của bạn: Bearer {your_token}"
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // ========================
 // AutoMapper + EF Core
@@ -58,14 +91,14 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpContextAccessor();
-// NOTE: base addresses must match the actual running API ports (see AccountAPI and OrderAPI launchSettings)
+// NOTE: all inter-service calls now go through the API Gateway (port 5000)
 builder.Services.AddHttpClient<IAccountService, AccountService>(c =>
 {
-    c.BaseAddress = new Uri("https://localhost:7018");
+    c.BaseAddress = new Uri("https://localhost:5000");
 });
 builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
 {
-    c.BaseAddress = new Uri("https://localhost:7289");
+    c.BaseAddress = new Uri("https://localhost:5000");
 });
 
 // ========================
@@ -122,11 +155,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 // ========================
 // HTTP pipeline
 // ========================
-if (app.Environment.IsDevelopment())
-{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 app.UseCors("AllowConfigured");

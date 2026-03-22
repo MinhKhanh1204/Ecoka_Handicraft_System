@@ -123,6 +123,40 @@ namespace OrderAPI.Services.Implements
             entity.TotalAmount = total;
 
             var created = await _orderRepo.CreateAsync(entity);
+
+            // Decrement Stock via ProductAPI
+            if (created != null && created.OrderItems != null)
+            {
+                string? productApiBase = _configuration["ProductApiUrl"];
+                if (!string.IsNullOrEmpty(productApiBase))
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    foreach (var item in created.OrderItems)
+                    {
+                        if (string.IsNullOrEmpty(item.ProductID)) continue;
+                        try
+                        {
+                            // quantityChange is negative to decrement
+                            int change = -(item.Quantity ?? 0);
+                            if (change == 0) continue;
+
+                            string updateUrl = $"{productApiBase.TrimEnd('/')}/{item.ProductID}/stock";
+                            var response = await client.PutAsJsonAsync(updateUrl, change);
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                _logger.LogWarning("Failed to decrement stock for Product {ProductId}. Status: {Status}", 
+                                    item.ProductID, response.StatusCode);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error calling ProductAPI for stock update. Product: {ProductId}", item.ProductID);
+                        }
+                    }
+                }
+            }
+
             return _mapper.Map<OrderReadDto>(created);
         }
 
