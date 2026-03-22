@@ -4,6 +4,7 @@ using AccountAPI.Helpers;
 using AccountAPI.Models;
 using AccountAPI.Repositories;
 using AutoMapper;
+using CloudinaryDotNet.Core;
 
 namespace AccountAPI.Services.Implements
 {
@@ -36,10 +37,10 @@ namespace AccountAPI.Services.Implements
         {
             var account = await _repo.GetByEmailAsync(request.Email);
             if (account == null)
-                throw new UnauthorizedException("Invalid username or password");
+                throw new UnauthorizedException("Invalid email or password");
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, account.Password))
-                throw new UnauthorizedException("Invalid username or password");
+                throw new UnauthorizedException("Invalid email or password");
 
             if (account.Status != "Active")
                 throw new ForbiddenException("Account is inactive");
@@ -211,5 +212,66 @@ namespace AccountAPI.Services.Implements
 
 			await _repo.UpdateAsync();
 		}
-	}
+
+        public async Task<LoginResponseDto> LoginSocial(SocialLoginRequestDto request)
+        {
+            var account = await _repo.GetByEmailAsync(request.Email);
+            var token = "";
+            if (account == null)
+            {
+                using var transaction = await _repo.BeginTransactionAsync();
+
+                try
+                {
+                    var accountId = await _repo.GenerateAccountIdAsync();
+
+                    var newAccount = new Account
+                    {
+                        AccountID = accountId,
+                        Username = request.Email,
+                        Email = request.Email,
+                        Password = BCrypt.Net.BCrypt.HashPassword("Abc@123!"),
+                        CreatedAt = DateTime.UtcNow,
+                        Status = "Active"
+                    };
+
+                    await _repo.AddAccountAsync(newAccount);
+
+                    var customer = new Customer
+                    {
+                        CustomerID = accountId,
+                        FullName = request.Email,
+                        Status = "Active"
+                    };
+
+                    await _repo.AddCustomerAsync(customer);
+
+                    var role = await _repo.GetCustomerRoleAsync();
+                    if (role == null)
+                        throw new BadRequestException("Customer role not found");
+
+                    await _repo.AddUserRoleAsync(new UserRole
+                    {
+                        AccountID = accountId,
+                        RoleID = role.RoleID,
+                        Status = "Active"
+                    });
+
+                    await _repo.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    token = _jwt.GenerateToken(newAccount);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw new BadRequestException("Register fail");
+                }
+            }
+            else { 
+                token = _jwt.GenerateToken(account); 
+            }
+
+            return _mapper.Map<LoginResponseDto>(token);
+        }
+    }
 }

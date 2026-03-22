@@ -81,5 +81,12 @@ namespace AccountAPI.Controllers
 			await _service.UpdateProfileAsync(accountId, request);
 			return Ok(ApiResponse<object>.SuccessResponse(new object(), "Update profile success"));
 		}
-	}
+
+        [HttpPost("social-login")]
+        public async Task<IActionResult> SocialLogin(SocialLoginRequestDto request)
+        {
+            var result = await _service.LoginSocial(request);
+            return Ok(ApiResponse<LoginResponseDto>.SuccessResponse(result));
+        }
+    }
 }

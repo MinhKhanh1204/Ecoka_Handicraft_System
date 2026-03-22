@@ -21,6 +21,12 @@ namespace MVCApplication.Controllers
 
         public async Task<IActionResult> Index()
         {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+            if (User.IsInRole("Employee"))
+                return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
+
             var topDiscounted = await _productService.GetTopDiscountProductsAsync();
             return View(topDiscounted);
         }

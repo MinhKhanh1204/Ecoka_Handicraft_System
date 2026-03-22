@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -98,20 +102,20 @@ namespace MVCApplication.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(2)
                 });
 
-			return RedirectToAction("RedirectByRole", "Account");
-		}
+            return RedirectToAction("Index", "Home");
+        }
 
-		[Authorize]
-		public IActionResult RedirectByRole()
-		{
-			if (User.IsInRole("Admin"))
-				return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+		//[Authorize]
+		//public IActionResult RedirectByRole()
+		//{
+		//	if (User.IsInRole("Admin"))
+		//		return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-			if (User.IsInRole("Employee"))
-				return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
+		//	if (User.IsInRole("Employee"))
+		//		return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
 
-			return RedirectToAction("Index", "Home");
-		}
+		//	return RedirectToAction("Index", "Home");
+		//}
 
 		[HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -198,6 +202,69 @@ namespace MVCApplication.Controllers
 
             TempData["success"] = result.Message;
             return RedirectToAction("Profile");
+        }
+
+        // ===== GOOGLE LOGIN =====
+        public IActionResult LoginGoogle()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "Account");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+
+            var loginResult = await _accountService.LoginSocialAsync(email);
+            var token = loginResult.Data.AccessToken;
+
+            // lưu JWT để gọi API
+            Response.Cookies.Append("AccessToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(2)
+            });
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // ===== FACEBOOK LOGIN =====
+        public IActionResult LoginFacebook()
+        {
+            var redirectUrl = Url.Action("FacebookResponse", "Account");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+
+            return Challenge(properties, FacebookDefaults.AuthenticationScheme);
+        }
+
+        public async Task<IActionResult> FacebookResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+
+            var LoginResult = await _accountService.LoginSocialAsync(email);
+
+            // Store JWT in HttpOnly
+            Response.Cookies.Append("AccessToken",
+                LoginResult.Data.AccessToken,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // Set to true in production with HTTPS
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddHours(2)
+                });
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }

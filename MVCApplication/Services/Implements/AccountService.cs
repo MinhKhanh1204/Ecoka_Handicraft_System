@@ -142,5 +142,20 @@ namespace MVCApplication.Services.Implements
             var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<object>>();
             return result!;
         }
+
+        public async Task<CustomFormatter.ApiResponse<LoginResponseDto>> LoginSocialAsync(string email)
+        {
+            var request = new
+            {
+                Email = email
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("auth/social-login", request);
+
+
+            var result = await response.Content.ReadFromJsonAsync<CustomFormatter.ApiResponse<LoginResponseDto>>();
+
+            return result!;
+        }
     }
 }
