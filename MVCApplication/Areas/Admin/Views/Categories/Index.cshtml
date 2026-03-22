@@ -29,7 +29,7 @@
                         </a>
                     </div>
 
-                    <form method="get" class="row g-2 align-items-end mt-2">
+                    <form method="get" class="row g-2 align-items-end mt-2" id="searchForm">
                         <div class="col-md-5 col-lg-4">
                             <label class="form-label">Tìm kiếm</label>
                             <input name="keyword" value="@keyword" class="form-control" placeholder="Nhập từ khóa..." />
@@ -105,89 +105,135 @@
                         </div>
                     </form>
 
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width: 90px;">ID</th>
-                                    <th>Tên</th>
-                                    <th>Mô tả</th>
-                                    <th style="width: 140px;">Trạng thái</th>
-                                    <th style="width: 190px;" class="text-end">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model == null || Model.Count == 0)
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">Không có dữ liệu</td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    foreach (var c in Model)
-                                    {
-                                        <tr>
-                                            <td>@c.CategoryID</td>
-                                            <td class="fw-semibold">@c.CategoryName</td>
-                                            <td class="text-truncate" style="max-width: 420px;">@c.Description</td>
-                                            <td>
-                                                @if (string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <span class="badge bg-success">Active</span>
-                                                }
-                                                else if (string.Equals(c.Status, "Deleted", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <span class="badge bg-danger">Deleted</span>
-                                                }
-                                                else if (string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <span class="badge bg-warning text-dark">Rejected</span>
-                                                }
-                                                else if (string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <span class="badge bg-info text-dark">Pending</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@c.Status</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">
-                                                @if (!string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    <a class="btn btn-sm btn-outline-primary"
-                                                       asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@c.CategoryID">
-                                                        <i class="bi bi-pencil-square me-1"></i>Sửa
-                                                    </a>
-
-                                                    @* Chỉ hiển thị nút Xóa khi chưa bị xóa mềm *@
-                                                    @if (!string.Equals(c.Status, "Deleted", StringComparison.OrdinalIgnoreCase))
-                                                    {
-                                                        <form method="post"
-                                                              asp-area="Admin" asp-controller="Categories" asp-action="Delete" asp-route-id="@c.CategoryID"
-                                                              class="d-inline"
-                                                              onsubmit="return confirm('Bạn có chắc muốn xóa category này?');">
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                                <i class="bi bi-trash me-1"></i>Xóa
-                                                            </button>
-                                                        </form>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted small">Chờ duyệt</span>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <!-- Category Table (Partial) -->
+                    <partial name="_CategoryList" model="Model" />
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/category-hub')
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("CategoryApprovalStatusChanged", function (data) {
+            const rowId = 'category-row-' + data.categoryId;
+            const row = document.getElementById(rowId);
+            
+            if (row) {
+                // Update text and badge classes
+                const statusCell = row.cells[3]; // The status cell is the 4th column (index 3)
+                const badge = statusCell.querySelector('.status-badge');
+                if (badge) {
+                    badge.innerText = data.status;
+                    badge.className = 'badge status-badge'; // reset
+                    if (data.status === 'Active') {
+                        badge.classList.add('bg-success');
+                    } else if (data.status === 'Deleted') {
+                        badge.classList.add('bg-danger');
+                    } else if (data.status === 'Rejected') {
+                        badge.classList.add('bg-warning', 'text-dark');
+                    } else if (data.status === 'Pending') {
+                        badge.classList.add('bg-info', 'text-dark');
+                    } else {
+                        badge.classList.add('bg-secondary');
+                    }
+                }
+
+                // Update Action buttons visibility
+                const actionsCell = row.cells[4]; // The actions cell is the 5th column
+                const actionButtons = actionsCell.querySelector('.action-buttons');
+                const statusText = actionsCell.querySelector('.status-text');
+                
+                if (data.status === 'Pending') {
+                    if (actionButtons) actionButtons.style.display = 'none';
+                    if (statusText) {
+                        statusText.style.display = 'inline';
+                        statusText.innerText = 'Chờ duyệt';
+                        statusText.className = 'small status-text text-muted';
+                    }
+                } else if (data.status === 'Rejected') {
+                    if (actionButtons) actionButtons.style.display = 'none';
+                    if (statusText) {
+                        statusText.style.display = 'inline';
+                        statusText.innerText = 'Bị từ chối';
+                        statusText.className = 'small status-text text-danger';
+                    }
+                } else {
+                    if (actionButtons) actionButtons.style.display = 'block';
+                    if (statusText) statusText.style.display = 'none';
+                }
+            }
+        });
+
+        connection.start()
+            .then(() => console.log('SignalR connected for Category Updates'))
+            .catch(err => console.error('SignalR connection error:', err));
+
+        // AJAX cho tìm kiếm và lọc
+        const searchForm = document.getElementById('searchForm');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                loadCategories();
+            });
+            
+            // Xóa nút reset link vì có thể làm load lại trang, thay đổi thành function clear data (tuỳ chọn)
+            const resetBtn = searchForm.querySelector('.btn-outline-secondary');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    searchForm.reset();
+                    searchForm.querySelector('input[name="keyword"]').value = '';
+                    searchForm.querySelector('select[name="status"]').value = 'All';
+                    loadCategories();
+                });
+            }
+        }
+
+        function loadCategories() {
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+            fetch('/Admin/Categories?' + params.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const container = document.getElementById('table-container');
+                if (container) {
+                    container.outerHTML = html;
+                }
+            })
+            .catch(err => console.error('Error loading categories:', err));
+        }
+
+        // AJAX cho thao tác xóa
+        window.deleteCategory = function (id) {
+            if (!confirm('Bạn có chắc muốn xóa category này?')) return;
+
+            fetch('/Admin/Categories/Delete/' + id, {
+                method: 'POST',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded' 
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Xóa thành công, reload table bằng Ajax
+                    loadCategories();
+                } else {
+                    alert(data.message || 'Xóa thất bại');
+                }
+            })
+            .catch(err => console.error('Delete error:', err));
+        };
+    </script>
+}
 

@@ -1,0 +1,77 @@
+@using MVCApplication.Areas.Admin.DTOs
+@model IReadOnlyList<ReadCategoryDto>
+
+<div class="table-responsive mt-3" id="table-container">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th style="width: 90px;">ID</th>
+                <th>Tên</th>
+                <th>Mô tả</th>
+                <th style="width: 140px;">Trạng thái</th>
+                <th style="width: 190px;" class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model == null || Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Không có dữ liệu</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var c in Model)
+                {
+                    <tr id="category-row-@c.CategoryID">
+                        <td>@c.CategoryID</td>
+                        <td class="fw-semibold">@c.CategoryName</td>
+                        <td class="text-truncate" style="max-width: 420px;">@c.Description</td>
+                        <td>
+                            @if (string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-success status-badge">Active</span>
+                            }
+                            else if (string.Equals(c.Status, "Deleted", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-danger status-badge">Deleted</span>
+                            }
+                            else if (string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-warning text-dark status-badge">Rejected</span>
+                            }
+                            else if (string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-info text-dark status-badge">Pending</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary status-badge">@c.Status</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <div class="action-buttons" style="display: @(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "none" : "block");">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@c.CategoryID">
+                                    <i class="bi bi-pencil-square me-1"></i>Sửa
+                                </a>
+
+                                @if (!string.Equals(c.Status, "Deleted", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCategory(@c.CategoryID)">
+                                        <i class="bi bi-trash me-1"></i>Xóa
+                                    </button>
+                                }
+                            </div>
+                            
+                            <span class="small status-text @(string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "text-danger" : "text-muted")"
+                                  style="display: @(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "inline" : "none");">
+                                @(string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "Bị từ chối" : "Chờ duyệt")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
