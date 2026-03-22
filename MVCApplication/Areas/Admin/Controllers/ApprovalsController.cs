@@ -2,10 +2,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Models.DTOs;
 using MVCApplication.Services;
+using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -15,20 +17,31 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly IProductAdminService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IVoucherService _voucherService;
+        private readonly IVoucherAdminService _voucherAdminService;
+        private readonly IHubContext<PendingApprovalHub> _hubContext;
 
         public ApprovalsController(
             IProductAdminService productService,
             ICategoryService categoryService,
-            IVoucherService voucherService)
+            IVoucherService voucherService,
+            IVoucherAdminService voucherAdminService,
+            IHubContext<PendingApprovalHub> hubContext)
         {
             _productService = productService;
             _categoryService = categoryService;
             _voucherService = voucherService;
+            _voucherAdminService = voucherAdminService;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            var allCategories = await _categoryService.GetAllAsync();
+            var pendingCategories = allCategories?
+                .Where(c => string.Equals(c.Status, "Pending", System.StringComparison.OrdinalIgnoreCase))
+                .ToList() ?? new List<ReadCategoryDto>();
+
             var vm = new ApprovalDto
             {
                 PendingProducts = await _productService.GetPagedAsync(
@@ -36,13 +49,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                     status: "Pending",
                     pageNumber: 1,
                     pageSize: 50),
-
-            // Get categories and filter those not yet Active (staff-created might be Pending/Rejected/etc.)
-            var allCategories = await _categoryService.GetAllAsync();
-            var pendingCategories = allCategories?
-                .Where(c => string.Equals(c.Status, "Pending", System.StringComparison.OrdinalIgnoreCase))
-                .ToList() ?? new List<ReadCategoryDto>();
-
+                PendingCategories = pendingCategories,
                 PendingVouchers = (await _voucherService.GetAllVouchersAsync())
                     ?.Where(x => !(x.IsActive ?? false))
                     .ToList() ?? new List<VoucherDto>()
@@ -110,27 +117,66 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         // ================= VOUCHER =================
-        // Chỉ dùng khi service của bạn đã có update trạng thái voucher
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ApproveVoucher(int id)
+        public async Task<IActionResult> ApproveVoucher(int id)
         {
+            var result = await _voucherAdminService.ApproveAsync(id);
+
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("VoucherApproved", new { voucherId = id });
+            }
+
             return Json(new
             {
-                success = false,
-                message = "Voucher approval is not implemented yet"
+                success = result.Success,
+                message = result.Success
+                    ? "Voucher approved successfully"
+                    : (result.ErrorMessage ?? "Failed to approve voucher"),
+                id
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RejectVoucher(int id)
+        public async Task<IActionResult> RejectVoucher(int id)
         {
+            // Get voucher to check if it exists, then mark inactive via Update
+            var voucher = await _voucherAdminService.GetByIdAsync(id);
+            if (voucher == null)
+            {
+                return Json(new { success = false, message = "Voucher not found", id });
+            }
+
+            var dto = new UpdateVoucherDto
+            {
+                VoucherName = voucher.VoucherName ?? "",
+                Description = voucher.Description,
+                DiscountPercentage = voucher.DiscountPercentage ?? 0,
+                MaxReducing = voucher.MaxReducing,
+                Quantity = voucher.Quantity ?? 0,
+                ExpiryDate = voucher.ExpiryDate ?? DateOnly.FromDateTime(DateTime.Today),
+                MinOrderValue = voucher.MinOrderValue,
+                MaxUsagePerUser = voucher.MaxUsagePerUser,
+                IsActive = false
+            };
+
+            var result = await _voucherAdminService.UpdateAsync(id, dto);
+
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("VoucherRejected", new { voucherId = id });
+            }
+
             return Json(new
             {
-                success = false,
-                message = "Voucher rejection is not implemented yet"
+                success = result.Success,
+                message = result.Success
+                    ? "Voucher rejected successfully"
+                    : (result.ErrorMessage ?? "Failed to reject voucher"),
+                id
             });
         }
     }

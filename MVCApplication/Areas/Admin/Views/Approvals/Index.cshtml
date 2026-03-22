@@ -1,4 +1,4 @@
-﻿@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
+@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
 @using System.Globalization
 
 <div class="pagetitle">
@@ -395,6 +395,25 @@
 
         connection.on("PendingVoucherCreated", function (voucher) {
             addPendingVoucherRow(voucher);
+        });
+
+        // Listen for Voucher approval/rejection broadcasts
+        connection.on("VoucherApproved", function (data) {
+            const row = document.getElementById(`voucher-row-${data.voucherId}`);
+            if (row) {
+                row.remove();
+                updateCount('voucher-count', -1);
+            }
+            showToast(`Voucher ${data.voucherId} has been approved by another admin`, true);
+        });
+
+        connection.on("VoucherRejected", function (data) {
+            const row = document.getElementById(`voucher-row-${data.voucherId}`);
+            if (row) {
+                row.remove();
+                updateCount('voucher-count', -1);
+            }
+            showToast(`Voucher ${data.voucherId} has been rejected by another admin`, false);
         });
 
         connection.start()

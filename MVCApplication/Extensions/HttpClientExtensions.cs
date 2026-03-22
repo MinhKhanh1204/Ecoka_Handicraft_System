@@ -1,4 +1,4 @@
-﻿using MVCApplication.Handlers;
+using MVCApplication.Handlers;
 
 namespace MVCApplication.Extensions
 {

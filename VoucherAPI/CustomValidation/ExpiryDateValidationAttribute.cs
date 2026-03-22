@@ -8,33 +8,33 @@ namespace VoucherAPI.CustomValidation
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
     public class ExpiryDateValidationAttribute : ValidationAttribute
     {
-        public ExpiryDateValidationAttribute()
-        {
-            ErrorMessage = "Expiry date must be today or in the future";
-        }
+        public ExpiryDateValidationAttribute() : base(() => "Expiry date must be today or in the future") { }
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value == null)
-            {
                 return ValidationResult.Success;
-            }
+
+            DateTime today = DateTime.Now.Date;
 
             if (value is DateOnly expiryDate)
             {
-                var today = DateOnly.FromDateTime(DateTime.Now);
-                if (expiryDate < today)
+                DateOnly todayOnly = DateOnly.FromDateTime(DateTime.Now);
+                if (expiryDate < todayOnly)
                 {
                     return new ValidationResult(ErrorMessage);
                 }
             }
             else if (value is DateTime expiryDateTime)
             {
-                var today = DateTime.Now.Date;
                 if (expiryDateTime.Date < today)
                 {
                     return new ValidationResult(ErrorMessage);
                 }
+            }
+            else
+            {
+                return new ValidationResult("Invalid expiry date format");
             }
 
             return ValidationResult.Success;

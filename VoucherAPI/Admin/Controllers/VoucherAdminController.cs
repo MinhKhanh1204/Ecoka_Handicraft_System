@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VoucherAPI.Admin.DTOs;
 using VoucherAPI.Admin.Services;
@@ -7,11 +8,9 @@ namespace VoucherAPI.Admin.Controllers
 {
     /// <summary>
     /// Voucher Management API (UC_46 - UC_51)
-    /// Staff, Admin only
     /// </summary>
     [ApiController]
     [Route("api/admin/vouchers")]
-    //[Authorize(Roles = "Admin,Staff")]
     public class VoucherAdminController : ControllerBase
     {
         private readonly IVoucherAdminService _service;
@@ -51,19 +50,26 @@ namespace VoucherAPI.Admin.Controllers
 
         /// <summary>
         /// UC_48 Add voucher
+        /// Employee/Staff create -> IsActive = false (pending approval)
+        /// Admin create -> IsActive = dto.IsActive
         /// </summary>
         [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateVoucherDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
+                return BadRequest(ApiResponse<string>.Fail(FormatModelStateErrors(), 400));
 
             try
             {
-                var id = await _service.CreateAsync(dto);
+                var createdByAdmin = User.IsInRole("Admin");
+                var id = await _service.CreateAsync(dto, createdByAdmin);
                 return StatusCode(201, ApiResponse<object>.SuccessResponse(
                     new { VoucherId = id },
-                    "Voucher created successfully"));
+                    createdByAdmin
+                        ? "Voucher created successfully"
+                        : "Voucher created successfully and is pending approval"));
             }
             catch (InvalidOperationException ex)
             {
@@ -72,13 +78,28 @@ namespace VoucherAPI.Admin.Controllers
         }
 
         /// <summary>
+        /// Approve voucher - Admin only
+        /// </summary>
+        [HttpPost("{id:int}/approve")]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var success = await _service.ApproveAsync(id);
+            if (!success)
+                return NotFound(ApiResponse<string>.Fail("Voucher not found", 404));
+            return Ok(ApiResponse<string>.SuccessResponse("Voucher approved successfully"));
+        }
+
+        /// <summary>
         /// UC_49 Edit voucher
         /// </summary>
         [HttpPut("{id:int}")]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateVoucherDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
+                return BadRequest(ApiResponse<string>.Fail(FormatModelStateErrors(), 400));
 
             try
             {
@@ -103,6 +124,21 @@ namespace VoucherAPI.Admin.Controllers
             if (!success)
                 return NotFound(ApiResponse<string>.Fail("Voucher not found", 404));
             return Ok(ApiResponse<string>.SuccessResponse("Voucher deleted successfully"));
+        }
+
+        /// <summary>
+        /// Aggregates all ModelState validation errors into a single human-readable string.
+        /// </summary>
+        private string FormatModelStateErrors()
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors.Select(e => e.ErrorMessage))
+                .ToList();
+
+            return errors.Count == 1
+                ? errors[0]
+                : string.Join("; ", errors.Select((e, i) => $"({i + 1}) {e}"));
         }
     }
 }

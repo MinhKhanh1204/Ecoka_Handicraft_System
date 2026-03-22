@@ -7,7 +7,7 @@
 }
 
 <div class="pagetitle">
-    <h1>Add Voucher (UC_48)</h1>
+    <h1>Add Voucher</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
@@ -46,7 +46,8 @@
 
                         <div class="col-md-4">
                             <label asp-for="DiscountPercentage" class="form-label">Discount % <span class="text-danger">*</span></label>
-                            <input asp-for="DiscountPercentage" type="number" class="form-control" min="0" max="100" step="0.01" />
+                            <input asp-for="DiscountPercentage" type="number" class="form-control" min="0.01" max="50" step="0.01" placeholder="0.01 - 50" />
+                            <div class="form-text">Value must be between 0.01% and 50%</div>
                             <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
                         </div>
 
@@ -78,12 +79,7 @@
                             <input asp-for="MaxUsagePerUser" type="number" class="form-control" min="1" placeholder="Optional" />
                         </div>
 
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input asp-for="IsActive" class="form-check-input" />
-                                <label asp-for="IsActive" class="form-check-label">Active</label>
-                            </div>
-                        </div>
+                        @* Active checkbox removed - all new vouchers must be approved *@
 
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn btn-primary">

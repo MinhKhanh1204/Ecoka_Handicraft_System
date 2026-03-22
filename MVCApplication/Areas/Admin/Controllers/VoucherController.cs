@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
-using MVCApplication.CustomFormatter;
 using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
@@ -21,22 +20,20 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// UC_46 View vouchers | UC_47 Search voucher
+        /// View vouchers | Search voucher
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(string? keyword, string? status, string? sortBy, int pageNumber = 1)
         {
             var result = await _voucherAdminService.GetPagedAsync(keyword, status, sortBy, pageNumber, PageSize);
-
             ViewBag.Keyword = keyword;
             ViewBag.Status = status;
             ViewBag.SortBy = sortBy;
-
             return View(result);
         }
 
         /// <summary>
-        /// UC_51 View voucher detail
+        /// View voucher detail
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Details(int id)
@@ -53,7 +50,9 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// UC_48 Add voucher
+        /// Add voucher
+        /// Employee/Staff create -> IsActive = false (pending approval)
+        /// Admin create -> IsActive = dto.IsActive
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -62,15 +61,42 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            var success = await _voucherAdminService.CreateAsync(dto);
-            if (!success)
+            var createdByAdmin = User.IsInRole("Admin");
+            var result = await _voucherAdminService.CreateAsync(dto, createdByAdmin);
+
+            if (!result.Success)
             {
-                ModelState.AddModelError("", "Failed to create voucher. Code may already exist.");
+                // Show the specific server error message (e.g. "Duplicate voucher code", "Discount > 50%", etc.)
+                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create voucher. Please try again.");
                 return View(dto);
             }
+
             TempData["ToastType"] = "success";
-            TempData["ToastMessage"] = "Voucher created successfully.";
+            TempData["ToastMessage"] = createdByAdmin
+                ? "Voucher created successfully."
+                : "Voucher created successfully and is pending approval.";
             await _hubContext.Clients.All.SendAsync("PendingVoucherCreated", dto);
+            return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Approve voucher - Admin only
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var result = await _voucherAdminService.ApproveAsync(id);
+            if (!result.Success)
+            {
+                TempData["ToastType"] = "error";
+                TempData["ToastMessage"] = result.ErrorMessage ?? "Failed to approve voucher.";
+            }
+            else
+            {
+                TempData["ToastType"] = "success";
+                TempData["ToastMessage"] = "Voucher approved successfully.";
+            }
             return RedirectToAction(nameof(Index));
         }
 
@@ -97,7 +123,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// UC_49 Edit voucher
+        /// Edit voucher
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -109,30 +135,37 @@ namespace MVCApplication.Areas.Admin.Controllers
                 return View(dto);
             }
 
-            var success = await _voucherAdminService.UpdateAsync(id, dto);
-            if (!success)
+            // Preserve the original IsActive status (cannot be changed via edit)
+            var existingVoucher = await _voucherAdminService.GetByIdAsync(id);
+            if (existingVoucher == null) return NotFound();
+            dto.IsActive = existingVoucher.IsActive ?? false;
+
+            var result = await _voucherAdminService.UpdateAsync(id, dto);
+            if (!result.Success)
             {
-                ModelState.AddModelError("", "Voucher not found.");
+                // Show the specific server error message
+                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to update voucher. Please try again.");
                 ViewBag.VoucherId = id;
                 return View(dto);
             }
+
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = "Voucher updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 
         /// <summary>
-        /// UC_50 Delete voucher
+        /// Delete voucher
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await _voucherAdminService.DeleteAsync(id);
-            if (!success)
+            var result = await _voucherAdminService.DeleteAsync(id);
+            if (!result.Success)
             {
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = "Voucher not found.";
+                TempData["ToastMessage"] = result.ErrorMessage ?? "Failed to delete voucher.";
             }
             else
             {
