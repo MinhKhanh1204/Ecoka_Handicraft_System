@@ -7,10 +7,10 @@ namespace MVCApplication.Controllers
     public class FeedbackController : Controller
     {
         private readonly IFeedbackService _feedbackService;
-
         public FeedbackController(IFeedbackService feedbackService)
         {
             _feedbackService = feedbackService;
+
         }
 
         // ================= GET BY PRODUCT + FILTER =================

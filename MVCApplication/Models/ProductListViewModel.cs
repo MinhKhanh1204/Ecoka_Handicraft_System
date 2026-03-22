@@ -6,5 +6,6 @@ namespace MVCApplication.Models
 	{
 		public List<ProductDto> Products { get; set; }
 		public List<CategoryDto> Categories { get; set; }
-	}
+        public string SectionTitle { get; internal set; }
+    }
 }

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
+using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -10,11 +12,12 @@ namespace MVCApplication.Areas.Admin.Controllers
     {
         private readonly IProductAdminService _productService;
         private readonly ICategoryService _categoryService;
-
-        public ProductsController(IProductAdminService productService, ICategoryService categoryService)
+        private readonly IHubContext<PendingApprovalHub> _hubContext;
+        public ProductsController(IProductAdminService productService, ICategoryService categoryService, IHubContext<PendingApprovalHub> hubContext)
         {
             _productService = productService;
             _categoryService = categoryService;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -64,7 +67,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 return View(dto);
             }
-
+            await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
             return RedirectToAction(nameof(Index));
         }
 

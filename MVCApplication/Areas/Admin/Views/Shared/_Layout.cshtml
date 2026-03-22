@@ -128,13 +128,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Revenue" ? "active" : "")"
-                   asp-area="Admin" asp-controller="Revenue" asp-action="Index">
-                    <i class="bi bi-bar-chart-fill"></i>
-                    <span>Revenue Report</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")"
                    asp-area="Admin" asp-controller="Products" asp-action="Index">
                     <i class="bi bi-bag-fill"></i>
@@ -154,7 +147,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Approval" ? "active" : "")"
-                       asp-area="Admin" asp-controller="Approval" asp-action="Index">
+                       asp-area="Admin" asp-controller="Approvals" asp-action="Index">
                         <i class="bi bi-bag-fill"></i>
                         <span>Approval Management</span>
                     </a>
@@ -174,14 +167,6 @@
                    asp-area="Admin" asp-controller="Voucher" asp-action="Index">
                     <i class="bi bi-ticket-fill"></i>
                     <span>Voucher Management</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Articles" ? "active" : "")"
-                   asp-area="Admin" asp-controller="Articles" asp-action="Index">
-                    <i class="bi bi-journal-text"></i>
-                    <span>Articles Management</span>
                 </a>
             </li>
 

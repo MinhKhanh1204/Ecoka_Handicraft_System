@@ -1,12 +1,13 @@
-﻿using MVCApplication.Extensions;
-using MVCApplication.Services;
-using MVCApplication.Services.Implements;
-using Microsoft.IdentityModel.Tokens;
+﻿using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Areas.Admin.Services.Implements;
+using MVCApplication.Extensions;
+using MVCApplication.Hubs;
+using MVCApplication.Services;
+using MVCApplication.Services.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +95,7 @@ builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
 {
     client.BaseAddress = new Uri(gatewayBase);
 });
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
@@ -119,5 +121,5 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.MapHub<PendingApprovalHub>("/pending-approval-hub");
 app.Run();

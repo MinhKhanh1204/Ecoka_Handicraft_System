@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
+using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -8,10 +10,12 @@ namespace MVCApplication.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _service;
+        private readonly IHubContext<PendingApprovalHub> _hubContext;
 
-        public CategoriesController(ICategoryService service)
+        public CategoriesController(ICategoryService service, IHubContext<PendingApprovalHub> hubContext)
         {
             _service = service;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -53,7 +57,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                 ModelState.AddModelError(string.Empty, "Tạo category thất bại.");
                 return View(dto);
             }
-
+            await _hubContext.Clients.All.SendAsync("PendingCategoryCreated", dto);
             return RedirectToAction(nameof(Index));
         }
 

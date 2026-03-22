@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
 using MVCApplication.CustomFormatter;
+using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -10,10 +12,12 @@ namespace MVCApplication.Areas.Admin.Controllers
     {
         private readonly IVoucherAdminService _voucherAdminService;
         private const int PageSize = 10;
+        private readonly IHubContext<PendingApprovalHub> _hubContext;
 
-        public VoucherController(IVoucherAdminService voucherAdminService)
+        public VoucherController(IVoucherAdminService voucherAdminService, IHubContext<PendingApprovalHub> hubContext)
         {
             _voucherAdminService = voucherAdminService;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -66,6 +70,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             }
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = "Voucher created successfully.";
+            await _hubContext.Clients.All.SendAsync("PendingVoucherCreated", dto);
             return RedirectToAction(nameof(Index));
         }
 
