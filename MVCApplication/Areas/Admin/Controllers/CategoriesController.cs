@@ -10,11 +10,11 @@ namespace MVCApplication.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _service;
-        private readonly IHubContext<PendingApprovalHub> _hubContext;
+        private readonly IHubContext<CategoryHub> _hubContext;
 
         public CategoriesController(
             ICategoryService service,
-            IHubContext<PendingApprovalHub> hubContext)
+            IHubContext<CategoryHub> hubContext)
         {
             _service = service;
             _hubContext = hubContext;
@@ -36,6 +36,11 @@ namespace MVCApplication.Areas.Admin.Controllers
                 categories = categories
                     .Where(c => string.Equals(c.Status, status, StringComparison.OrdinalIgnoreCase))
                     .ToList();
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_CategoryList", categories);
             }
 
             return View(categories);
@@ -105,7 +110,13 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
+            var result = await _service.DeleteAsync(id);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = result, message = result ? "Xóa thành công" : "Xóa thất bại" });
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }

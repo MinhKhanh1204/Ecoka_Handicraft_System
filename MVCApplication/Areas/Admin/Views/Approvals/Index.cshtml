@@ -1,4 +1,4 @@
-﻿@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
+@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
 @using System.Globalization
 
 @{
@@ -482,16 +482,26 @@
             addPendingProductRow(product);
         });
 
-        connection.on('PendingCategoryCreated', function (category) {
-            addPendingCategoryRow(category);
-        });
-
         connection.on('PendingVoucherCreated', function (voucher) {
             addPendingVoucherRow(voucher);
         });
 
         connection.start()
-            .then(() => console.log('SignalR connected'))
-            .catch(err => console.error('SignalR connection error:', err));
+            .then(() => console.log('SignalR connected for PendingApprovalHub'))
+            .catch(err => console.error('SignalR connection error (PendingApprovalHub):', err));
+
+        // Category Hub connection
+        const categoryConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/category-hub')
+            .withAutomaticReconnect()
+            .build();
+
+        categoryConnection.on('PendingCategoryCreated', function (category) {
+            addPendingCategoryRow(category);
+        });
+
+        categoryConnection.start()
+            .then(() => console.log('SignalR connected for CategoryHub'))
+            .catch(err => console.error('SignalR connection error (CategoryHub):', err));
     </script>
 }
