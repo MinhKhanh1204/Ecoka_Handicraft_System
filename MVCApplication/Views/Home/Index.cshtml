@@ -1,4 +1,4 @@
-﻿@model MVCApplication.Models.ProductListViewModel
+﻿@model List<MVCApplication.Models.DTOs.ProductDto>
 @using System.Globalization
 
 @{
@@ -296,16 +296,16 @@
     <div class="container py-5">
         <div class="text-center mx-auto mb-5" style="max-width: 800px;">
             <h5 class="text-primary text-uppercase">Featured Products</h5>
-            <h1 class="mb-3">@Model.SectionTitle</h1>
+            <h1 class="mb-3">Sản phẩm khuyến mại</h1>
             <p class="text-muted mb-0">
                 Khám phá các sản phẩm nổi bật đang được quan tâm nhất.
             </p>
         </div>
 
         <div class="owl-carousel vegetable-carousel justify-content-center">
-            @if (Model.Products != null && Model.Products.Any())
+            @if (Model != null && Model.Any())
             {
-                foreach (var p in Model.Products)
+                foreach (var p in Model)
                 {
                     var discountPct = p.OriginalPrice > 0
                     ? (int)Math.Round((double)((p.OriginalPrice - p.FinalPrice) / p.OriginalPrice * 100))

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Models;
 using MVCApplication.Services;
@@ -21,31 +21,8 @@ namespace MVCApplication.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var allProducts = await _productService.GetAllProductsAsync();
-            var categories = await _productService.GetAllCategoriesAsync();
-
-            var topDiscounted = allProducts
-                .Where(p => p.OriginalPrice > p.FinalPrice)
-                .Select(p => new
-                {
-                    Product = p,
-                    DiscountPct = p.OriginalPrice > 0
-                        ? (double)((p.OriginalPrice - p.FinalPrice) / p.OriginalPrice * 100)
-                        : 0
-                })
-                .OrderByDescending(x => x.DiscountPct)
-                .Take(10)
-                .Select(x => x.Product)
-                .ToList();
-
-            var vm = new ProductListViewModel
-            {
-                Products = topDiscounted,
-                Categories = categories,
-                SectionTitle = "Sản phẩm khuyến mại".ToString()
-            };
-
-            return View(vm);
+            var topDiscounted = await _productService.GetTopDiscountProductsAsync();
+            return View(topDiscounted);
         }
 
         public IActionResult Privacy()

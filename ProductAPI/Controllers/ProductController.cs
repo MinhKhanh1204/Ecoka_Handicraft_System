@@ -26,7 +26,14 @@ namespace ProductAPI.Controllers
             return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products));
         }
 
-        [HttpGet("{id}")]
+		[HttpPost("filter")]
+		public async Task<IActionResult> FilterProducts(ProductFilterRequestDto request)
+		{
+			var result = await _service.FilterProductsAsync(request);
+			return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result));
+		}
+
+		[HttpGet("{id}")]
         public async Task<IActionResult> GetProductDetail(string id)
         {
             var result = await _service.GetProductDetailAsync(id);
@@ -39,6 +46,13 @@ namespace ProductAPI.Controllers
             var success = await _service.UpdateStockAsync(id, quantityChange);
             if (!success) return NotFound(ApiResponse<bool>.Fail("Product not found or update failed", 404));
             return Ok(ApiResponse<bool>.SuccessResponse(true, "Stock updated successfully"));
+        }
+
+                [HttpGet("top-discount")]
+        public async Task<IActionResult> GetTopDiscountProducts()
+        {
+            var result = await _service.GetTopDiscountProductsAsync(10);
+            return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(result));
         }
     }
 }
