@@ -2,11 +2,11 @@
 @model ProductDetailDto
 
 @{
-    ViewData["Title"] = "Chi tiết sản phẩm";
+    ViewData["Title"] = "Product Details";
 }
 
 <div class="pagetitle">
-    <h1>Chi tiết sản phẩm</h1>
+    <h1>Product Details</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
@@ -41,7 +41,7 @@
 
             <div class="card shadow-sm mt-3">
                 <div class="card-body pt-3">
-                    <h5 class="card-title">Hình ảnh khác</h5>
+                    <h5 class="card-title">Other Images</h5>
                     <div class="row g-2">
                         @foreach (var img in Model.Images.Skip(1))
                         {
@@ -60,53 +60,53 @@
                     <!-- Bordered Tabs -->
                     <ul class="nav nav-tabs nav-tabs-bordered">
                         <li class="nav-item">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Tổng quan</button>
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Overview</button>
                         </li>
                     </ul>
                     <div class="tab-content pt-2">
                         <div class="tab-pane fade show active profile-overview" id="profile-overview">
-                            <h5 class="card-title">Mô tả sản phẩm</h5>
+                            <h5 class="card-title">Product Description</h5>
                             <p class="small fst-italic">@Model.Description</p>
 
-                            <h5 class="card-title">Chi tiết</h5>
+                            <h5 class="card-title">Details</h5>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Mã sản phẩm</div>
+                                <div class="col-lg-3 col-md-4 label">Product ID</div>
                                 <div class="col-lg-9 col-md-8 fw-bold">@Model.ProductID</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Tên sản phẩm</div>
+                                <div class="col-lg-3 col-md-4 label">Product Name</div>
                                 <div class="col-lg-9 col-md-8">@Model.ProductName</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Danh mục</div>
+                                <div class="col-lg-3 col-md-4 label">Category</div>
                                 <div class="col-lg-9 col-md-8">@Model.CategoryName</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Chất liệu</div>
+                                <div class="col-lg-3 col-md-4 label">Material</div>
                                 <div class="col-lg-9 col-md-8">@Model.Material</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Giá bán</div>
+                                <div class="col-lg-3 col-md-4 label">Price</div>
                                 <div class="col-lg-9 col-md-8 text-danger fw-bold">@Model.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Giảm giá</div>
+                                <div class="col-lg-3 col-md-4 label">Discount</div>
                                 <div class="col-lg-9 col-md-8">@Model.Discount%</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Số lượng tồn</div>
+                                <div class="col-lg-3 col-md-4 label">Stock Quantity</div>
                                 <div class="col-lg-9 col-md-8">@Model.StockQuantity</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Ngày tạo</div>
+                                <div class="col-lg-3 col-md-4 label">Created At</div>
                                 <div class="col-lg-9 col-md-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                             </div>
 
@@ -114,10 +114,10 @@
                     </div><!-- End Bordered Tabs -->
 
                     <div class="text-center mt-4 border-top pt-3">
-                        <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-primary px-4">
-                            <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
+                        <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-primary px-4 ajax-link">
+                            <i class="bi bi-pencil-square me-1"></i>Edit
                         </a>
-                        <a asp-action="Index" class="btn btn-secondary px-4 ms-2">Quay lại danh sách</a>
+                        <a asp-action="Index" class="btn btn-secondary px-4 ms-2 ajax-link">Back to List</a>
                     </div>
                 </div>
             </div>

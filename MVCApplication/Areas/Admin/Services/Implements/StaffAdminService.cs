@@ -78,11 +78,11 @@ namespace MVCApplication.Areas.Admin.Services.Implements
                 var errorJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(errorJson);
                 var message = doc.RootElement.GetProperty("message").GetString();
-                return (false, message ?? "Failed to create staff");
+                return (false, message ?? "Failed to create employee");
             }
             catch
             {
-                return (false, "Failed to create staff");
+                return (false, "Failed to create employee");
             }
         }
 
@@ -112,11 +112,11 @@ namespace MVCApplication.Areas.Admin.Services.Implements
                 var errorJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(errorJson);
                 var message = doc.RootElement.TryGetProperty("message", out var msgEl) ? msgEl.GetString() : null;
-                return (false, message ?? $"Failed to update staff (HTTP {(int)response.StatusCode})");
+                return (false, message ?? $"Failed to update employee (HTTP {(int)response.StatusCode})");
             }
             catch
             {
-                return (false, $"Failed to update staff (HTTP {(int)response.StatusCode})");
+                return (false, $"Failed to update employee (HTTP {(int)response.StatusCode})");
             }
         }
 

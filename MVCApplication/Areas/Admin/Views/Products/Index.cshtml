@@ -9,6 +9,12 @@
 
     bool isAdmin = User.IsInRole("Admin");
     bool isStaff = User.IsInRole("Staff");
+    var isAjax = Context.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+}
+
+@if (!isAjax)
+{
+    @:<div id="product-ajax-container">
 }
 
 <div class="pagetitle">
@@ -33,7 +39,7 @@
                     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
                         <h5 class="card-title mb-0">Product Management</h5>
 
-                        <a class="btn btn-primary"
+                        <a class="btn btn-primary ajax-link"
                            asp-area="Admin"
                            asp-controller="Products"
                            asp-action="Create">
@@ -43,7 +49,7 @@
 
                     <!-- Search -->
                     <div class="mb-3">
-                        <form method="get" class="row g-2">
+                        <form method="get" class="row g-2 ajax-form">
                             <input type="hidden" name="status" value="@status" />
                             <div class="col-md-8 col-lg-6">
                                 <div class="input-group">
@@ -57,7 +63,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4 col-lg-6">
-                                <a class="btn btn-outline-secondary"
+                                <a class="btn btn-outline-secondary ajax-link"
                                    asp-area="Admin"
                                    asp-controller="Products"
                                    asp-action="Index">
@@ -69,13 +75,13 @@
 
                     <!-- Filter -->
                     <div class="mb-4 p-3 bg-light rounded border">
-                        <form method="get" class="row g-2 align-items-center">
+                        <form method="get" class="row g-2 align-items-center ajax-form">
                             <input type="hidden" name="keyword" value="@keyword" />
                             <div class="col-auto">
                                 <label class="fw-bold me-2">Filter by status:</label>
                             </div>
                             <div class="col-md-3">
-                                <select name="status" class="form-select border-primary" onchange="this.form.submit()">
+                                <select name="status" class="form-select border-primary">
                                     <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">All</option>
                                     <option value="Active" selected="@(status == "Active")">Active</option>
                                     <option value="Pending" selected="@(status == "Pending")">Pending</option>
@@ -174,13 +180,13 @@
                                             <td class="text-end">
                                                 <div class="btn-group shadow-sm">
 
-                                                    <a class="btn btn-sm btn-outline-secondary"
+                                                    <a class="btn btn-sm btn-outline-secondary ajax-link"
                                                        asp-action="Details"
                                                        asp-route-id="@p.ProductID">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
 
-                                                    <a class="btn btn-sm btn-outline-primary"
+                                                    <a class="btn btn-sm btn-outline-primary ajax-link"
                                                        asp-action="Edit"
                                                        asp-route-id="@p.ProductID">
                                                         <i class="bi bi-pencil"></i>
@@ -188,14 +194,14 @@
 
                                                     @if (isAdmin && p.Status == "Pending")
                                                     {
-                                                        <form asp-action="Approve" asp-route-id="@p.ProductID" method="post" class="d-inline">
+                                                        <form asp-action="Approve" asp-route-id="@p.ProductID" method="post" class="d-inline ajax-post-form">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-success">
                                                                 <i class="bi bi-check-circle"></i>
                                                             </button>
                                                         </form>
 
-                                                        <form asp-action="Reject" asp-route-id="@p.ProductID" method="post" class="d-inline">
+                                                        <form asp-action="Reject" asp-route-id="@p.ProductID" method="post" class="d-inline ajax-post-form">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-danger">
                                                                 <i class="bi bi-x-circle"></i>
@@ -209,8 +215,8 @@
                                                         <form asp-action="Delete"
                                                               asp-route-id="@p.ProductID"
                                                               method="post"
-                                                              class="d-inline"
-                                                              onsubmit="return confirm('Stop selling this product?');">
+                                                              class="d-inline ajax-delete-form"
+                                                              data-confirm="Stop selling this product?">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                                 <i class="bi bi-trash"></i>
@@ -234,7 +240,7 @@
                             <ul class="pagination justify-content-center">
 
                                 <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                                    <a class="page-link"
+                                    <a class="page-link ajax-link"
                                        asp-action="Index"
                                        asp-route-pageNumber="@(Model.PageNumber - 1)"
                                        asp-route-keyword="@keyword"
@@ -246,7 +252,7 @@
                                 @for (int i = 1; i <= Model.TotalPages; i++)
                                 {
                                     <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                        <a class="page-link"
+                                        <a class="page-link ajax-link"
                                            asp-action="Index"
                                            asp-route-pageNumber="@i"
                                            asp-route-keyword="@keyword"
@@ -257,7 +263,7 @@
                                 }
 
                                 <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                                    <a class="page-link"
+                                    <a class="page-link ajax-link"
                                        asp-action="Index"
                                        asp-route-pageNumber="@(Model.PageNumber + 1)"
                                        asp-route-keyword="@keyword"
@@ -275,3 +281,166 @@
         </div>
     </div>
 </section>
+
+@if (!isAjax)
+{
+    @:</div>
+
+    @section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var container = document.getElementById('product-ajax-container');
+                if (!container) return; // Fallback in case container is missing
+
+                // Handle changes to selects inside forms (like the status filter) or radio buttons
+                container.addEventListener('change', function(e) {
+                    if (e.target.tagName === 'SELECT' && e.target.form && e.target.form.classList.contains('ajax-form')) {
+                        e.target.form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                    if (e.target.name === 'mainImageIndex') {
+                        var index = parseInt(e.target.value);
+                        var hiddens = container.querySelectorAll('input[type="hidden"][name^="Images["][name$="].IsMain"]');
+                        hiddens.forEach((hidden, hIndex) => {
+                            hidden.value = (hIndex === index).toString().toLowerCase();
+                        });
+                    }
+                });
+
+                // Handle click events (Pagination, Links)
+                container.addEventListener('click', function(e) {
+                    var link = e.target.closest('a.ajax-link');
+                    if (link) {
+                        e.preventDefault();
+                        var url = link.getAttribute('href');
+                        if (url && url !== '#') {
+                            loadAjaxContent(url);
+                        }
+                    }
+                });
+
+                // Handle form submissions
+                container.addEventListener('submit', function(e) {
+                    var form = e.target.closest('form');
+                    if (!form) return;
+
+                    if (form.classList.contains('ajax-form')) {
+                        e.preventDefault();
+                        var method = (form.getAttribute('method') || 'GET').toUpperCase();
+                        var url = form.getAttribute('action') || (method === 'GET' ? window.location.pathname : window.location.href);
+                        var formData = new FormData(form);
+
+                        if (method === 'GET') {
+                            var params = new URLSearchParams(formData).toString();
+                            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+                            loadAjaxContent(url + separator + params);
+                        } else {
+                            submitAjaxForm(form);
+                        }
+                    } else if (form.classList.contains('ajax-post-form')) {
+                        e.preventDefault();
+                        submitAjaxForm(form);
+                    } else if (form.classList.contains('ajax-delete-form')) {
+                        e.preventDefault();
+                        var msg = form.getAttribute('data-confirm') || 'Are you sure?';
+                        if (!confirm(msg)) {
+                            return;
+                        }
+                        submitAjaxForm(form, true);
+                    }
+                });
+
+                function loadAjaxContent(url) {
+                    fetch(url, {
+                        method: 'GET',
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Network response was ' + response.statusText);
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        container.innerHTML = html;
+                        window.history.pushState({ path: url }, '', url);
+                    })
+                    .catch(function(error) {
+                        if (typeof showToast === 'function') {
+                            showToast('Failed to load content. Please try again.', 'error');
+                        } else {
+                            alert('Failed to load content. Please try again.');
+                        }
+                        console.error('Error:', error);
+                    });
+                }
+
+                function submitAjaxForm(formElement, isDelete = false) {
+                    var url = formElement.getAttribute('action');
+                    var method = formElement.getAttribute('method') || 'POST';
+                    var formData = new FormData(formElement);
+
+                    fetch(url, {
+                        method: method,
+                        body: formData,
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(function(response) {
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            return response.json().then(data => ({ type: 'json', data: data }));
+                        } else {
+                            // If the response is a redirect or HTML, fetch handles it cleanly.
+                            // But usually, ASP.NET Core returns redirects. With AJAX fetch, we might get an opaque response or HTML of the new page.
+                            // Since we configured the JSON return in the controller for valid paths, HTML means an error occurred and the form needs to be re-displayed.
+                            return response.text().then(text => ({ type: 'html', data: text }));
+                        }
+                    })
+                    .then(function(result) {
+                        if (result.type === 'json') {
+                            // JSON response => Success or JSON error
+                            var data = result.data;
+                            if (data.success) {
+                                if (typeof showToast === 'function') {
+                                    showToast(data.message || 'Operation successful', 'success');
+                                }
+                                loadAjaxContent('@Url.Action("Index", "Products", new { area = "Admin" })');
+                            } else {
+                                if (typeof showToast === 'function') {
+                                    showToast(data.message || 'Error occurred', 'error');
+                                }
+                            }
+                        } else {
+                            // HTML response => Validation errors
+                            container.innerHTML = result.data;
+                            // Note: Vanilla MVC unobtrusive validation doesn't easily re-parse without jQuery.
+                            // However, server validation messages are already embedded in the HTML.
+                        }
+                    })
+                    .catch(function(error) {
+                        if (typeof showToast === 'function') {
+                            showToast('Form submission failed. Please try again.', 'error');
+                        } else {
+                            alert('Form submission failed. Please try again.');
+                        }
+                        console.error('Error:', error);
+                    });
+                }
+
+                // Handle browser back/forward buttons seamlessly via AJAX
+                window.addEventListener('popstate', function(e) {
+                    var state = e.state;
+                    if (state && state.path) {
+                        fetch(state.path, {
+                            method: 'GET',
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            container.innerHTML = html;
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                });
+            });
+        </script>
+    }
+}
