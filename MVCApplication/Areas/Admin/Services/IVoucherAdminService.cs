@@ -7,8 +7,9 @@ namespace MVCApplication.Areas.Admin.Services
     {
         Task<PagedResult<VoucherListDto>> GetPagedAsync(string? keyword, string? status, string? sortBy, int pageNumber, int pageSize);
         Task<VoucherDetailDto?> GetByIdAsync(int id);
-        Task<bool> CreateAsync(CreateVoucherDto dto);
-        Task<bool> UpdateAsync(int id, UpdateVoucherDto dto);
-        Task<bool> DeleteAsync(int id);
+        Task<VoucherOperationResult> CreateAsync(CreateVoucherDto dto, bool createdByAdmin);
+        Task<VoucherOperationResult> ApproveAsync(int id);
+        Task<VoucherOperationResult> UpdateAsync(int id, UpdateVoucherDto dto);
+        Task<VoucherOperationResult> DeleteAsync(int id);
     }
 }

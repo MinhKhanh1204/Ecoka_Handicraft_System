@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoucherAPI.Models;
 
+[Table("VOUCHERS")]
 public partial class Voucher
 {
     public int VoucherId { get; set; }

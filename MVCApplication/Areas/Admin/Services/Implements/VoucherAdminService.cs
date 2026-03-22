@@ -57,28 +57,72 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             return api?.Data;
         }
 
-        public async Task<bool> CreateAsync(CreateVoucherDto dto)
+        public async Task<VoucherOperationResult> CreateAsync(CreateVoucherDto dto, bool createdByAdmin)
         {
             var resp = await _http.PostAsJsonAsync(BasePath, dto);
-            if (!resp.IsSuccessStatusCode) return false;
-            var api = await ReadApiResponseAsync<object>(resp);
-            return api?.Success == true;
+            if (!resp.IsSuccessStatusCode)
+            {
+                // Try to read server error message
+                var api = await ReadApiResponseAsync<object>(resp);
+                var msg = api?.Message;
+                return new VoucherOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = string.IsNullOrWhiteSpace(msg)
+                        ? $"Create failed (HTTP {(int)resp.StatusCode})"
+                        : msg
+                };
+            }
+            // 201 Created
+            var successApi = await ReadApiResponseAsync<object>(resp);
+            return new VoucherOperationResult { Success = true };
         }
 
-        public async Task<bool> UpdateAsync(int id, UpdateVoucherDto dto)
+        public async Task<VoucherOperationResult> ApproveAsync(int id)
+        {
+            var resp = await _http.PostAsync($"{BasePath}/{id}/approve", null);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var api = await ReadApiResponseAsync<object>(resp);
+                return new VoucherOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = api?.Message ?? $"Approve failed (HTTP {(int)resp.StatusCode})"
+                };
+            }
+            return new VoucherOperationResult { Success = true };
+        }
+
+        public async Task<VoucherOperationResult> UpdateAsync(int id, UpdateVoucherDto dto)
         {
             var resp = await _http.PutAsJsonAsync($"{BasePath}/{id}", dto);
-            if (!resp.IsSuccessStatusCode) return false;
-            var api = await ReadApiResponseAsync<object>(resp);
-            return api?.Success == true;
+            if (!resp.IsSuccessStatusCode)
+            {
+                var api = await ReadApiResponseAsync<object>(resp);
+                return new VoucherOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = string.IsNullOrWhiteSpace(api?.Message)
+                        ? $"Update failed (HTTP {(int)resp.StatusCode})"
+                        : api!.Message
+                };
+            }
+            return new VoucherOperationResult { Success = true };
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<VoucherOperationResult> DeleteAsync(int id)
         {
             var resp = await _http.DeleteAsync($"{BasePath}/{id}");
-            if (!resp.IsSuccessStatusCode) return false;
-            var api = await ReadApiResponseAsync<object>(resp);
-            return api?.Success == true;
+            if (!resp.IsSuccessStatusCode)
+            {
+                var api = await ReadApiResponseAsync<object>(resp);
+                return new VoucherOperationResult
+                {
+                    Success = false,
+                    ErrorMessage = api?.Message ?? $"Delete failed (HTTP {(int)resp.StatusCode})"
+                };
+            }
+            return new VoucherOperationResult { Success = true };
         }
     }
 }

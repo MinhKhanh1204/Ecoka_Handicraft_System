@@ -12,9 +12,9 @@ namespace VoucherAPI.Admin.Repositories.Implements
             _context = context;
         }
 
-        public async Task<IQueryable<Voucher>> GetQueryableAsync()
+        public IQueryable<Voucher> GetQueryable()
         {
-            return await Task.FromResult(_context.Vouchers.AsNoTracking().AsQueryable());
+            return _context.Vouchers.AsNoTracking();
         }
 
         public async Task<Voucher?> GetByIdAsync(int id)
@@ -24,7 +24,11 @@ namespace VoucherAPI.Admin.Repositories.Implements
 
         public async Task<Voucher?> GetByCodeAsync(string code, int? excludeId = null)
         {
-            var query = _context.Vouchers.Where(v => v.Code == code);
+            if (string.IsNullOrWhiteSpace(code)) return null;
+            var normalized = code.Trim();
+            var lower = normalized.ToLowerInvariant();
+            var query = _context.Vouchers.Where(v =>
+                v.Code != null && v.Code.Trim().ToLower() == lower);
             if (excludeId.HasValue)
                 query = query.Where(v => v.VoucherId != excludeId.Value);
             return await query.FirstOrDefaultAsync();

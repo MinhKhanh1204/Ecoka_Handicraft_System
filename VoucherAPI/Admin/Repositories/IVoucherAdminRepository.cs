@@ -4,7 +4,7 @@ namespace VoucherAPI.Admin.Repositories
 {
     public interface IVoucherAdminRepository
     {
-        Task<IQueryable<Voucher>> GetQueryableAsync();
+        IQueryable<Voucher> GetQueryable();
         Task<Voucher?> GetByIdAsync(int id);
         Task<Voucher?> GetByCodeAsync(string code, int? excludeId = null);
         Task<Voucher> AddAsync(Voucher voucher);

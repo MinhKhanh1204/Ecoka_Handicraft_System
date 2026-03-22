@@ -7,7 +7,8 @@ namespace VoucherAPI.Admin.Services
     {
         Task<PagedResult<VoucherListDto>> GetPagedAsync(string? keyword, string? status, string? sortBy, int pageNumber, int pageSize);
         Task<VoucherDetailDto?> GetByIdAsync(int id);
-        Task<int> CreateAsync(CreateVoucherDto dto);
+        Task<int> CreateAsync(CreateVoucherDto dto, bool createdByAdmin);
+        Task<bool> ApproveAsync(int id);
         Task<bool> UpdateAsync(int id, UpdateVoucherDto dto);
         Task<bool> DeleteAsync(int id);
     }

@@ -39,9 +39,9 @@ namespace VoucherAPI.CustomValidation
                 return new ValidationResult(ErrorMessage);
             }
 
-            if (discount > 100)
+            if (discount > 50)
             {
-                return new ValidationResult("Discount percentage cannot exceed 100");
+                return new ValidationResult("Discount percentage cannot exceed 50");
             }
 
             return ValidationResult.Success;

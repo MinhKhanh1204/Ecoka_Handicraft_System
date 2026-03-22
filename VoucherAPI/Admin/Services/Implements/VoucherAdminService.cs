@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using VoucherAPI.Admin.DTOs;
 using VoucherAPI.Admin.Repositories;
 using VoucherAPI.CustomFormatter;
@@ -14,28 +15,27 @@ namespace VoucherAPI.Admin.Services.Implements
             _repository = repository;
         }
 
-        public async Task<PagedResult<VoucherListDto>> GetPagedAsync(string? keyword, string? status, string? sortBy, int pageNumber, int pageSize)
+        public Task<PagedResult<VoucherListDto>> GetPagedAsync(string? keyword, string? status, string? sortBy, int pageNumber, int pageSize)
         {
-            var query = await _repository.GetQueryableAsync();
+            var query = _repository.GetQueryable();
 
-            // Filter by keyword (UC_47 Search - name, code, discount rate, expiry date)
+            // Filter by keyword
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var k = keyword.Trim().ToLower();
                 query = query.Where(v =>
-                    (v.VoucherName != null && v.VoucherName.ToLower().Contains(k)) ||
-                    (v.Code != null && v.Code.ToLower().Contains(k)) ||
-                    (v.DiscountPercentage.HasValue && v.DiscountPercentage.ToString()!.Contains(k)));
+                    (v.VoucherName != null && EF.Functions.Like(v.VoucherName, $"%{k}%")) ||
+                    (v.Code != null && EF.Functions.Like(v.Code, $"%{k}%")));
             }
 
-            // Filter by status (Active/Inactive)
-            if (!string.IsNullOrWhiteSpace(status) && status != "All")
+            // Filter by status
+            if (!string.IsNullOrWhiteSpace(status) && !status.Equals("All", StringComparison.OrdinalIgnoreCase))
             {
                 var isActive = status.Equals("Active", StringComparison.OrdinalIgnoreCase);
                 query = query.Where(v => v.IsActive == isActive);
             }
 
-            // Sort (UC_46 pagination/sort/filter)
+            // Sort
             query = sortBy?.ToLower() switch
             {
                 "name_asc" => query.OrderBy(v => v.VoucherName),
@@ -47,7 +47,7 @@ namespace VoucherAPI.Admin.Services.Implements
                 "discount_desc" => query.OrderByDescending(v => v.DiscountPercentage),
                 "discount_asc" => query.OrderBy(v => v.DiscountPercentage),
                 "id_desc" => query.OrderByDescending(v => v.VoucherId),
-                _ => query.OrderBy(v => v.VoucherId) // default id_asc
+                _ => query.OrderBy(v => v.VoucherId)
             };
 
             var totalCount = query.Count();
@@ -67,7 +67,7 @@ namespace VoucherAPI.Admin.Services.Implements
                 })
                 .ToList();
 
-            return PagedResult<VoucherListDto>.Create(items, totalCount, pageNumber, pageSize);
+            return Task.FromResult(PagedResult<VoucherListDto>.Create(items, totalCount, pageNumber, pageSize));
         }
 
         public async Task<VoucherDetailDto?> GetByIdAsync(int id)
@@ -92,23 +92,27 @@ namespace VoucherAPI.Admin.Services.Implements
             };
         }
 
-        public async Task<int> CreateAsync(CreateVoucherDto dto)
+        public async Task<int> CreateAsync(CreateVoucherDto dto, bool createdByAdmin)
         {
-            var existing = await _repository.GetByCodeAsync(dto.Code);
+            var code = dto.Code?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(code))
+                throw new InvalidOperationException("Voucher code is required.");
+
+            var existing = await _repository.GetByCodeAsync(code);
             if (existing != null)
-                throw new InvalidOperationException($"Voucher code '{dto.Code}' already exists.");
+                throw new InvalidOperationException($"Voucher code '{code}' already exists.");
 
             var voucher = new Voucher
             {
-                VoucherName = dto.VoucherName,
-                Code = dto.Code,
+                VoucherName = dto.VoucherName?.Trim(),
+                Code = code,
                 Description = dto.Description,
                 DiscountPercentage = dto.DiscountPercentage,
                 MaxReducing = dto.MaxReducing,
                 Quantity = dto.Quantity,
                 UsageCount = 0,
                 ExpiryDate = dto.ExpiryDate,
-                IsActive = dto.IsActive,
+                IsActive = createdByAdmin ? dto.IsActive : false,
                 MinOrderValue = dto.MinOrderValue,
                 MaxUsagePerUser = dto.MaxUsagePerUser
             };
@@ -117,12 +121,21 @@ namespace VoucherAPI.Admin.Services.Implements
             return created.VoucherId;
         }
 
+        public async Task<bool> ApproveAsync(int id)
+        {
+            var voucher = await _repository.GetByIdAsync(id);
+            if (voucher == null) return false;
+
+            voucher.IsActive = true;
+            await _repository.UpdateAsync(voucher);
+            return true;
+        }
+
         public async Task<bool> UpdateAsync(int id, UpdateVoucherDto dto)
         {
             var voucher = await _repository.GetByIdAsync(id);
             if (voucher == null) return false;
 
-            // Validate: Quantity cannot be less than already used count
             if (voucher.UsageCount.HasValue && dto.Quantity < voucher.UsageCount.Value)
             {
                 throw new InvalidOperationException(

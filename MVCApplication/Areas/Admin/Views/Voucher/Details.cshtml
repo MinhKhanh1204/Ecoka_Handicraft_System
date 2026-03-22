@@ -7,7 +7,7 @@
 }
 
 <div class="pagetitle">
-    <h1>Voucher Details (UC_51)</h1>
+    <h1>Voucher Details</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
@@ -25,9 +25,9 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-ticket-perforated me-2"></i>@Model.VoucherName
                         @if (Model.IsActive == true)
-                        { <span class="badge bg-light text-dark ms-2">Active</span> }
+                        { <span class="badge bg-success text-white">Active</span> }
                         else
-                        { <span class="badge bg-secondary ms-2">Inactive</span> }
+                        { <span class="badge bg-danger text-white">Inactive</span> }
                     </h5>
                 </div>
                 <div class="card-body">
@@ -68,9 +68,9 @@
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
                             @if (Model.IsActive == true)
-                            { <span class="badge bg-success">Active</span> }
+                            { <span class="badge bg-success text-white">Active</span> }
                             else
-                            { <span class="badge bg-secondary">Inactive</span> }
+                            { <span class="badge bg-danger text-white">Inactive</span> }
                         </dd>
                     </dl>
                 </div>

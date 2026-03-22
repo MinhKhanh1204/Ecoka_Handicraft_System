@@ -486,6 +486,25 @@
             addPendingVoucherRow(voucher);
         });
 
+        // Listen for Voucher approval/rejection broadcasts
+        connection.on("VoucherApproved", function (data) {
+            const row = document.getElementById(`voucher-row-${data.voucherId}`);
+            if (row) {
+                row.remove();
+                updateCount('voucher-count', -1);
+            }
+            showToast(`Voucher ${data.voucherId} has been approved by another admin`, true);
+        });
+
+        connection.on("VoucherRejected", function (data) {
+            const row = document.getElementById(`voucher-row-${data.voucherId}`);
+            if (row) {
+                row.remove();
+                updateCount('voucher-count', -1);
+            }
+            showToast(`Voucher ${data.voucherId} has been rejected by another admin`, false);
+        });
+
         connection.start()
             .then(() => console.log('SignalR connected for PendingApprovalHub'))
             .catch(err => console.error('SignalR connection error (PendingApprovalHub):', err));

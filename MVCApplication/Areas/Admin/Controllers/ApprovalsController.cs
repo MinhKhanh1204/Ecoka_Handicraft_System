@@ -14,6 +14,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly IProductAdminService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IVoucherService _voucherService;
+        private readonly IVoucherAdminService _voucherAdminService;
         private readonly IHubContext<PendingApprovalHub> _hubContext;
         private readonly IHubContext<CategoryHub> _categoryHubContext;
 
@@ -21,12 +22,14 @@ namespace MVCApplication.Areas.Admin.Controllers
             IProductAdminService productService,
             ICategoryService categoryService,
             IVoucherService voucherService,
+            IVoucherAdminService voucherAdminService,
             IHubContext<PendingApprovalHub> hubContext,
             IHubContext<CategoryHub> categoryHubContext)
         {
             _productService = productService;
             _categoryService = categoryService;
             _voucherService = voucherService;
+            _voucherAdminService = voucherAdminService;
             _hubContext = hubContext;
             _categoryHubContext = categoryHubContext;
         }
@@ -137,23 +140,63 @@ namespace MVCApplication.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ApproveVoucher(int id)
+        public async Task<IActionResult> ApproveVoucher(int id)
         {
+            var result = await _voucherAdminService.ApproveAsync(id);
+
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("VoucherApproved", new { voucherId = id });
+            }
+
             return Json(new
             {
-                success = false,
-                message = "Voucher approval is not implemented yet"
+                success = result.Success,
+                message = result.Success
+                    ? "Voucher approved successfully"
+                    : (result.ErrorMessage ?? "Failed to approve voucher"),
+                id
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RejectVoucher(int id)
+        public async Task<IActionResult> RejectVoucher(int id)
         {
+            // Get voucher to check if it exists, then mark inactive via Update
+            var voucher = await _voucherAdminService.GetByIdAsync(id);
+            if (voucher == null)
+            {
+                return Json(new { success = false, message = "Voucher not found", id });
+            }
+
+            var dto = new UpdateVoucherDto
+            {
+                VoucherName = voucher.VoucherName ?? "",
+                Description = voucher.Description,
+                DiscountPercentage = voucher.DiscountPercentage ?? 0,
+                MaxReducing = voucher.MaxReducing,
+                Quantity = voucher.Quantity ?? 0,
+                ExpiryDate = voucher.ExpiryDate ?? DateOnly.FromDateTime(DateTime.Today),
+                MinOrderValue = voucher.MinOrderValue,
+                MaxUsagePerUser = voucher.MaxUsagePerUser,
+                IsActive = false
+            };
+
+            var result = await _voucherAdminService.UpdateAsync(id, dto);
+
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("VoucherRejected", new { voucherId = id });
+            }
+
             return Json(new
             {
-                success = false,
-                message = "Voucher rejection is not implemented yet"
+                success = result.Success,
+                message = result.Success
+                    ? "Voucher rejected successfully"
+                    : (result.ErrorMessage ?? "Failed to reject voucher"),
+                id
             });
         }
     }
