@@ -107,8 +107,8 @@ namespace MVCApplication.Controllers
 			if (User.IsInRole("Admin"))
 				return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-			if (User.IsInRole("Staff"))
-				return RedirectToAction("Index", "Dashboard", new { area = "Staff" });
+			if (User.IsInRole("Employee"))
+				return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
 
 			return RedirectToAction("Index", "Home");
 		}

@@ -1,4 +1,5 @@
-﻿using MVCApplication.CustomFormatter;
+﻿using Azure.Core;
+using MVCApplication.CustomFormatter;
 using MVCApplication.Models.DTOs;
 
 namespace MVCApplication.Services.Implements
@@ -40,5 +41,23 @@ namespace MVCApplication.Services.Implements
 
 			return result?.Data;
 		}
-	}
+
+		public async Task<PagedResult<ProductDto>> GetAllProductsAsync(ProductFilterRequestDto productFilterRequestDto)
+		{
+			var response = await _httpClient.PostAsJsonAsync("/products/filter", productFilterRequestDto);
+			response.EnsureSuccessStatusCode();
+
+			var result = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResult<ProductDto>>>();
+			return result?.Data ?? new PagedResult<ProductDto>();
+		}
+
+        public async Task<List<ProductDto>> GetTopDiscountProductsAsync(int top = 10)
+        {
+            var response = await _httpClient.GetAsync("/products/top-discount");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<ProductDto>>>();
+            return result?.Data ?? new List<ProductDto>();
+        }
+    }
 }

@@ -26,11 +26,25 @@ namespace ProductAPI.Controllers
             return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(products));
         }
 
-        [HttpGet("{id}")]
+		[HttpPost("filter")]
+		public async Task<IActionResult> FilterProducts(ProductFilterRequestDto request)
+		{
+			var result = await _service.FilterProductsAsync(request);
+			return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result));
+		}
+
+		[HttpGet("{id}")]
         public async Task<IActionResult> GetProductDetail(string id)
         {
             var result = await _service.GetProductDetailAsync(id);
             return Ok(ApiResponse<ProductDetailResponseDto>.SuccessResponse(result));
+        }
+
+        [HttpGet("top-discount")]
+        public async Task<IActionResult> GetTopDiscountProducts()
+        {
+            var result = await _service.GetTopDiscountProductsAsync(10);
+            return Ok(ApiResponse<List<ProductDto>>.SuccessResponse(result));
         }
     }
 }

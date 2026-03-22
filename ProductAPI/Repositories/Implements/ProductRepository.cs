@@ -21,7 +21,18 @@ namespace ProductAPI.Repositories.Implements
 				.ToList();
 		}
 
-        public async Task<Product> GetProductDetailAsync(string productId)
+		public Task<IQueryable<Product>> GetQueryableAsync()
+		{
+			var query = _context.Products
+				.Include(p => p.Category)
+				.Include(p => p.ProductImages)
+				.Where(p => p.Status == "Active")
+				.AsQueryable();
+
+			return Task.FromResult(query);
+		}
+
+		public async Task<Product> GetProductDetailAsync(string productId)
         {
             return await _context.Products
                 .Include(p => p.Category)
