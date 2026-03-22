@@ -17,6 +17,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly IVoucherAdminService _voucherAdminService;
         private readonly IHubContext<PendingApprovalHub> _hubContext;
         private readonly IHubContext<CategoryHub> _categoryHubContext;
+        private readonly IHubContext<ProductHub> _productHubContext;
 
         public ApprovalsController(
             IProductAdminService productService,
@@ -24,7 +25,8 @@ namespace MVCApplication.Areas.Admin.Controllers
             IVoucherService voucherService,
             IVoucherAdminService voucherAdminService,
             IHubContext<PendingApprovalHub> hubContext,
-            IHubContext<CategoryHub> categoryHubContext)
+            IHubContext<CategoryHub> categoryHubContext,
+            IHubContext<ProductHub> productHubContext)
         {
             _productService = productService;
             _categoryService = categoryService;
@@ -32,6 +34,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             _voucherAdminService = voucherAdminService;
             _hubContext = hubContext;
             _categoryHubContext = categoryHubContext;
+            _productHubContext = productHubContext;
         }
 
         [HttpGet]
@@ -68,6 +71,11 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             var ok = await _productService.ApproveAsync(id);
 
+            if (ok)
+            {
+                await _productHubContext.Clients.All.SendAsync("ProductApprovalStatusChanged", new { productId = id, status = "Active" });
+            }
+
             return Json(new
             {
                 success = ok,
@@ -84,6 +92,11 @@ namespace MVCApplication.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Invalid product id" });
 
             var ok = await _productService.RejectAsync(id);
+
+            if (ok)
+            {
+                await _productHubContext.Clients.All.SendAsync("ProductApprovalStatusChanged", new { productId = id, status = "Rejected" });
+            }
 
             return Json(new
             {

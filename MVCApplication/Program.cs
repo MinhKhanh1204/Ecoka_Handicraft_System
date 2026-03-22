@@ -123,4 +123,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<PendingApprovalHub>("/pending-approval-hub");
 app.MapHub<CategoryHub>("/category-hub");
+app.MapHub<ProductHub>("/product-hub");
 app.Run();
