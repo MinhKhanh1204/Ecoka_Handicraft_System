@@ -120,5 +120,12 @@ namespace MVCApplication.Services.Implements
         {
             return await GetOrderDetailAsync(orderId);
         }
+
+        public async Task<int> GetVoucherUsageCountAsync(int voucherId)
+        {
+            var resp = await _http.GetAsync($"customer/orders/voucher-usage/{voucherId}");
+            if (!resp.IsSuccessStatusCode) return 0;
+            return await resp.Content.ReadFromJsonAsync<int>();
+        }
     }
 }

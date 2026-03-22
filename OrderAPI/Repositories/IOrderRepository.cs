@@ -33,5 +33,6 @@ namespace OrderAPI.Repositories
             string paymentStatus,
             string note);
 
+        Task<int> GetVoucherUsageCountAsync(string customerId, int voucherId);
     }
 }

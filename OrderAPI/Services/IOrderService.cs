@@ -26,6 +26,7 @@ namespace OrderAPI.Services
         Task<bool> CancelOrderAsync(string orderId, string cancelReason);
         Task<OrderReadDto?> GetByIdAsync(string orderId);
         Task<bool> HasCustomerPurchasedProductAsync(string customerId, string productId);
+        Task<int> GetVoucherUsageCountAsync(string customerId, int voucherId);
 
         Task<OrderReadDto> CreateAsync(OrderCreateDto dto);
 
