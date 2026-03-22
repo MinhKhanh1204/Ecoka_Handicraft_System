@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.CustomFormatter;
@@ -31,6 +31,14 @@ namespace ProductAPI.Controllers
         {
             var result = await _service.GetProductDetailAsync(id);
             return Ok(ApiResponse<ProductDetailResponseDto>.SuccessResponse(result));
+        }
+
+        [HttpPut("{id}/stock")]
+        public async Task<IActionResult> UpdateStock(string id, [FromBody] int quantityChange)
+        {
+            var success = await _service.UpdateStockAsync(id, quantityChange);
+            if (!success) return NotFound(ApiResponse<bool>.Fail("Product not found or update failed", 404));
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Stock updated successfully"));
         }
     }
 }

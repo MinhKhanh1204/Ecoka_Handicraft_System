@@ -41,25 +41,6 @@ namespace CartAPI.Controllers
                 .AsNoTracking();
         }
 
-        // Lấy cart theo CartId (nếu thực sự cần)
-        [HttpGet("carts({CartId})")]
-        [EnableQuery]
-        public IActionResult GetCart([FromRoute] int CartId)
-        {
-            var customerId = User.FindFirst("accountID")?.Value;
-            if (string.IsNullOrEmpty(customerId))
-                return Unauthorized();
-
-            var cart = _context.Carts
-                .Include(c => c.CartItems)
-                .Where(c => c.CartId == CartId && c.CustomerId == customerId)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (cart == null)
-                return NotFound();
-
-            return Ok(cart);
-        }
+        
     }
 }

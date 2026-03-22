@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 
 namespace ProductAPI.Repositories.Implements
@@ -28,6 +28,19 @@ namespace ProductAPI.Repositories.Implements
                 .Include(p => p.ProductImages)
                 .Where(p => p.Status == "Active")
                 .FirstOrDefaultAsync(p => p.ProductID == productId);
+        }
+
+        public async Task<bool> UpdateStockAsync(string productId, int quantityChange)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null) return false;
+
+            product.StockQuantity += quantityChange;
+
+            // Optional: prevent negative stock if desired, but here we just update
+            if (product.StockQuantity < 0) product.StockQuantity = 0;
+
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

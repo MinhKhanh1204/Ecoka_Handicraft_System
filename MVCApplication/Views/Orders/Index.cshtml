@@ -289,7 +289,9 @@ async function showOrderDetail(orderId) {
             <div class="spinner-border text-dark"></div>
         </div>`;
 
-    const response = await fetch(`/customer/orders/${orderId}`);
+    const response = await fetch(`/customer/orders/${orderId}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
 
     if (!response.ok) {
 

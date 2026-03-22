@@ -189,7 +189,7 @@ namespace PaymentAPI.Controllers
             }
 
             // Redirect back to MVC frontend
-            string redirectUrl = _configuration["Momo:RedirectUrl"] ?? "https://localhost:7010/Orders/PaymentCallback";
+            string redirectUrl = _configuration["Momo:RedirectUrl"] ?? "https://localhost:7010/customer/orders/payment-callback";
             return Redirect(redirectUrl + Request.QueryString);
         }
 

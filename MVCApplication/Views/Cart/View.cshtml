@@ -413,7 +413,7 @@
                 toastr.info('Please select at least 1 item to proceed to checkout!');
                 return;
             }
-            window.location.href = `/Orders/Checkout?cartItemIds=${selectedIds.join(',')}`;
+            window.location.href = `/customer/orders/checkout?cartItemIds=${selectedIds.join(',')}`;
         }
     </script>
 }

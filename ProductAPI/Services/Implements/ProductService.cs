@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ProductAPI.DTOs;
 using ProductAPI.Exceptions;
 using ProductAPI.Repositories;
@@ -34,6 +34,11 @@ namespace ProductAPI.Services.Implements
                 .FirstOrDefault(x => x.IsMain == true)?.ImageURL;
 
             return _mapper.Map<ProductDetailResponseDto>(product, opt => opt.Items["MainImage"] = mainImage);
+        }
+
+        public async Task<bool> UpdateStockAsync(string productId, int quantityChange)
+        {
+            return await _repo.UpdateStockAsync(productId, quantityChange);
         }
     }
 }

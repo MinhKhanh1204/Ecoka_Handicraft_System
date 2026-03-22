@@ -184,7 +184,8 @@ namespace MVCApplication.Controllers
                     return Redirect(url);
             }
 
-            return RedirectToAction(nameof(Details), new { id = newOrder.OrderID });
+            TempData["success"] = "Đơn hàng đã được đặt thành công (COD). Cảm ơn bạn đã mua sắm!";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet("payment-callback")]
@@ -297,7 +298,11 @@ namespace MVCApplication.Controllers
                     }
                 }
 
-                return PartialView("_OrderDetailPartial", order);
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return PartialView("_OrderDetailPartial", order);
+                }
+                return View(order);
             }
             catch (Exception ex)
             {

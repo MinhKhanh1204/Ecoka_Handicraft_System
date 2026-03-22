@@ -147,7 +147,8 @@
 <!-- Checkout Page Start -->
 <div class="container-fluid py-5 bg-light">
     <div class="container py-5">
-        <form action="/Orders/CreateOrder" method="post">
+        <form action="/customer/orders/create" method="post">
+            @Html.AntiForgeryToken()
             <input type="hidden" name="cartItemIds" value="@string.Join(",", Model.SelectedItems.Select(i => i.CartItemId))" />
             <input type="hidden" id="hidVoucherId" name="VoucherId" value="" />
             <input type="hidden" id="hidPaymentMethod" name="PaymentMethod" value="COD" />
