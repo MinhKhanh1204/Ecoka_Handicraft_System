@@ -122,6 +122,10 @@
             .build();
 
         connection.on("CategoryApprovalStatusChanged", function (data) {
+            if (typeof showToast === 'function') {
+                showToast('Category status updated to ' + data.status, 'info');
+            }
+
             const rowId = 'category-row-' + data.categoryId;
             const row = document.getElementById(rowId);
             

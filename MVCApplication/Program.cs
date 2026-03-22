@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MVCApplication.Areas.Admin.Services;
@@ -84,6 +85,21 @@ builder.Services
             NameClaimType = "username",
             RoleClaimType = "role"
         };
+    }).AddCookie().AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["GoogleAuth:ClientId"];
+        options.ClientSecret = builder.Configuration["GoogleAuth:ClientSecret"];
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddFacebook(options =>
+    {
+        options.AppId = builder.Configuration["FacebookAuth:AppId"];
+        options.AppSecret = builder.Configuration["FacebookAuth:AppSecret"];
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.Fields.Add("name");
+        options.Fields.Add("email");
+        options.Fields.Add("picture");
+        options.SaveTokens = true;
     });
 
 builder.Services.AddAuthorization();
@@ -123,4 +139,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<PendingApprovalHub>("/pending-approval-hub");
 app.MapHub<CategoryHub>("/category-hub");
+app.MapHub<ProductHub>("/product-hub");
 app.Run();

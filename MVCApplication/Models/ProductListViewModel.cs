@@ -9,7 +9,7 @@ namespace MVCApplication.Models
 		public List<CategoryDto> Categories { get; set; }
         public string SectionTitle { get; internal set; }
     }
-	
+
 	public class ProductSearchViewModel
 	{
 

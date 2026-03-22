@@ -29,6 +29,16 @@
                         </div>
                         <button class="w-100 btn form-control border-secondary py-3 bg-white text-primary " type="submit">Login</button>
                         <a class="w-100 btn form-control py-3 bg-primary text-white" style="margin-top: 10px" href="/Account/Register">Register</a>
+                        <div style="text-align: center; margin-top: 10px">
+                        <a asp-controller="Account" asp-action="LoginGoogle" class="btn btn-danger">
+                            Login with Google
+                        </a>
+
+                        <a asp-controller="Account" asp-action="LoginFacebook" class="btn btn-secondary">
+                            Login with Facebook
+                            </a>
+                        </div>
+
                     </form>
                 </div>
                 <div class="col-lg-5">
