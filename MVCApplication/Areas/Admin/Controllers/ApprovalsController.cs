@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +47,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             // Get categories and filter those not yet Active (staff-created might be Pending/Rejected/etc.)
             var allCategories = await _categoryService.GetAllAsync();
             var pendingCategories = allCategories?
-                .Where(c => !string.Equals(c.Status, "Active", System.StringComparison.OrdinalIgnoreCase))
+                .Where(c => string.Equals(c.Status, "Pending", System.StringComparison.OrdinalIgnoreCase))
                 .ToList() ?? new List<ReadCategoryDto>();
 
             // Get vouchers and treat inactive vouchers as awaiting approval
@@ -98,8 +98,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveCategory(int id)
         {
-            var dto = new CategoryUpdateDto { Status = "Active" };
-            var ok = await _categoryService.UpdateAsync(id, dto);
+            var ok = await _categoryService.ApproveAsync(id);
             TempData["ToastType"] = ok ? "success" : "error";
             TempData["ToastMessage"] = ok ? "Category approved" : "Failed to approve category";
             return RedirectToAction(nameof(Index));
@@ -109,8 +108,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectCategory(int id)
         {
-            var dto = new CategoryUpdateDto { Status = "Rejected" };
-            var ok = await _categoryService.UpdateAsync(id, dto);
+            var ok = await _categoryService.RejectAsync(id);
             TempData["ToastType"] = ok ? "error" : "error";
             TempData["ToastMessage"] = ok ? "Category rejected" : "Failed to reject category";
             return RedirectToAction(nameof(Index));

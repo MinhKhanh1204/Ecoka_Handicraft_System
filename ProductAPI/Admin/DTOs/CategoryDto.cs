@@ -12,7 +12,7 @@ namespace ProductAPI.Admin.DTOs
     {
         public string CategoryName { get; set; } = null!;
         public string? Description { get; set; }
-        public string Status { get; set; } = "Active";
+        public string Status { get; set; } = "Pending";
     }
 
     public class CategoryUpdateDto
