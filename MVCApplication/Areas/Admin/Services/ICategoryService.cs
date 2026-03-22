@@ -10,6 +10,8 @@ namespace MVCApplication.Areas.Admin.Services
         Task<ReadCategoryDto?> CreateAsync(CategoryCreateDto dto);
         Task<bool> UpdateAsync(int id, CategoryUpdateDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<bool> ApproveAsync(int id);
+        Task<bool> RejectAsync(int id);
     }
 }
 

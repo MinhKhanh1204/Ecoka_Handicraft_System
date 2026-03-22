@@ -90,5 +90,31 @@ namespace ProductAPI.Admin.Controllers
             return Ok(ApiResponse<bool>
                 .SuccessResponse(true, "Deleted successfully"));
         }
+
+        [HttpPut("approve/{id}")]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var result = await _service.ApproveAsync(id);
+
+            if (!result)
+                return NotFound(ApiResponse<bool>
+                    .Fail("Category not found", 404));
+
+            return Ok(ApiResponse<bool>
+                .SuccessResponse(true, "Approved successfully"));
+        }
+
+        [HttpPut("reject/{id}")]
+        public async Task<IActionResult> Reject(int id)
+        {
+            var result = await _service.RejectAsync(id);
+
+            if (!result)
+                return NotFound(ApiResponse<bool>
+                    .Fail("Category not found", 404));
+
+            return Ok(ApiResponse<bool>
+                .SuccessResponse(true, "Rejected successfully"));
+        }
     }
 }
