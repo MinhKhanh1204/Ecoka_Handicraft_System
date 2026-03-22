@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 ﻿using ProductAPI.CustomFormatter;
-=======
-using ProductAPI.CustomFormatter;
->>>>>>> bcf93a6f09ad5705e4c5c79e6444c15a4ebf0c29
 using ProductAPI.DTOs;
 
 namespace ProductAPI.Services
