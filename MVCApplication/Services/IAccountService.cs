@@ -12,5 +12,6 @@ namespace MVCApplication.Services
         Task<bool> ResetPasswordAsync(ResetPasswordViewModel model);
         Task<ProfileViewModel> GetProfileAsync();
         Task<CustomFormatter.ApiResponse<object>> UpdateProfileAsync(ProfileViewModel model, IFormFile? avatar);
+        Task<CustomFormatter.ApiResponse<LoginResponseDto>> LoginSocialAsync(string email);
     }
 }

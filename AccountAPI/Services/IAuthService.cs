@@ -16,5 +16,7 @@ namespace AccountAPI.Services
 		Task<ProfileResponseDto> GetProfileAsync(string accountId);
 
 		Task UpdateProfileAsync(string accountId, UpdateProfileRequestDto request);
-	}
+
+        Task<LoginResponseDto> LoginSocial(SocialLoginRequestDto request);
+    }
 }
