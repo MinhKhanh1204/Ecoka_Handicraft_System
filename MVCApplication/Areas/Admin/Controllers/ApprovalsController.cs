@@ -3,6 +3,8 @@ using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Models.DTOs;
 using MVCApplication.Services;
+using Microsoft.AspNetCore.SignalR;
+using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -12,15 +14,21 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly IProductAdminService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IVoucherService _voucherService;
+        private readonly IHubContext<PendingApprovalHub> _hubContext;
+        private readonly IHubContext<CategoryHub> _categoryHubContext;
 
         public ApprovalsController(
             IProductAdminService productService,
             ICategoryService categoryService,
-            IVoucherService voucherService)
+            IVoucherService voucherService,
+            IHubContext<PendingApprovalHub> hubContext,
+            IHubContext<CategoryHub> categoryHubContext)
         {
             _productService = productService;
             _categoryService = categoryService;
             _voucherService = voucherService;
+            _hubContext = hubContext;
+            _categoryHubContext = categoryHubContext;
         }
 
         [HttpGet]
@@ -91,6 +99,11 @@ namespace MVCApplication.Areas.Admin.Controllers
             // Use the dedicated ApproveAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.ApproveAsync(id);
 
+            if (ok)
+            {
+                await _categoryHubContext.Clients.All.SendAsync("CategoryApprovalStatusChanged", new { categoryId = id, status = "Active" });
+            }
+
             return Json(new
             {
                 success = ok,
@@ -105,6 +118,11 @@ namespace MVCApplication.Areas.Admin.Controllers
         {
             // Use the dedicated RejectAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.RejectAsync(id);
+
+            if (ok)
+            {
+                await _categoryHubContext.Clients.All.SendAsync("CategoryApprovalStatusChanged", new { categoryId = id, status = "Rejected" });
+            }
 
             return Json(new
             {
