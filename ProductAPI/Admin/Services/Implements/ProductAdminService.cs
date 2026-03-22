@@ -228,15 +228,15 @@ namespace ProductAPI.Admin.Services.Implements
         }
 
         // ================= ADMIN APPROVE / REJECT =================
-        public async Task ApproveAsync(string id)
-        {
-            await ChangeStatusAsync(id, ProductStatus.Approved);
-        }
+        //public async Task ApproveAsync(string id)
+        //{
+        //    await ChangeStatusAsync(id, ProductStatus.Approved);
+        //}
 
-        public async Task RejectAsync(string id)
-        {
-            await ChangeStatusAsync(id, ProductStatus.Rejected);
-        }
+        //public async Task RejectAsync(string id)
+        //{
+        //    await ChangeStatusAsync(id, ProductStatus.Rejected);
+        //}
 
         public async Task DeleteAsync(string id)
         {
@@ -250,19 +250,23 @@ namespace ProductAPI.Admin.Services.Implements
             if (product == null)
                 throw new Exception("Product not found.");
 
-            var allowedTransitions = new Dictionary<string, List<string>>
+            // 🚀 Cho phép delete từ mọi trạng thái
+            if (newStatus != ProductStatus.Inactive)
             {
-                { ProductStatus.Pending, new List<string> { ProductStatus.Approved, ProductStatus.Rejected } },
-                { ProductStatus.Rejected, new List<string> { ProductStatus.Approved } },
-                { ProductStatus.Approved, new List<string> { ProductStatus.Inactive } },
-                { ProductStatus.Inactive, new List<string>() }
-            };
+                var allowedTransitions = new Dictionary<string, List<string>>
+        {
+            { ProductStatus.Pending, new List<string> { ProductStatus.Approved, ProductStatus.Rejected } },
+            { ProductStatus.Rejected, new List<string> { ProductStatus.Approved } },
+            { ProductStatus.Approved, new List<string> { ProductStatus.Inactive } },
+            { ProductStatus.Inactive, new List<string>() }
+        };
 
-            if (!allowedTransitions.ContainsKey(product.Status) ||
-                !allowedTransitions[product.Status].Contains(newStatus))
-            {
-                throw new Exception(
-                    $"Cannot change status from {product.Status} to {newStatus}.");
+                if (!allowedTransitions.ContainsKey(product.Status) ||
+                    !allowedTransitions[product.Status].Contains(newStatus))
+                {
+                    throw new Exception(
+                        $"Cannot change status from {product.Status} to {newStatus}.");
+                }
             }
 
             product.Status = newStatus;
