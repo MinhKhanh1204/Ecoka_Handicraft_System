@@ -297,6 +297,10 @@
     color: var(--bs-secondary);
 }
 
+.fruite .fruite-categorie .fruite-name a.active {
+    color: var(--bs-secondary);
+}
+
 .fruite .fruite-item {
     height: 100%;
     transition: 0.5s;
@@ -494,4 +498,8 @@
     line-height: 35px;
 }
 /*** Footer End ***/
-
+.pagination a.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+    cursor: not-allowed;
+}

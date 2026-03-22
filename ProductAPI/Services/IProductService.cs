@@ -1,3 +1,4 @@
+﻿using ProductAPI.CustomFormatter;
 using ProductAPI.DTOs;
 
 namespace ProductAPI.Services
@@ -7,5 +8,8 @@ namespace ProductAPI.Services
 		List<ProductDto> GetAllProducts();
         Task<ProductDetailResponseDto> GetProductDetailAsync(string productId);
         Task<bool> UpdateStockAsync(string productId, int quantityChange);
+		Task<PagedResult<ProductDto>> FilterProductsAsync(ProductFilterRequestDto request);
+		Task<ProductDetailResponseDto> GetProductDetailAsync(string productId);
+        Task<List<ProductDto>> GetTopDiscountProductsAsync(int top = 10);
     }
 }
