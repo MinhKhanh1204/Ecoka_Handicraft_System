@@ -30,7 +30,7 @@ namespace ProductAPI.Admin.Services.Implements
             // ================= FILTER =================
 
             if (!string.IsNullOrWhiteSpace(userRole) &&
-                userRole.Equals("Staff", StringComparison.OrdinalIgnoreCase))
+                userRole.Equals("Employee", StringComparison.OrdinalIgnoreCase))
             {
                 query = query.Where(p => p.Status != ProductStatus.Rejected);
             }

@@ -1,8 +1,7 @@
 @model MVCApplication.Areas.Admin.DTOs.StaffDetailViewModel
 
 @{
-    ViewData["Title"] = "Staff Details";
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Employee Details";
 }
 
 <div class="container-fluid">
@@ -11,7 +10,7 @@
 
             <div class="card shadow-sm mb-5">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">Staff Information</h3>
+                    <h3 class="card-title mb-0">Employee Information</h3>
                 </div>
 
                 <div class="card-body">
@@ -49,7 +48,7 @@
                                     }
                                     else
                                     {
-                                        <span class="badge bg-info text-dark px-3 py-2">Staff</span>
+                                        <span class="badge bg-info text-dark px-3 py-2">Employee</span>
                                     }
 
                                     @if (Model.Status)
@@ -122,12 +121,12 @@
 
                     <a asp-action="Edit"
                        asp-route-id="@Model.StaffId"
-                       class="btn btn-warning me-2">
+                       class="btn btn-warning me-2 ajax-link">
                         <i class="bi bi-pencil"></i> Edit
                     </a>
 
                     <a asp-action="Index"
-                       class="btn btn-secondary">
+                       class="btn btn-secondary ajax-link">
                         <i class="bi bi-arrow-left"></i> Back
                     </a>
 

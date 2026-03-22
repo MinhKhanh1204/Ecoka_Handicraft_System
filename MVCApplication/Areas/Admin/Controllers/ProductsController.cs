@@ -29,6 +29,9 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             var pagedResult = await _productService.GetPagedAsync(keyword, status, pageNumber, pageSize);
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Index", pagedResult);
+
             return View(pagedResult);
         }
 
@@ -38,6 +41,9 @@ namespace MVCApplication.Areas.Admin.Controllers
             var product = await _productService.GetByIdAsync(id);
             if (product == null) return NotFound();
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Details", product);
+
             return View(product);
         }
 
@@ -46,6 +52,10 @@ namespace MVCApplication.Areas.Admin.Controllers
         {
             var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
             ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName");
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Create", new CreateProductDto());
+                
             return View(new CreateProductDto());
         }
 
@@ -57,6 +67,10 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Create", dto);
+                    
                 return View(dto);
             }
 
@@ -65,9 +79,17 @@ namespace MVCApplication.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Failed to create product.");
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Create", dto);
+                    
                 return View(dto);
             }
             await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = "Product created successfully" });
+                
             return RedirectToAction(nameof(Index));
         }
 
@@ -111,6 +133,10 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             ViewBag.ProductID = id;
             ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Edit", dto);
+
             return View(dto);
         }
 
@@ -131,6 +157,10 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Edit", dto);
+                    
                 return View(dto);
             }
 
@@ -147,8 +177,15 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Edit", dto);
+                    
                 return View(dto);
             }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = "Product updated successfully" });
 
             return RedirectToAction(nameof(Index));
         }
@@ -157,6 +194,10 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             await _productService.DeleteAsync(id);
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = "Product deleted successfully" });
+                
             return RedirectToAction(nameof(Index));
         }
     }
