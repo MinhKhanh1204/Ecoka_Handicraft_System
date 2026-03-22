@@ -143,30 +143,23 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             return api?.Success == true;
         }
 
+        // Use dedicated endpoints on Product API to change status (faster and avoids full payloads).
         public async Task<bool> ApproveAsync(string id)
         {
-            var product = await GetByIdAsync(id);
-            if (product == null) return false;
+            var resp = await _http.PutAsync($"{BasePath}/approve/{id}", null);
+            if (!resp.IsSuccessStatusCode) return false;
 
-            var dto = new UpdateProductDto
-            {
-                Status = "Active"
-            };
-
-            return await UpdateAsync(id, dto);
+            var api = await ReadApiResponseAsync<object>(resp);
+            return api?.Success == true;
         }
 
         public async Task<bool> RejectAsync(string id)
         {
-            var product = await GetByIdAsync(id);
-            if (product == null) return false;
+            var resp = await _http.PutAsync($"{BasePath}/reject/{id}", null);
+            if (!resp.IsSuccessStatusCode) return false;
 
-            var dto = new UpdateProductDto
-            {
-                Status = "Rejected"
-            };
-
-            return await UpdateAsync(id, dto);
+            var api = await ReadApiResponseAsync<object>(resp);
+            return api?.Success == true;
         }
     }
 }

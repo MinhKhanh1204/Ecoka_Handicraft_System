@@ -1,9 +1,6 @@
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Areas.Admin.DTOs;
+using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Models.DTOs;
 using MVCApplication.Services;
 
@@ -37,11 +34,9 @@ namespace MVCApplication.Areas.Admin.Controllers
                     pageNumber: 1,
                     pageSize: 50),
 
-            // Get categories and filter those not yet Active (staff-created might be Pending/Rejected/etc.)
-            var allCategories = await _categoryService.GetAllAsync();
-            var pendingCategories = allCategories?
-                .Where(c => string.Equals(c.Status, "Pending", System.StringComparison.OrdinalIgnoreCase))
-                .ToList() ?? new List<ReadCategoryDto>();
+                PendingCategories = (await _categoryService.GetAllAsync())
+                    ?.Where(x => string.Equals(x.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                    .ToList() ?? new List<ReadCategoryDto>(),
 
                 PendingVouchers = (await _voucherService.GetAllVouchersAsync())
                     ?.Where(x => !(x.IsActive ?? false))
@@ -93,20 +88,30 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveCategory(int id)
         {
+            // Use the dedicated ApproveAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.ApproveAsync(id);
-            TempData["ToastType"] = ok ? "success" : "error";
-            TempData["ToastMessage"] = ok ? "Category approved" : "Failed to approve category";
-            return RedirectToAction(nameof(Index));
+
+            return Json(new
+            {
+                success = ok,
+                message = ok ? "Category approved successfully" : "Failed to approve category",
+                id
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectCategory(int id)
         {
+            // Use the dedicated RejectAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.RejectAsync(id);
-            TempData["ToastType"] = ok ? "error" : "error";
-            TempData["ToastMessage"] = ok ? "Category rejected" : "Failed to reject category";
-            return RedirectToAction(nameof(Index));
+
+            return Json(new
+            {
+                success = ok,
+                message = ok ? "Category rejected successfully" : "Failed to reject category",
+                id
+            });
         }
 
         // ================= VOUCHER =================

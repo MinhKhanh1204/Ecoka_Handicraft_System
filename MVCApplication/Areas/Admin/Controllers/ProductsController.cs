@@ -134,11 +134,28 @@ namespace MVCApplication.Areas.Admin.Controllers
                 return View(dto);
             }
 
-            var ok = await _productService.UpdateAsync(id, dto);
-            if (!ok)
+            try
             {
-                ModelState.AddModelError(string.Empty, "Failed to update product.");
-                
+                var ok = await _productService.UpdateAsync(id, dto);
+                if (!ok)
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to update product.");
+                    if (!activeCategories.Any(c => c.CategoryID == dto.CategoryID))
+                    {
+                        var current = allCategories.FirstOrDefault(c => c.CategoryID == dto.CategoryID);
+                        if (current != null) activeCategories.Add(current);
+                    }
+
+                    ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
+                    ViewBag.ProductID = id;
+                    return View(dto);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Surface API error details to the user for debugging and resolution.
+                ModelState.AddModelError(string.Empty, ex.Message);
+
                 if (!activeCategories.Any(c => c.CategoryID == dto.CategoryID))
                 {
                     var current = allCategories.FirstOrDefault(c => c.CategoryID == dto.CategoryID);

@@ -227,16 +227,16 @@ namespace ProductAPI.Admin.Services.Implements
             await _repository.SaveChangesAsync();
         }
 
-        // ================= ADMIN APPROVE / REJECT =================
-        //public async Task ApproveAsync(string id)
-        //{
-        //    await ChangeStatusAsync(id, ProductStatus.Approved);
-        //}
+         //================= ADMIN APPROVE / REJECT =================
+        public async Task ApproveAsync(string id)
+        {
+            await ChangeStatusAsync(id, ProductStatus.Approved);
+        }
 
-        //public async Task RejectAsync(string id)
-        //{
-        //    await ChangeStatusAsync(id, ProductStatus.Rejected);
-        //}
+        public async Task RejectAsync(string id)
+        {
+            await ChangeStatusAsync(id, ProductStatus.Rejected);
+        }
 
         public async Task DeleteAsync(string id)
         {

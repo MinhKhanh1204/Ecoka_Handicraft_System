@@ -9,6 +9,8 @@ namespace ProductAPI.Admin.Services
         Task<ProductDetailDto> GetByIdAsync(string id);
         Task CreateAsync(CreateProductDto dto);
         Task UpdateAsync(string id, UpdateProductDto dto);
+        Task ApproveAsync(string id);
+        Task RejectAsync(string id);
         Task DeleteAsync(string id);
     }
 }

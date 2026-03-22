@@ -12,7 +12,9 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly ICategoryService _service;
         private readonly IHubContext<PendingApprovalHub> _hubContext;
 
-        public CategoriesController(ICategoryService service, IHubContext<PendingApprovalHub> hubContext)
+        public CategoriesController(
+            ICategoryService service,
+            IHubContext<PendingApprovalHub> hubContext)
         {
             _service = service;
             _hubContext = hubContext;
@@ -28,8 +30,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 ? await _service.GetAllAsync()
                 : await _service.SearchAsync(keyword);
 
-            // Lọc theo trạng thái nếu có chọn
-            if (!string.IsNullOrWhiteSpace(status) && !string.Equals(status, "All", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(status) &&
+                !string.Equals(status, "All", StringComparison.OrdinalIgnoreCase))
             {
                 categories = categories
                     .Where(c => string.Equals(c.Status, status, StringComparison.OrdinalIgnoreCase))
@@ -51,13 +53,24 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
+            // nếu cần thì đảm bảo mặc định pending ở đây hoặc trong service
+            // dto.Status = "Pending";
+
             var created = await _service.CreateAsync(dto);
             if (created == null)
             {
                 ModelState.AddModelError(string.Empty, "Tạo category thất bại.");
                 return View(dto);
             }
-            await _hubContext.Clients.All.SendAsync("PendingCategoryCreated", dto);
+
+            await _hubContext.Clients.All.SendAsync("PendingCategoryCreated", new
+            {
+                categoryID = created.CategoryID,
+                categoryName = created.CategoryName,
+                description = created.Description,
+                status = created.Status
+            });
+
             return RedirectToAction(nameof(Index));
         }
 
