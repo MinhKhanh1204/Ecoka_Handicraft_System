@@ -52,7 +52,9 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateProductDto dto)
         {
-            var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
+            var categories = (await _categoryService.GetAllAsync())
+                .Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             if (!ModelState.IsValid)
             {
@@ -67,7 +69,18 @@ namespace MVCApplication.Areas.Admin.Controllers
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
                 return View(dto);
             }
-            await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
+
+            // l?y l?i product v?a t?o ?? có ?? d? li?u render
+            var latestPending = await _productService.GetPagedAsync(null, "Pending", 1, 50);
+            var createdProduct = latestPending.Items
+                .OrderByDescending(x => x.ProductID)
+                .FirstOrDefault();
+
+            if (createdProduct != null)
+            {
+                await _hubContext.Clients.All.SendAsync("PendingProductCreated", createdProduct);
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -111,8 +124,7 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             ViewBag.ProductID = id;
             ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
-            if (dto.Status == "Pending")
-                await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
+
             return View(dto);
         }
 

@@ -25,7 +25,7 @@ namespace MVCApplication.Controllers
 				CategoryId = categoryId,
 				TxtSearch = txtSearch
 			};
-			var vm = new ProductListViewModel
+			var vm = new ProductSearchViewModel
 			{
 				TxtSearch = txtSearch,
 				CategoryID = categoryId,

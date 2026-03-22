@@ -70,12 +70,12 @@ namespace MVCApplication.Areas.Admin.Controllers
                 ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create voucher. Please try again.");
                 return View(dto);
             }
+            await _hubContext.Clients.All.SendAsync("PendingVoucherCreated", dto);
 
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = createdByAdmin
                 ? "Voucher created successfully."
                 : "Voucher created successfully and is pending approval.";
-            await _hubContext.Clients.All.SendAsync("PendingVoucherCreated", dto);
             return RedirectToAction(nameof(Index));
         }
 

@@ -2,6 +2,7 @@
 @using System.Globalization
 
 @{
+    ViewData["Title"] = "Approvals";
     var viCulture = new CultureInfo("vi-VN");
 }
 
@@ -17,27 +18,45 @@
     <div class="card">
         <div class="card-body pt-3">
 
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#products" type="button">
+            <ul class="nav nav-tabs mb-3" id="approvalTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active"
+                            id="products-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#products"
+                            type="button"
+                            role="tab">
                         Products (<span id="product-count">@Model.PendingProducts.TotalCount</span>)
                     </button>
                 </li>
-                <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#categories" type="button">
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            id="categories-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#categories"
+                            type="button"
+                            role="tab">
                         Categories (<span id="category-count">@Model.PendingCategories.Count</span>)
                     </button>
                 </li>
-                <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#vouchers" type="button">
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            id="vouchers-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#vouchers"
+                            type="button"
+                            role="tab">
                         Vouchers (<span id="voucher-count">@Model.PendingVouchers.Count</span>)
                     </button>
                 </li>
             </ul>
 
             <div class="tab-content">
+
                 <!-- PRODUCTS -->
-                <div class="tab-pane fade show active" id="products">
+                <div class="tab-pane fade show active" id="products" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -73,9 +92,10 @@
                                                 <img src="@(string.IsNullOrWhiteSpace(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
                                                      width="55"
                                                      height="55"
-                                                     style="object-fit:cover"
                                                      class="rounded"
-                                                     alt="Product image" />
+                                                     style="object-fit:cover"
+                                                     alt="Product image"
+                                                     onerror="this.src='/images/no-image.png'" />
                                             </td>
                                             <td>@p.ProductName</td>
                                             <td>@p.CategoryName</td>
@@ -83,16 +103,8 @@
                                             <td>@p.StockQuantity</td>
                                             <td>@p.Status</td>
                                             <td class="text-end">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-success"
-                                                        onclick="approveProduct('@p.ProductID')">
-                                                    Approve
-                                                </button>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-danger"
-                                                        onclick="rejectProduct('@p.ProductID')">
-                                                    Reject
-                                                </button>
+                                                <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('@p.ProductID')">Approve</button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('@p.ProductID')">Reject</button>
                                             </td>
                                         </tr>
                                     }
@@ -103,7 +115,7 @@
                 </div>
 
                 <!-- CATEGORIES -->
-                <div class="tab-pane fade" id="categories">
+                <div class="tab-pane fade" id="categories" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -125,27 +137,19 @@
                                 }
                                 else
                                 {
-                                    var idx = 0;
+                                    var index = 0;
                                     foreach (var c in Model.PendingCategories)
                                     {
-                                        idx++;
+                                        index++;
                                         <tr id="category-row-@c.CategoryID">
-                                            <td>@idx</td>
+                                            <td>@index</td>
                                             <td>@c.CategoryID</td>
                                             <td>@c.CategoryName</td>
                                             <td>@c.Description</td>
                                             <td>@c.Status</td>
                                             <td class="text-end">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-success"
-                                                        onclick="approveCategory(@c.CategoryID)">
-                                                    Approve
-                                                </button>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-danger"
-                                                        onclick="rejectCategory(@c.CategoryID)">
-                                                    Reject
-                                                </button>
+                                                <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(@c.CategoryID)">Approve</button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(@c.CategoryID)">Reject</button>
                                             </td>
                                         </tr>
                                     }
@@ -156,7 +160,7 @@
                 </div>
 
                 <!-- VOUCHERS -->
-                <div class="tab-pane fade" id="vouchers">
+                <div class="tab-pane fade" id="vouchers" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -182,31 +186,23 @@
                                 }
                                 else
                                 {
-                                    var vi = 0;
+                                    var index = 0;
                                     foreach (var v in Model.PendingVouchers)
                                     {
-                                        vi++;
+                                        index++;
                                         <tr id="voucher-row-@v.VoucherId">
-                                            <td>@vi</td>
+                                            <td>@index</td>
                                             <td>@v.VoucherId</td>
                                             <td>@v.VoucherName</td>
                                             <td>@v.Code</td>
-                                            <td>@(v.DiscountPercentage?.ToString("0.##") + "%")</td>
+                                            <td>@(v.DiscountPercentage.HasValue? v.DiscountPercentage.Value.ToString("0.##") + "%" : "-")</td>
                                             <td>@(v.MaxReducing.HasValue? v.MaxReducing.Value.ToString("C0", viCulture) : "-")</td>
                                             <td>@v.Quantity</td>
                                             <td>@(v.ExpiryDate.HasValue? v.ExpiryDate.Value.ToString("yyyy-MM-dd") : "-")</td>
-                                            <td>@(v.IsActive == true ? "Yes" : "No")</td>
+                                            <td>@(v?.IsActive == true ? "Yes" : "No")</td>
                                             <td class="text-end">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-success"
-                                                        onclick="approveVoucher(@v.VoucherId)">
-                                                    Approve
-                                                </button>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-danger"
-                                                        onclick="rejectVoucher(@v.VoucherId)">
-                                                    Reject
-                                                </button>
+                                                <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(@v.VoucherId)">Approve</button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(@v.VoucherId)">Reject</button>
                                             </td>
                                         </tr>
                                     }
@@ -215,20 +211,17 @@
                         </table>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 </section>
 
 <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert">
         <div class="d-flex">
             <div class="toast-body" id="toastMessage">Notification</div>
-            <button type="button"
-                    class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast"
-                    aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
@@ -274,9 +267,8 @@
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
 
-            const hasDataRows = Array.from(tbody.querySelectorAll('tr')).some(x => x.id !== emptyRowId);
-
-            if (!hasDataRows && !document.getElementById(emptyRowId)) {
+            const realRows = Array.from(tbody.querySelectorAll('tr')).filter(x => x.id !== emptyRowId);
+            if (realRows.length === 0 && !document.getElementById(emptyRowId)) {
                 const row = document.createElement('tr');
                 row.id = emptyRowId;
                 row.innerHTML = `<td colspan="${colspan}" class="text-center text-muted">${text}</td>`;
@@ -299,20 +291,17 @@
         async function postAction(url, id, rowId, countId) {
             try {
                 const token = getAntiForgeryToken();
-
                 const formData = new FormData();
                 formData.append('id', id);
 
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': token
-                    },
+                    headers: { 'RequestVerificationToken': token },
                     body: formData
                 });
 
                 const rawText = await response.text();
-                let result;
+                let result = null;
 
                 try {
                     result = JSON.parse(rawText);
@@ -373,17 +362,19 @@
                 .replaceAll("'", '&#39;');
         }
 
-        function addPendingProductRow(product) {
-            const tbody = document.getElementById('productPendingBody');
-            const emptyRow = document.getElementById('product-empty-row');
-            if (!tbody) return;
-            if (emptyRow) emptyRow.remove();
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '';
+            const number = Number(value);
+            if (Number.isNaN(number)) return escapeHtml(value);
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                maximumFractionDigits: 0
+            }).format(number);
+        }
 
-            const pid = product.productID || product.ProductID;
-            if (!pid) return;
-
-            if (document.getElementById(`product-row-${pid}`)) return;
-
+        function renderProductRow(product, rowNumber = 'New') {
+            const pid = product.productID || product.ProductID || '';
             const img = product.mainImage || product.MainImage || '/images/no-image.png';
             const productName = product.productName || product.ProductName || '';
             const categoryName = product.categoryName || product.CategoryName || '';
@@ -391,57 +382,34 @@
             const stock = product.stockQuantity ?? product.StockQuantity ?? '';
             const status = product.status || product.Status || 'Pending';
 
-            const row = document.createElement('tr');
-               (row);
-            updateCount('product-count', 1);
-            showToast('New pending product', true);
-        }
-
-        function addPendingCategoryRow(category) {
-            const tbody = document.getElementById('categoryPendingBody');
-            const emptyRow = document.getElementById('category-empty-row');
-            if (!tbody) return;
-            if (emptyRow) emptyRow.remove();
-
-            const id = category.categoryID ?? category.CategoryID;
-            if (id === null || id === undefined) return;
-
-            if (document.getElementById(`category-row-${id}`)) return;
-
-            const categoryName = category.categoryName || category.CategoryName || '';
-            const description = category.description || category.Description || '';
-            const status = category.status || category.Status || 'Pending';
-
-            const row = document.createElement('tr');
-            row.id = `category-row-${id}`;
-            row.innerHTML = `
-                <td>New</td>
-                <td>${escapeHtml(id)}</td>
-                <td>${escapeHtml(categoryName)}</td>
-                <td>${escapeHtml(description)}</td>
-                <td>${escapeHtml(status)}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(${id})">Approve</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(${id})">Reject</button>
-                </td>
+            return `
+                <tr id="product-row-${escapeHtml(pid)}">
+                    <td>${rowNumber}</td>
+                    <td>${escapeHtml(pid)}</td>
+                    <td>
+                        <img src="${escapeHtml(img)}"
+                             width="55"
+                             height="55"
+                             style="object-fit:cover"
+                             class="rounded"
+                             alt="Product image"
+                             onerror="this.src='/images/no-image.png'" />
+                    </td>
+                    <td>${escapeHtml(productName)}</td>
+                    <td>${escapeHtml(categoryName)}</td>
+                    <td>${formatCurrency(price)}</td>
+                    <td>${escapeHtml(stock)}</td>
+                    <td>${escapeHtml(status)}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('${escapeHtml(pid)}')">Approve</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('${escapeHtml(pid)}')">Reject</button>
+                    </td>
+                </tr>
             `;
-
-            tbody.prepend(row);
-            updateCount('category-count', 1);
-            showToast('New pending category', true);
         }
 
-        function addPendingVoucherRow(voucher) {
-            const tbody = document.getElementById('voucherPendingBody');
-            const emptyRow = document.getElementById('voucher-empty-row');
-            if (!tbody) return;
-            if (emptyRow) emptyRow.remove();
-
-            const id = voucher.voucherId ?? voucher.VoucherId;
-            if (id === null || id === undefined) return;
-
-            if (document.getElementById(`voucher-row-${id}`)) return;
-
+        function renderVoucherRow(voucher, rowNumber = 'New') {
+            const id = voucher.voucherId ?? voucher.VoucherId ?? '';
             const voucherName = voucher.voucherName || voucher.VoucherName || '';
             const code = voucher.code || voucher.Code || '';
             const discount = voucher.discountPercentage ?? voucher.DiscountPercentage;
@@ -450,77 +418,92 @@
             const expiry = voucher.expiryDate ?? voucher.ExpiryDate ?? '-';
             const isActive = voucher.isActive ?? voucher.IsActive;
 
-            const row = document.createElement('tr');
-            row.id = `voucher-row-${id}`;
-            row.innerHTML = `
-                <td>New</td>
-                <td>${escapeHtml(id)}</td>
-                <td>${escapeHtml(voucherName)}</td>
-                <td>${escapeHtml(code)}</td>
-                <td>${discount !== null && discount !== undefined ? escapeHtml(discount + '%') : '-'}</td>
-                <td>${maxReducing !== null && maxReducing !== undefined ? escapeHtml(maxReducing) : '-'}</td>
-                <td>${escapeHtml(quantity)}</td>
-                <td>${escapeHtml(expiry)}</td>
-                <td>${isActive ? 'Yes' : 'No'}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(${id})">Approve</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(${id})">Reject</button>
-                </td>
+            return `
+                <tr id="voucher-row-${escapeHtml(id)}">
+                    <td>${rowNumber}</td>
+                    <td>${escapeHtml(id)}</td>
+                    <td>${escapeHtml(voucherName)}</td>
+                    <td>${escapeHtml(code)}</td>
+                    <td>${discount !== null && discount !== undefined ? escapeHtml(discount + '%') : '-'}</td>
+                    <td>${maxReducing !== null && maxReducing !== undefined ? formatCurrency(maxReducing) : '-'}</td>
+                    <td>${escapeHtml(quantity)}</td>
+                    <td>${escapeHtml(expiry)}</td>
+                    <td>${isActive ? 'Yes' : 'No'}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(${id})">Approve</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(${id})">Reject</button>
+                    </td>
+                </tr>
             `;
+        }
 
-            tbody.prepend(row);
+        function addPendingProductRow(product) {
+            const tbody = document.getElementById('productPendingBody');
+            const emptyRow = document.getElementById('product-empty-row');
+            if (!tbody) return;
+
+            const pid = product.productID || product.ProductID;
+            if (!pid) return;
+            if (document.getElementById(`product-row-${pid}`)) return;
+
+            if (emptyRow) emptyRow.remove();
+            tbody.insertAdjacentHTML('afterbegin', renderProductRow(product, 'New'));
+            updateCount('product-count', 1);
+            showToast('New pending product', true);
+        }
+
+        function addPendingVoucherRow(voucher) {
+            const tbody = document.getElementById('voucherPendingBody');
+            const emptyRow = document.getElementById('voucher-empty-row');
+            if (!tbody) return;
+
+            const id = voucher.voucherId ?? voucher.VoucherId;
+            if (id === null || id === undefined) return;
+            if (document.getElementById(`voucher-row-${id}`)) return;
+
+            if (emptyRow) emptyRow.remove();
+            tbody.insertAdjacentHTML('afterbegin', renderVoucherRow(voucher, 'New'));
             updateCount('voucher-count', 1);
             showToast('New pending voucher', true);
         }
 
-        const connection = new signalR.HubConnectionBuilder()
+        const pendingConnection = new signalR.HubConnectionBuilder()
             .withUrl('/pending-approval-hub')
             .withAutomaticReconnect()
             .build();
 
-        connection.on('PendingProductCreated', function (product) {
+        pendingConnection.on('PendingProductCreated', function (product) {
+            console.log('PendingProductCreated:', product);
             addPendingProductRow(product);
         });
 
-        connection.on('PendingVoucherCreated', function (voucher) {
+        pendingConnection.on('PendingVoucherCreated', function (voucher) {
+            console.log('PendingVoucherCreated:', voucher);
             addPendingVoucherRow(voucher);
         });
 
-        // Listen for Voucher approval/rejection broadcasts
-        connection.on("VoucherApproved", function (data) {
-            const row = document.getElementById(`voucher-row-${data.voucherId}`);
-            if (row) {
-                row.remove();
-                updateCount('voucher-count', -1);
-            }
+        pendingConnection.on('ProductApproved', function (data) {
+            removeRow(`product-row-${data.productId}`, 'product-count');
+            showToast(`Product ${data.productId} has been approved by another admin`, true);
+        });
+
+        pendingConnection.on('ProductRejected', function (data) {
+            removeRow(`product-row-${data.productId}`, 'product-count');
+            showToast(`Product ${data.productId} has been rejected by another admin`, false);
+        });
+
+        pendingConnection.on('VoucherApproved', function (data) {
+            removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
             showToast(`Voucher ${data.voucherId} has been approved by another admin`, true);
         });
 
-        connection.on("VoucherRejected", function (data) {
-            const row = document.getElementById(`voucher-row-${data.voucherId}`);
-            if (row) {
-                row.remove();
-                updateCount('voucher-count', -1);
-            }
+        pendingConnection.on('VoucherRejected', function (data) {
+            removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
             showToast(`Voucher ${data.voucherId} has been rejected by another admin`, false);
         });
 
-        connection.start()
+        pendingConnection.start()
             .then(() => console.log('SignalR connected for PendingApprovalHub'))
             .catch(err => console.error('SignalR connection error (PendingApprovalHub):', err));
-
-        // Category Hub connection
-        const categoryConnection = new signalR.HubConnectionBuilder()
-            .withUrl('/category-hub')
-            .withAutomaticReconnect()
-            .build();
-
-        categoryConnection.on('PendingCategoryCreated', function (category) {
-            addPendingCategoryRow(category);
-        });
-
-        categoryConnection.start()
-            .then(() => console.log('SignalR connected for CategoryHub'))
-            .catch(err => console.error('SignalR connection error (CategoryHub):', err));
     </script>
 }

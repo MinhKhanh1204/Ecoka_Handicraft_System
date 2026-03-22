@@ -87,8 +87,7 @@ namespace MVCApplication.Areas.Admin.Controllers
             };
 
             ViewBag.CategoryId = id;
-            if(dto.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
-                await _hubContext.Clients.All.SendAsync("PendingCategoryCreated", dto);
+
             return View(dto);
         }
 

@@ -39,9 +39,10 @@ namespace ProductAPI.Services.Implements
             return _mapper.Map<ProductDetailResponseDto>(product, opt => opt.Items["MainImage"] = mainImage);
         }
 
-        public async Task<bool> UpdateStockAsync(string productId, int quantityChange)
-        {
-            return await _repo.UpdateStockAsync(productId, quantityChange);
+		public async Task<bool> UpdateStockAsync(string productId, int quantityChange)
+		{
+			return await _repo.UpdateStockAsync(productId, quantityChange);
+		}
 		public async Task<PagedResult<ProductDto>> FilterProductsAsync(ProductFilterRequestDto request)
 		{
 			var query = await _repo.GetQueryableAsync();
