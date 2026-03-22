@@ -1,25 +1,30 @@
 @model IEnumerable<MVCApplication.Areas.Admin.DTOs.StaffViewModel>
 
 @{
-    ViewData["Title"] = "Staff Management";
-    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-
+    ViewData["Title"] = "Employee Management";
+    
     var currentPage = (int)(ViewBag.CurrentPage ?? 1);
     var totalPages = (int)(ViewBag.TotalPages ?? 1);
     var totalStaffs = (int)(ViewBag.TotalStaffs ?? 0);
     var pageSize = 10;
     var startItem = totalStaffs > 0 ? (currentPage - 1) * pageSize + 1 : 0;
     var endItem = Math.Min(currentPage * pageSize, totalStaffs);
+    var isAjax = Context.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+}
+
+@if (!isAjax)
+{
+    @:<div id="staff-ajax-container">
 }
 
 <div class="pagetitle">
-    <h1>Staffs</h1>
+    <h1>Employees</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a>
             </li>
-            <li class="breadcrumb-item active">Staffs</li>
+            <li class="breadcrumb-item active">Employees</li>
         </ol>
     </nav>
 </div>
@@ -29,14 +34,14 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Staff Management</h3>
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Add New Staff
+                    <h3 class="card-title">Employee Management</h3>
+                    <a asp-action="Create" class="btn btn-primary ajax-link">
+                        <i class="bi bi-plus-circle"></i> Add New Employee
                     </a>
                 </div>
                 <div class="card-body">
                     <!-- Search & Filter Form -->
-                    <form method="get" asp-action="Index" class="mb-4">
+                    <form method="get" asp-action="Index" class="mb-4 ajax-form">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <input type="text" name="keyword" class="form-control"
@@ -47,7 +52,7 @@
                             <div class="col-md-2">
                                 <select name="role" class="form-control">
                                     <option value="">All Roles</option>
-                                    <option value="Staff" selected="@(ViewBag.Role == "Staff")">Staff</option>
+                                    <option value="Employee" selected="@(ViewBag.Role == "Employee")">Employee</option>
                                     <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
                                 </select>
                             </div>
@@ -64,7 +69,7 @@
                                 </button>
                             </div>
                             <div class="col-md-2">
-                                <a asp-action="Index" class="btn btn-secondary btn-block">
+                                <a asp-action="Index" class="btn btn-secondary btn-block ajax-link">
                                     <i class="bi bi-arrow-counterclockwise"></i> Reset
                                 </a>
                             </div>
@@ -128,7 +133,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-info">Staff</span>
+                                                    <span class="badge bg-info">Employee</span>
                                                 }
                                             </td>
                                             <td>
@@ -144,20 +149,19 @@
                                             <td>
                                                 <div class="btn-group">
                                                     <a asp-action="Details" asp-route-id="@staff.StaffId"
-                                                       class="btn btn-sm btn-outline-secondary" title="Details">
+                                                       class="btn btn-sm btn-outline-secondary ajax-link" title="Details">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
                                                     <a asp-action="Edit" asp-route-id="@staff.StaffId"
-                                                       class="btn btn-sm btn-outline-primary" title="Edit">
+                                                       class="btn btn-sm btn-outline-primary ajax-link" title="Edit">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
                                                     @if (staff.Status)
                                                     {
-                                                        <form asp-action="Delete" asp-route-id="@staff.StaffId" method="post" style="display:inline;">
+                                                        <form asp-action="Delete" asp-route-id="@staff.StaffId" method="post" style="display:inline;" class="ajax-delete-form">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                                    title="Delete"
-                                                                    onclick="return confirm('Are you sure you want to delete this staff?');">
+                                                                    title="Delete">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
@@ -181,7 +185,7 @@
                             <nav>
                                 <ul class="pagination mb-0">
                                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new {
+                                        <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                             keyword = ViewBag.Keyword,
                                             role = ViewBag.Role,
                                             status = ViewBag.Status,
@@ -192,7 +196,7 @@
                                     @for (int i = 1; i <= totalPages; i++)
                                     {
                                         <li class="page-item @(i == currentPage ? "active" : "")">
-                                            <a class="page-link" href="@Url.Action("Index", new {
+                                            <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                                 keyword = ViewBag.Keyword,
                                                 role = ViewBag.Role,
                                                 status = ViewBag.Status,
@@ -202,7 +206,7 @@
                                     }
 
                                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new {
+                                        <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                             keyword = ViewBag.Keyword,
                                             role = ViewBag.Role,
                                             status = ViewBag.Status,
@@ -218,3 +222,148 @@
         </div>
     </div>
 </div>
+
+@if (!isAjax)
+{
+    @:</div>
+
+    @section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var container = document.getElementById('staff-ajax-container');
+                if (!container) return; // Fallback in case container is missing
+
+                // Handle click events (Pagination, Links)
+                container.addEventListener('click', function(e) {
+                    var link = e.target.closest('a.ajax-link');
+                    if (link) {
+                        e.preventDefault();
+                        var url = link.getAttribute('href');
+                        if (url && url !== '#') {
+                            loadAjaxContent(url);
+                        }
+                    }
+                });
+
+                // Handle form submissions
+                container.addEventListener('submit', function(e) {
+                    var form = e.target.closest('form');
+                    if (!form) return;
+
+                    if (form.classList.contains('ajax-form')) {
+                        e.preventDefault();
+                        var method = (form.getAttribute('method') || 'GET').toUpperCase();
+                        var url = form.getAttribute('action') || (method === 'GET' ? window.location.pathname : window.location.href);
+                        var formData = new FormData(form);
+
+                        if (method === 'GET') {
+                            var params = new URLSearchParams(formData).toString();
+                            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+                            loadAjaxContent(url + separator + params);
+                        } else {
+                            submitAjaxForm(form);
+                        }
+                    } else if (form.classList.contains('ajax-post-form')) {
+                        e.preventDefault();
+                        submitAjaxForm(form);
+                    } else if (form.classList.contains('ajax-delete-form')) {
+                        e.preventDefault();
+                        if (!confirm('Are you sure you want to delete this employee?')) {
+                            return;
+                        }
+                        submitAjaxForm(form, true);
+                    }
+                });
+
+                function loadAjaxContent(url) {
+                    fetch(url, {
+                        method: 'GET',
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Network response was ' + response.statusText);
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        container.innerHTML = html;
+                        window.history.pushState({ path: url }, '', url);
+                    })
+                    .catch(function(error) {
+                        if (typeof showToast === 'function') {
+                            showToast('Failed to load content. Please try again.', 'error');
+                        } else {
+                            alert('Failed to load content. Please try again.');
+                        }
+                        console.error('Error:', error);
+                    });
+                }
+
+                function submitAjaxForm(formElement, isDelete = false) {
+                    var url = formElement.getAttribute('action');
+                    var method = formElement.getAttribute('method') || 'POST';
+                    var formData = new FormData(formElement);
+
+                    fetch(url, {
+                        method: method,
+                        body: formData,
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(function(response) {
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            return response.json().then(data => ({ type: 'json', data: data }));
+                        } else {
+                            return response.text().then(text => ({ type: 'html', data: text }));
+                        }
+                    })
+                    .then(function(result) {
+                        if (result.type === 'json') {
+                            // JSON response => Success or JSON error
+                            var data = result.data;
+                            if (data.success) {
+                                if (typeof showToast === 'function') {
+                                    showToast(data.message || 'Operation successful', 'success');
+                                }
+                                loadAjaxContent('@Url.Action("Index", "Staffs", new { area = "Admin" })');
+                            } else {
+                                if (typeof showToast === 'function') {
+                                    showToast(data.message || 'Error occurred', 'error');
+                                }
+                            }
+                        } else {
+                            // HTML response => Validation errors
+                            container.innerHTML = result.data;
+                            // Note: Vanilla MVC unobtrusive validation doesn't easily re-parse without jQuery.
+                            // However, server validation messages are already embedded in the HTML.
+                        }
+                    })
+                    .catch(function(error) {
+                        if (typeof showToast === 'function') {
+                            showToast('Form submission failed. Please try again.', 'error');
+                        } else {
+                            alert('Form submission failed. Please try again.');
+                        }
+                        console.error('Error:', error);
+                    });
+                }
+
+                // Handle browser back/forward buttons seamlessly via AJAX
+                window.addEventListener('popstate', function(e) {
+                    var state = e.state;
+                    if (state && state.path) {
+                        fetch(state.path, {
+                            method: 'GET',
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            container.innerHTML = html;
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                });
+            });
+        </script>
+    }
+}

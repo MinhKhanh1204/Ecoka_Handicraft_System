@@ -2,12 +2,12 @@
 @model UpdateProductDto
 
 @{
-    ViewData["Title"] = "Chỉnh sửa sản phẩm";
+    ViewData["Title"] = "Edit Product";
     var productId = (string)ViewBag.ProductID;
 }
 
 <div class="pagetitle">
-    <h1>Chỉnh sửa sản phẩm</h1>
+    <h1>Edit Product</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
@@ -19,48 +19,48 @@
 
 <section class="section">
     <div class="row">
-        <div class="col-lg-10 mx-auto">
+        <div class="col-lg-12 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Thông tin sản phẩm: <span class="text-primary">@productId</span></h5>
+                    <h5 class="card-title">Product Information: <span class="text-primary">@productId</span></h5>
 
-                    <form asp-action="Edit" asp-route-id="@productId" method="post" enctype="multipart/form-data" class="row g-3">
+                    <form asp-action="Edit" asp-route-id="@productId" method="post" enctype="multipart/form-data" class="row g-3 ajax-post-form">
                         <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
 
                         <div class="col-md-8">
-                            <label asp-for="ProductName" class="form-label">Tên sản phẩm</label>
+                            <label asp-for="ProductName" class="form-label">Product Name</label>
                             <input asp-for="ProductName" class="form-control" />
                             <span asp-validation-for="ProductName" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="CategoryID" class="form-label">Danh mục</label>
+                            <label asp-for="CategoryID" class="form-label">Category</label>
                             <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.Categories">
-                                <option value="">-- Chọn danh mục --</option>
+                                <option value="">-- Select Category --</option>
                             </select>
                             <span asp-validation-for="CategoryID" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="Price" class="form-label">Giá bán (VNĐ)</label>
+                            <label asp-for="Price" class="form-label">Price (VND)</label>
                             <input asp-for="Price" type="number" class="form-control" />
                             <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="Discount" class="form-label">Giảm giá (%)</label>
+                            <label asp-for="Discount" class="form-label">Discount (%)</label>
                             <input asp-for="Discount" type="number" class="form-control" />
                             <span asp-validation-for="Discount" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="StockQuantity" class="form-label">Số lượng tồn</label>
+                            <label asp-for="StockQuantity" class="form-label">Stock Quantity</label>
                             <input asp-for="StockQuantity" type="number" class="form-control" />
                             <span asp-validation-for="StockQuantity" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="Status" class="form-label">Trạng thái</label>
+                            <label asp-for="Status" class="form-label">Status</label>
                             <select asp-for="Status" class="form-select">
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
@@ -71,38 +71,38 @@
                         </div>
 
                         <div class="col-md-12">
-                            <label asp-for="Material" class="form-label">Chất liệu</label>
+                            <label asp-for="Material" class="form-label">Material</label>
                             <input asp-for="Material" class="form-control" />
                             <span asp-validation-for="Material" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label">Mô tả chi tiết</label>
+                            <label asp-for="Description" class="form-label">Detailed Description</label>
                             <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="col-12 mt-4">
-                            <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Upload file hoặc Link URL)</h6>
-                            <p class="text-muted small">Cung cấp đủ 4 ảnh. Chọn 1 ảnh làm ảnh chính.</p>
+                            <h6 class="fw-bold border-bottom pb-2">Product Images (Upload File or Link URL)</h6>
+                            <p class="text-muted small">Provide 4 images. Select 1 as the main image.</p>
 
                             <div id="image-inputs">
                                 @for (int i = 0; i < 4; i++)
                                 {
                                     <div class="row g-2 mb-3 align-items-center">
                                         <div class="col-md-5">
-                                            <label class="small">Chọn File mới</label>
+                                            <label class="small">Choose New File</label>
                                             <input type="file" name="Images[@i].ImageFile" class="form-control form-control-sm" accept="image/*" />
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="small">Hoặc dán URL/Giữ URL cũ</label>
+                                            <label class="small">Or paste New URL / Keep Old URL</label>
                                             <input asp-for="Images[i].ImageUrl" class="form-control form-control-sm" placeholder="https://example.com/image.jpg" />
                                             <span asp-validation-for="Images[i].ImageUrl" class="text-danger"></span>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-check mt-3">
                                                 <input class="form-check-input" type="radio" name="mainImageIndex" value="@i" @(Model.Images != null && i < Model.Images.Count && Model.Images[i].IsMain ? "checked" : "")>
-                                                <label class="form-check-label small">Ảnh chính</label>
+                                                <label class="form-check-label small">Main Image</label>
                                             </div>
                                             <input type="hidden" name="Images[@i].IsMain" value="@(Model.Images != null && i < Model.Images.Count && Model.Images[i].IsMain ? "true" : "false")" />
                                         </div>
@@ -113,9 +113,9 @@
 
                         <div class="col-12 mt-4 text-center">
                             <button type="submit" class="btn btn-primary px-5">
-                                <i class="bi bi-save me-1"></i>Lưu thay đổi
+                                <i class="bi bi-save me-1"></i>Save Changes
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary px-4">Quay lại</a>
+                            <a asp-action="Index" class="btn btn-secondary px-4 ajax-link">Back</a>
                         </div>
                     </form>
                 </div>

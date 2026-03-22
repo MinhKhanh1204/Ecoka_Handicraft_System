@@ -27,6 +27,11 @@ namespace MVCApplication.Areas.Admin.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling(result.TotalItems / 10.0);
             ViewBag.TotalStaffs = result.TotalItems;
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("Index", result.Items);
+            }
+
             return View(result.Items);
         }
 
@@ -35,11 +40,14 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
-                return BadRequest("Staff ID is required");
+                return BadRequest("Employee ID is required");
 
             var staff = await _staffService.GetStaffDetailAsync(id);
             if (staff == null)
                 return NotFound();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Details", staff);
 
             return View(staff);
         }
@@ -48,6 +56,9 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Create", new CreateStaffViewModel());
+
             return View(new CreateStaffViewModel());
         }
 
@@ -67,12 +78,16 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 if (age < 18)
                 {
-                    ModelState.AddModelError("DateOfBirth", "Staff must be at least 18 years old");
+                    ModelState.AddModelError("DateOfBirth", "Employee must be at least 18 years old");
                 }
             }
 
             if (!ModelState.IsValid)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Create", model);
                 return View(model);
+            }
 
             // ✅ Upload avatar (optional)
             if (model.AvatarFile != null)
@@ -95,16 +110,22 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!success)
             {
                 // 🔥 Đưa lỗi API xuống form luôn
-                ModelState.AddModelError("", errorMessage ?? "Failed to create staff");
+                ModelState.AddModelError("", errorMessage ?? "Failed to create employee");
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Create", model);
 
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = errorMessage ?? "Failed to create staff";
+                TempData["ToastMessage"] = errorMessage ?? "Failed to create employee";
 
                 return View(model);
             }
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, message = "Employee created successfully" });
+
             TempData["ToastType"] = "success";
-            TempData["ToastMessage"] = "Staff created successfully";
+            TempData["ToastMessage"] = "Employee created successfully";
 
             return RedirectToAction(nameof(Index));
         }
@@ -114,7 +135,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
-                return BadRequest("Staff ID is required");
+                return BadRequest("Employee ID is required");
 
             var staff = await _staffService.GetStaffDetailAsync(id);
             if (staff == null)
@@ -132,6 +153,9 @@ namespace MVCApplication.Areas.Admin.Controllers
                 DateOfBirth = staff.DateOfBirth,
                 Status = staff.Status
             };
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("Edit", model);
 
             return View(model);
         }
@@ -152,12 +176,15 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 if (age < 18)
                 {
-                    ModelState.AddModelError("DateOfBirth", "Staff must be at least 18 years old");
+                    ModelState.AddModelError("DateOfBirth", "Employee must be at least 18 years old");
                 }
             }
 
             if (!ModelState.IsValid)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Edit", model);
+                
                 TempData["ToastType"] = "error";
                 TempData["ToastMessage"] = "Please correct the errors in the form";
                 return View(model);
@@ -184,31 +211,47 @@ namespace MVCApplication.Areas.Admin.Controllers
                 var (success, errorMessage) = await _staffService.UpdateStaffAsync(model);
                 if (!success)
                 {
+                    ModelState.AddModelError("", errorMessage ?? "Failed to update employee");
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return PartialView("Edit", model);
+
                     TempData["ToastType"] = "error";
-                    TempData["ToastMessage"] = errorMessage ?? "Failed to update staff";
+                    TempData["ToastMessage"] = errorMessage ?? "Failed to update employee";
                     return View(model);
                 }
 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true, message = "Employee updated successfully" });
+
                 TempData["ToastType"] = "success";
-                TempData["ToastMessage"] = "Staff updated successfully";
+                TempData["ToastMessage"] = "Employee updated successfully";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
                 string message = ex.Message switch
                 {
-                    "INVALID_AGE" => "Staff must be at least 18 years old",
+                    "INVALID_AGE" => "Employee must be at least 18 years old",
                     "CITIZENID_EXISTS" => "Citizen ID already exists",
-                    _ => "Failed to update staff. Please try again."
+                    _ => "Failed to update employee. Please try again."
                 };
+                
+                ModelState.AddModelError("", message);
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Edit", model);
+
                 TempData["ToastType"] = "error";
                 TempData["ToastMessage"] = message;
                 return View(model);
             }
             catch (Exception)
             {
+                ModelState.AddModelError("", "Failed to update employee. Please try again.");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return PartialView("Edit", model);
+
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = "Failed to update staff. Please try again.";
+                TempData["ToastMessage"] = "Failed to update employee. Please try again.";
                 return View(model);
             }
         }
@@ -219,18 +262,24 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
-                return BadRequest("Staff ID is required");
+                return BadRequest("Employee ID is required");
 
             var result = await _staffService.DeleteStaffAsync(id);
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = result, message = result ? "Employee deleted successfully" : "Failed to delete employee" });
+            }
+
             if (!result)
             {
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = "Failed to delete staff";
+                TempData["ToastMessage"] = "Failed to delete employee";
             }
             else
             {
                 TempData["ToastType"] = "success";
-                TempData["ToastMessage"] = "Staff deleted successfully";
+                TempData["ToastMessage"] = "Employee deleted successfully";
             }
 
             return RedirectToAction(nameof(Index));
