@@ -7,5 +7,6 @@ namespace ProductAPI.Repositories
 		List<Product> GetAll();
         Task<Product> GetProductDetailAsync(string productId);
         Task<bool> UpdateStockAsync(string productId, int quantityChange);
+		Task<IQueryable<Product>> GetQueryableAsync();
     }
 }
