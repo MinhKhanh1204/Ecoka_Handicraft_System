@@ -1,32 +1,39 @@
-﻿@model MVCApplication.Models.DTOs.Order
+@model MVCApplication.Models.DTOs.Order
+
+@{
+    string PaymentStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chưa thanh toán",
+        "Paid" => "Đã thanh toán",
+        "Refunded" => "Đã hoàn tiền",
+        _ => s ?? "-"
+    };
+
+    string ShippingStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chờ xử lý",
+        "Approved" => "Đã duyệt",
+        "Shipping" => "Đang giao",
+        "Delivered" => "Đã giao",
+        "Completed" => "Hoàn thành",
+        "Cancelled" => "Đã hủy",
+        "Returned" => "Hoàn trả",
+        _ => s ?? "-"
+    };
+}
 
 <div class="row mb-3">
 
     <div class="col-md-6">
-        <strong>Mã đơn hàng:</strong> @Model.OrderID <br />
+        <strong>Mã đơn:</strong> @Model.OrderID <br />
         <strong>Khách hàng:</strong> @(Model.CustomerID ?? "-") <br />
         <strong>Ngày đặt:</strong> @(Model.OrderDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")
     </div>
 
     <div class="col-md-6">
         <strong>Phương thức thanh toán:</strong> @(Model.PaymentMethod ?? "-") <br />
-        <strong>Trạng thái thanh toán:</strong>
-        @(Model.PaymentStatus switch
-        {
-            "Pending" => "Chưa thanh toán",
-            "Paid" => "Đã thanh toán",
-            "Refunded" => "Hoàn tiền",
-            _ => "-"
-        }) <br />
-        <strong>Trạng thái vận chuyển:</strong>
-        @(Model.ShippingStatus switch
-        {
-            "Pending" => "Chờ xử lý",
-            "Shipping" => "Đang giao",
-            "Completed" => "Hoàn thành",
-            "Cancelled" => "Đã hủy",
-            _ => "-"
-        })
+        <strong>Trạng thái thanh toán:</strong> @PaymentStatusVi(Model.PaymentStatus) <br />
+        <strong>Trạng thái giao hàng:</strong> @ShippingStatusVi(Model.ShippingStatus)
     </div>
 
 </div>
@@ -36,7 +43,7 @@
         <thead class="table-light">
             <tr>
                 <th>Sản phẩm</th>
-                <th>Số lượng</th>
+                <th>SL</th>
                 <th class="text-end">Đơn giá</th>
                 <th class="text-end">Thành tiền</th>
             </tr>

@@ -2,17 +2,17 @@
 @model CategoryUpdateDto
 
 @{
-    ViewData["Title"] = "Edit Category";
+    ViewData["Title"] = "Sửa danh mục";
     var id = (int)(ViewBag.CategoryId ?? 0);
 }
 
 <div class="pagetitle">
-    <h1>Cập nhật Category</h1>
+    <h1>Cập nhật danh mục</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index">Categories</a></li>
-            <li class="breadcrumb-item active">Edit</li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index">Danh mục</a></li>
+            <li class="breadcrumb-item active">Chỉnh sửa</li>
         </ol>
     </nav>
 </div>
@@ -22,7 +22,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Category #@id</h5>
+                    <h5 class="card-title">Danh mục #@id</h5>
 
                     <form method="post" class="row g-3">
                         <div class="col-12">
@@ -40,8 +40,8 @@
                         <div class="col-md-6">
                             <label asp-for="Status" class="form-label">Trạng thái</label>
                             <select asp-for="Status" class="form-select">
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Ngừng hoạt động</option>
                             </select>
                             <span asp-validation-for="Status" class="text-danger"></span>
                         </div>

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<MVCApplication.Models.DTOs.Order>
+@model IEnumerable<MVCApplication.Models.DTOs.Order>
 
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
@@ -11,6 +11,46 @@
     string buildPageUrl(int p) =>
         baseUrl + "?" +
         $"orderId={q(ViewBag.OrderId as string)}&customerId={q(ViewBag.CustomerId as string)}&from={q(ViewBag.From as string)}&to={q(ViewBag.To as string)}&shippingStatus={q(ViewBag.ShippingStatus as string)}&paymentStatus={q(ViewBag.PaymentStatus as string)}&page={p}";
+
+    string PaymentStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chưa thanh toán",
+        "Paid" => "Đã thanh toán",
+        "Refunded" => "Đã hoàn tiền",
+        _ => s ?? "-"
+    };
+
+    string ShippingStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chờ xử lý",
+        "Approved" => "Đã duyệt",
+        "Shipping" => "Đang giao",
+        "Delivered" => "Đã giao",
+        "Completed" => "Hoàn thành",
+        "Cancelled" => "Đã hủy",
+        "Returned" => "Hoàn trả",
+        _ => s ?? "-"
+    };
+
+    string ShippingBadgeClass(string? s) => s switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Approved" => "bg-primary",
+        "Shipping" => "bg-info text-dark",
+        "Delivered" => "bg-success",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-secondary",
+        "Returned" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string PaymentBadgeClass(string? s) => s switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Paid" => "bg-success",
+        "Refunded" => "bg-danger",
+        _ => "bg-secondary"
+    };
 }
 
 <h1 class="mb-4">Quản lý đơn hàng</h1>
@@ -30,7 +70,7 @@
         <input name="orderId" value="@(ViewBag.OrderId ?? "")" class="form-control" placeholder="Mã đơn hàng" />
     </div>
     <div class="col-sm-2">
-        <input name="customerId" value="@(ViewBag.CustomerId ?? "")" class="form-control" placeholder="Khách hàng" />
+        <input name="customerId" value="@(ViewBag.CustomerId ?? "")" class="form-control" placeholder="Mã khách hàng" />
     </div>
     <div class="col-sm-2">
         <input type="date" name="from" value="@(ViewBag.From ?? "")" class="form-control" />
@@ -40,11 +80,11 @@
     </div>
     <div class="col-sm-2">
         <select name="shippingStatus" class="form-select">
-            <option value="">Tất cả vận chuyển</option>
+            <option value="">Tất cả giao hàng</option>
             <option value="Pending" selected="@(ViewBag.ShippingStatus == "Pending")">Chờ xử lý</option>
             <option value="Approved" selected="@(ViewBag.ShippingStatus == "Approved")">Đã duyệt</option>
             <option value="Cancelled" selected="@(ViewBag.ShippingStatus == "Cancelled")">Đã hủy</option>
-            <option value="Returned" selected="@(ViewBag.ShippingStatus == "Returned")">Trả hàng</option>
+            <option value="Returned" selected="@(ViewBag.ShippingStatus == "Returned")">Hoàn trả</option>
         </select>
     </div>
     <div class="col-sm-2">
@@ -52,7 +92,7 @@
             <option value="">Tất cả thanh toán</option>
             <option value="Pending" selected="@(ViewBag.PaymentStatus == "Pending")">Chưa thanh toán</option>
             <option value="Paid" selected="@(ViewBag.PaymentStatus == "Paid")">Đã thanh toán</option>
-            <option value="Refunded" selected="@(ViewBag.PaymentStatus == "Refunded")">Hoàn tiền</option>
+            <option value="Refunded" selected="@(ViewBag.PaymentStatus == "Refunded")">Đã hoàn tiền</option>
         </select>
     </div>
     <div class="col-auto">
@@ -69,7 +109,7 @@
             <th>Ngày đặt</th>
             <th class="text-end">Tổng tiền</th>
             <th>Thanh toán</th>
-            <th>Vận chuyển</th>
+            <th>Giao hàng</th>
             <th style="width:220px">Thao tác</th>
         </tr>
     </thead>
@@ -77,7 +117,7 @@
         @if (Model == null || !Model.Any())
         {
             <tr>
-                <td colspan="7" class="text-center">Không tìm thấy đơn hàng.</td>
+                <td colspan="7" class="text-center">Không có đơn hàng.</td>
             </tr>
         }
         else
@@ -89,8 +129,8 @@
                     <td>@(string.IsNullOrWhiteSpace(o.CustomerID) ? "-" : o.CustomerID)</td>
                     <td>@(o.OrderDate.HasValue? o.OrderDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
                     <td class="text-end">@((o.TotalAmount ?? 0).ToString("C"))</td>
-                    <td>@(o.PaymentStatus ?? "-")</td>
-                    <td>@(o.ShippingStatus ?? "-")</td>
+                    <td><span class="badge @PaymentBadgeClass(o.PaymentStatus)">@PaymentStatusVi(o.PaymentStatus)</span></td>
+                    <td><span class="badge @ShippingBadgeClass(o.ShippingStatus)">@ShippingStatusVi(o.ShippingStatus)</span></td>
                     <td>
 
                         <button class="btn btn-sm btn-info btn-show-details"
@@ -125,7 +165,7 @@
                             <button type="button"
                                     class="btn btn-sm btn-warning me-1"
                                     disabled
-                                    title="Đơn đã thanh toán hoặc không ở trạng thái chờ">
+                                    title="Đơn đã thanh toán hoặc không còn chờ xử lý thì không chỉnh được">
                                 Cập nhật
                             </button>
                         }
@@ -142,9 +182,9 @@
     <nav>
         <ul class="pagination">
 
-            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                <a class="page-link" href="@(buildPageUrl(currentPage - 1))">Trước</a>
-            </li>
+        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+            <a class="page-link" href="@(buildPageUrl(currentPage - 1))">Trước</a>
+        </li>
 
             @{
                 int window = 5;
@@ -195,6 +235,11 @@
             <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                 <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
             </li>
+        }
+
+        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+            <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
+        </li>
 
         </ul>
     </nav>
@@ -208,21 +253,24 @@
             <input type="hidden" name="orderId" id="modalOrderId" />
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cập nhật trạng thái đơn hàng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="updateModalLabel">Cập nhật trạng thái đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label">Trạng thái vận chuyển mới</label>
-                    <select id="modalNewStatus" name="newStatus" class="form-select">
-                        <option value="Pending">Chờ xử lý</option>
-                        <option value="Approved">Đã duyệt</option>
-                        <option value="Cancelled">Đã hủy</option>
-                    </select>
-                    <p class="text-muted small">Việc cập nhật sẽ thay đổi trạng thái vận chuyển của đơn hàng.</p>
+                    <div class="mb-3">
+                        <label for="modalNewStatus" class="form-label">Trạng thái giao hàng mới</label>
+                        <select id="modalNewStatus" name="newStatus" class="form-select">
+                            <option value="Pending">Chờ xử lý</option>
+                            <option value="Approved">Đã duyệt</option>
+                            <option value="Delivered">Đã giao</option>
+                            <option value="Cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                    <p class="text-muted small">Thay đổi trạng thái sẽ cập nhật tiến trình giao hàng của đơn này.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-warning">Xác nhận</button>
+                    <button type="submit" class="btn btn-warning">Xác nhận cập nhật</button>
                 </div>
             </div>
         </form>
