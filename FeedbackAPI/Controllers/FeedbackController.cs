@@ -16,6 +16,14 @@ namespace FeedbackAPI.Controllers
             _service = service;
         }
 
+        // ================= GET ALL =================
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var feedbacks = await _service.GetAllAsync();
+            return Ok(feedbacks);
+        }
+
         // ================= GET BY ID =================
         [HttpGet("{feedbackId:int}")]
         public async Task<IActionResult> GetById(int feedbackId)

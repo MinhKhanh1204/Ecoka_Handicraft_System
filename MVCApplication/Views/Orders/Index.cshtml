@@ -151,11 +151,8 @@
                             @if (order.ShippingStatus == "Pending")
                             {
                                 <div class="card-footer bg-white text-end border-0">
-                                    <form asp-action="Cancel" method="post">
+                                    <form asp-action="Cancel" asp-route-id="@order.OrderID" method="post">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden"
-                                               name="id"
-                                               value="@order.OrderID" />
 
                                         <button class="btn btn-sm btn-danger"
                                                 onclick="return confirm('Cancel this order?');">

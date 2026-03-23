@@ -3,6 +3,7 @@ using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Services;
 using MVCApplication.Models.DTOs;
 using MVCApplication.Areas.Admin.DTOs;
+using MVCApplication.Models;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -55,7 +56,9 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             var orders = ordersTask.Result ?? Enumerable.Empty<Order>();
 
-            var feedbacks = feedbackTask.Result ?? Enumerable.Empty<dynamic>();
+            var feedbacks = feedbackTask.Result?.ToList() ?? new List<Feedback>();
+            int positiveFeedback = feedbacks.Count(f => f.Rating >= 4);
+            int negativeFeedback = feedbacks.Count(f => f.Rating <= 2);
 
             var productsPending = productsPendingTask.Result;
 
@@ -93,8 +96,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             // UC_72 - Feedback statistics
             // ===============================
 
-            int positiveFeedback = 0;
-            int negativeFeedback = 0;
 
             foreach (var f in feedbacks)
             {
