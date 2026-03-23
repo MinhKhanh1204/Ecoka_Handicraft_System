@@ -3,31 +3,33 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Edit Employee";
+    ViewData["Title"] = "Chỉnh sửa nhân viên";
 
-    // Gender select list
     var genderList = new List<SelectListItem>
     {
-        new SelectListItem { Text = "Male", Value = "Male" },
-        new SelectListItem { Text = "Female", Value = "Female" },
-        new SelectListItem { Text = "Other", Value = "Other" }
+        new SelectListItem { Text = "Nam", Value = "Male" },
+        new SelectListItem { Text = "Nữ", Value = "Female" },
+        new SelectListItem { Text = "Khác", Value = "Other" }
     };
 
-    // Status select list
     var statusList = new List<SelectListItem>
     {
-        new SelectListItem { Text = "Active", Value = "true" },
-        new SelectListItem { Text = "Deleted", Value = "false" }
+        new SelectListItem { Text = "Hoạt động", Value = "true" },
+        new SelectListItem { Text = "Đã xóa", Value = "false" }
     };
 }
 
 <div class="pagetitle">
-    <h1>Edit Employee</h1>
+    <h1>Chỉnh sửa nhân viên</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Employees</a></li>
-            <li class="breadcrumb-item active">Edit</li>
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index">Nhân viên</a>
+            </li>
+            <li class="breadcrumb-item active">Chỉnh sửa</li>
         </ol>
     </nav>
 </div>
@@ -37,18 +39,20 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="card mb-10">
                 <div class="card-header">
-                    <h3 class="card-title">Employee Information: @Model.StaffId</h3>
+                    <h3 class="card-title">Thông tin nhân viên: @Model.StaffId</h3>
                 </div>
+
                 <div class="card-body">
-                    @* Hiển thị TempData Toast *@
+
                     @if (TempData["ToastMessage"] != null)
                     {
                         var type = TempData["ToastType"]?.ToString() ?? "info";
                         var alertClass = type == "success" ? "alert-success" :
                         type == "error" ? "alert-danger" : "alert-info";
-                        <div class="alert @alertClass alert-dismissible fade show" role="alert">
+
+                        <div class="alert @alertClass alert-dismissible fade show">
                             @TempData["ToastMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
 
@@ -56,11 +60,11 @@
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="StaffId" />
 
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <!-- Staff ID -->
                         <div class="row mb-3">
-                            <label asp-for="StaffId" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Mã nhân viên</label>
                             <div class="col-sm-9">
                                 <input asp-for="StaffId" class="form-control" readonly style="background-color:#e9ecef;" />
                             </div>
@@ -68,7 +72,7 @@
 
                         <!-- Full Name -->
                         <div class="row mb-3">
-                            <label asp-for="FullName" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Họ và tên</label>
                             <div class="col-sm-9">
                                 <input asp-for="FullName" class="form-control" required />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
@@ -77,7 +81,7 @@
 
                         <!-- Email -->
                         <div class="row mb-3">
-                            <label asp-for="Email" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Email</label>
                             <div class="col-sm-9">
                                 <input asp-for="Email" class="form-control" readonly style="background-color:#e9ecef;" />
                             </div>
@@ -85,7 +89,7 @@
 
                         <!-- Phone -->
                         <div class="row mb-3">
-                            <label asp-for="Phone" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Số điện thoại</label>
                             <div class="col-sm-9">
                                 <input asp-for="Phone" class="form-control" required />
                                 <span asp-validation-for="Phone" class="text-danger"></span>
@@ -94,7 +98,7 @@
 
                         <!-- Address -->
                         <div class="row mb-3">
-                            <label asp-for="Address" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Địa chỉ</label>
                             <div class="col-sm-9">
                                 <input asp-for="Address" class="form-control" required />
                                 <span asp-validation-for="Address" class="text-danger"></span>
@@ -103,10 +107,10 @@
 
                         <!-- Gender -->
                         <div class="row mb-3">
-                            <label asp-for="Gender" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Giới tính</label>
                             <div class="col-sm-9">
                                 <select asp-for="Gender" asp-items="genderList" class="form-control" required>
-                                    <option value="">Select gender</option>
+                                    <option value="">-- Chọn giới tính --</option>
                                 </select>
                                 <span asp-validation-for="Gender" class="text-danger"></span>
                             </div>
@@ -114,16 +118,16 @@
 
                         <!-- Citizen ID -->
                         <div class="row mb-3">
-                            <label asp-for="CitizenId" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">CCCD</label>
                             <div class="col-sm-9">
                                 <input asp-for="CitizenId" class="form-control" readonly style="background-color:#e9ecef;" />
-                                <small class="text-muted">Citizen ID cannot be changed after creation</small>
+                                <small class="text-muted">Không thể thay đổi CCCD sau khi tạo</small>
                             </div>
                         </div>
 
                         <!-- Date of Birth -->
                         <div class="row mb-3">
-                            <label asp-for="DateOfBirth" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Ngày sinh</label>
                             <div class="col-sm-9">
                                 <input asp-for="DateOfBirth" type="date" class="form-control" required />
                                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
@@ -132,23 +136,24 @@
 
                         <!-- Status -->
                         <div class="row mb-3">
-                            <label asp-for="Status" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Trạng thái</label>
                             <div class="col-sm-9">
-                                <select asp-for="Status" asp-items="statusList" class="form-control">
-                                </select>
+                                <select asp-for="Status" asp-items="statusList" class="form-control"></select>
                                 <span asp-validation-for="Status" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <!-- Avatar Upload -->
+                        <!-- Avatar -->
                         <div class="row mb-3">
-                            <label asp-for="AvatarFile" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Ảnh đại diện</label>
                             <div class="col-sm-9">
                                 <input asp-for="AvatarFile" type="file" class="form-control" />
+
                                 @if (!string.IsNullOrEmpty(Model.Avatar))
                                 {
-                                    <img src="@Url.Content(Model.Avatar)" alt="Avatar" class="img-thumbnail mt-2" style="max-height:120px;" />
+                                    <img src="@Url.Content(Model.Avatar)" class="img-thumbnail mt-2" style="max-height:120px;" />
                                 }
+
                                 <span asp-validation-for="AvatarFile" class="text-danger"></span>
                             </div>
                         </div>
@@ -157,14 +162,19 @@
                         <div class="row">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i> Save Changes
+                                    <i class="bi bi-save"></i> Lưu thay đổi
                                 </button>
+
                                 <a asp-action="Details" asp-route-id="@Model.StaffId" class="btn btn-info ajax-link">
-                                    <i class="bi bi-eye"></i> View Details
+                                    <i class="bi bi-eye"></i> Xem chi tiết
                                 </a>
-                                <a asp-action="Index" class="btn btn-secondary ajax-link">Cancel</a>
+
+                                <a asp-action="Index" class="btn btn-secondary ajax-link">
+                                    Hủy
+                                </a>
                             </div>
                         </div>
+
                     </form>
                 </div>
             </div>

@@ -2,16 +2,20 @@
 @model CreateProductDto
 
 @{
-    ViewData["Title"] = "Create New Product";
+    ViewData["Title"] = "Tạo sản phẩm mới";
 }
 
 <div class="pagetitle">
-    <h1>Create New</h1>
+    <h1>Tạo mới</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
-            <li class="breadcrumb-item active">Create</li>
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index">Sản phẩm</a>
+            </li>
+            <li class="breadcrumb-item active">Tạo mới</li>
         </ol>
     </nav>
 </div>
@@ -21,75 +25,79 @@
         <div class="col-lg-12 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Product Information</h5>
+                    <h5 class="card-title">Thông tin sản phẩm</h5>
 
                     <form asp-action="Create" method="post" enctype="multipart/form-data" class="row g-3 ajax-post-form">
                         <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
 
                         <div class="col-md-8">
-                            <label asp-for="ProductName" class="form-label">Product Name</label>
-                            <input asp-for="ProductName" class="form-control" placeholder="Enter product name..." />
+                            <label asp-for="ProductName" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="ProductName" class="form-control" placeholder="Nhập tên sản phẩm..." />
                             <span asp-validation-for="ProductName" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="CategoryID" class="form-label">Category</label>
+                            <label asp-for="CategoryID" class="form-label">Danh mục</label>
                             <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.Categories">
-                                <option value="">-- Select Category --</option>
+                                <option value="">-- Chọn danh mục --</option>
                             </select>
                             <span asp-validation-for="CategoryID" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="Price" class="form-label">Price (VND)</label>
+                            <label asp-for="Price" class="form-label">Giá (VNĐ)</label>
                             <input asp-for="Price" type="number" class="form-control" />
                             <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="Discount" class="form-label">Discount (%)</label>
+                            <label asp-for="Discount" class="form-label">Giảm giá (%)</label>
                             <input asp-for="Discount" type="number" class="form-control" />
                             <span asp-validation-for="Discount" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="StockQuantity" class="form-label">Stock Quantity</label>
+                            <label asp-for="StockQuantity" class="form-label">Số lượng tồn</label>
                             <input asp-for="StockQuantity" type="number" class="form-control" />
                             <span asp-validation-for="StockQuantity" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-12">
-                            <label asp-for="Material" class="form-label">Material</label>
-                            <input asp-for="Material" class="form-control" placeholder="E.g., Bamboo, Rattan..." />
+                            <label asp-for="Material" class="form-label">Chất liệu</label>
+                            <input asp-for="Material" class="form-control" placeholder="Ví dụ: Tre, Mây..." />
                             <span asp-validation-for="Material" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label">Detailed Description</label>
+                            <label asp-for="Description" class="form-label">Mô tả chi tiết</label>
                             <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="col-12 mt-4">
-                            <h6 class="fw-bold border-bottom pb-2">Product Images (Upload File or Link URL)</h6>
-                            <p class="text-muted small">Provide at least 1 image. The first image is the main image by default.</p>
+                            <h6 class="fw-bold border-bottom pb-2">Hình ảnh sản phẩm (Tải lên hoặc dán link URL)</h6>
+                            <p class="text-muted small">
+                                Cần ít nhất 1 ảnh. Ảnh đầu tiên sẽ được chọn làm ảnh chính mặc định.
+                            </p>
 
                             <div id="image-inputs">
                                 @for (int i = 0; i < 4; i++)
                                 {
                                     <div class="row g-2 mb-3 align-items-center">
                                         <div class="col-md-5">
-                                            <label class="small">Choose File</label>
+                                            <label class="small">Chọn file</label>
                                             <input type="file" name="Images[@i].ImageFile" class="form-control form-control-sm" accept="image/*" />
                                         </div>
+
                                         <div class="col-md-4">
-                                            <label class="small">Or paste URL</label>
+                                            <label class="small">Hoặc nhập URL</label>
                                             <input name="Images[@i].ImageUrl" class="form-control form-control-sm" placeholder="https://example.com/image.jpg" />
                                         </div>
+
                                         <div class="col-md-3">
                                             <div class="form-check mt-3">
                                                 <input class="form-check-input" type="radio" name="mainImageIndex" value="@i" @(i == 0 ? "checked" : "")>
-                                                <label class="form-check-label small">Main Image</label>
+                                                <label class="form-check-label small">Ảnh chính</label>
                                             </div>
                                             <input type="hidden" name="Images[@i].IsMain" value="@(i == 0 ? "true" : "false")" />
                                         </div>
@@ -100,11 +108,12 @@
 
                         <div class="col-12 text-center mt-4">
                             <button type="submit" class="btn btn-primary px-5">
-                                <i class="bi bi-save me-1"></i>Create Product
+                                <i class="bi bi-save me-1"></i>Tạo sản phẩm
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary px-4 ajax-link">Cancel</a>
+                            <a asp-action="Index" class="btn btn-secondary px-4 ajax-link">Hủy</a>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>
@@ -116,10 +125,9 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Cập nhật giá trị IsMain khi thay đổi radio button
+        // Cập nhật IsMain khi chọn ảnh chính
         document.querySelectorAll('input[name="mainImageIndex"]').forEach((radio, index) => {
             radio.addEventListener('change', function() {
-                // Lấy tất cả các input ẩn IsMain (bao gồm cả các input sinh ra theo chỉ số i)
                 document.querySelectorAll('input[type="hidden"][name^="Images["][name$="].IsMain"]').forEach((hidden, hIndex) => {
                     hidden.value = (hIndex === index).toString().toLowerCase();
                 });

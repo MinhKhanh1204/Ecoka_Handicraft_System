@@ -1,4 +1,4 @@
-@using MVCApplication.Areas.Admin.DTOs
+﻿@using MVCApplication.Areas.Admin.DTOs
 @using MVCApplication.CustomFormatter
 @model PagedResult<ReadProductDto>
 
@@ -18,13 +18,13 @@
 }
 
 <div class="pagetitle">
-    <h1>Products</h1>
+    <h1>Sản phẩm</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
             </li>
-            <li class="breadcrumb-item active">Products</li>
+            <li class="breadcrumb-item active">Sản phẩm</li>
         </ol>
     </nav>
 </div>
@@ -37,13 +37,13 @@
 
                     <!-- Header -->
                     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4">
-                        <h5 class="card-title mb-0">Product Management</h5>
+                        <h5 class="card-title mb-0">Quản lý sản phẩm</h5>
 
                         <a class="btn btn-primary ajax-link"
                            asp-area="Admin"
                            asp-controller="Products"
                            asp-action="Create">
-                            <i class="bi bi-plus-circle me-1"></i> Add New
+                            <i class="bi bi-plus-circle me-1"></i> Thêm mới
                         </a>
                     </div>
 
@@ -58,7 +58,7 @@
                                            class="form-control"
                                            placeholder="Search by product name..." />
                                     <button class="btn btn-primary" type="submit">
-                                        <i class="bi bi-search me-1"></i> Search
+                                        <i class="bi bi-search me-1"></i> Tìm kiếm
                                     </button>
                                 </div>
                             </div>
@@ -67,7 +67,7 @@
                                    asp-area="Admin"
                                    asp-controller="Products"
                                    asp-action="Index">
-                                    Reset All
+                                    Reset tất cả
                                 </a>
                             </div>
                         </form>
@@ -78,17 +78,17 @@
                         <form method="get" class="row g-2 align-items-center ajax-form">
                             <input type="hidden" name="keyword" value="@keyword" />
                             <div class="col-auto">
-                                <label class="fw-bold me-2">Filter by status:</label>
+                                <label class="fw-bold me-2">Lọc theo trạng thái:</label>
                             </div>
                             <div class="col-md-3">
                                 <select name="status" class="form-select border-primary">
-                                    <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">All</option>
-                                    <option value="Active" selected="@(status == "Active")">Active</option>
-                                    <option value="Pending" selected="@(status == "Pending")">Pending</option>
-                                    <option value="Inactive" selected="@(status == "Inactive")">Inactive</option>
+                                    <option value="All" selected="@(string.IsNullOrEmpty(status) || status == "All")">Tất cả</option>
+                                    <option value="Active" selected="@(status == "Active")">Đang bán</option>
+                                    <option value="Pending" selected="@(status == "Pending")">Chờ duyệt</option>
+                                    <option value="Inactive" selected="@(status == "Inactive")">Không còn bán</option>
                                     @if (isAdmin)
                                     {
-                                        <option value="Rejected" selected="@(status == "Rejected")">Rejected</option>
+                                        <option value="Rejected" selected="@(status == "Rejected")">Bị từ chối</option>
                                     }
                                 </select>
                             </div>
@@ -100,14 +100,14 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width:60px;">No.</th>
-                                    <th>Image</th>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                                    <th style="width:60px;">STT.</th>
+                                    <th>Ảnh</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Loại</th>
+                                    <th>Giá</th>
+                                    <th>Kho</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">hành động</th>
                                 </tr>
                             </thead>
 
@@ -117,7 +117,7 @@
                                     <tr>
                                         <td colspan="8" class="text-center text-muted py-5">
                                             <i class="bi bi-box-seam display-4 d-block mb-3"></i>
-                                            No products found
+                                            Không tìm thấy sản phẩm
                                         </td>
                                     </tr>
                                 }
@@ -219,7 +219,7 @@
                                                               asp-route-id="@p.ProductID"
                                                               method="post"
                                                               class="d-inline ajax-delete-form"
-                                                              data-confirm="Stop selling this product?">
+                                                              data-confirm="Ngừng bán sản phẩm này?">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                                 <i class="bi bi-trash"></i>

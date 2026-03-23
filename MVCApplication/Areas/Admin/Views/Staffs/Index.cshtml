@@ -1,7 +1,7 @@
-@model IEnumerable<MVCApplication.Areas.Admin.DTOs.StaffViewModel>
+﻿@model IEnumerable<MVCApplication.Areas.Admin.DTOs.StaffViewModel>
 
 @{
-    ViewData["Title"] = "Employee Management";
+    ViewData["Title"] = "Quản lý nhân viên";
     
     var currentPage = (int)(ViewBag.CurrentPage ?? 1);
     var totalPages = (int)(ViewBag.TotalPages ?? 1);
@@ -18,13 +18,13 @@
 }
 
 <div class="pagetitle">
-    <h1>Employees</h1>
+    <h1>Nhân viên</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
             </li>
-            <li class="breadcrumb-item active">Employees</li>
+            <li class="breadcrumb-item active">Nhân viên</li>
         </ol>
     </nav>
 </div>
@@ -34,70 +34,76 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Employee Management</h3>
+                    <h3 class="card-title">Quản lý nhân viên</h3>
                     <a asp-action="Create" class="btn btn-primary ajax-link">
-                        <i class="bi bi-plus-circle"></i> Add New
+                        <i class="bi bi-plus-circle"></i> Thêm mới
                     </a>
                 </div>
+
                 <div class="card-body">
-                    <!-- Search & Filter Form -->
+                    <!-- Search & Filter -->
                     <form method="get" asp-action="Index" class="mb-4 ajax-form">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <input type="text" name="keyword" class="form-control"
-                                       placeholder="Search by name, email, phone..."
+                                       placeholder="Tìm theo tên, email, số điện thoại..."
                                        value="@ViewBag.Keyword"
                                        maxlength="100" />
                             </div>
+
                             <div class="col-md-2">
                                 <select name="role" class="form-control">
-                                    <option value="">All Roles</option>
-                                    <option value="Employee" selected="@(ViewBag.Role == "Employee")">Employee</option>
-                                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Admin</option>
+                                    <option value="">Tất cả vai trò</option>
+                                    <option value="Employee" selected="@(ViewBag.Role == "Employee")">Nhân viên</option>
+                                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Quản trị</option>
                                 </select>
                             </div>
+
                             <div class="col-md-2">
                                 <select name="status" class="form-control">
-                                    <option value="">All Status</option>
-                                    <option value="true" selected="@(ViewBag.Status != null && (bool)ViewBag.Status == true)">Active</option>
-                                    <option value="false" selected="@(ViewBag.Status != null && (bool)ViewBag.Status == false)">Deleted</option>
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="true" selected="@(ViewBag.Status != null && (bool)ViewBag.Status == true)">Hoạt động</option>
+                                    <option value="false" selected="@(ViewBag.Status != null && (bool)ViewBag.Status == false)">Đã xóa</option>
                                 </select>
                             </div>
+
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="bi bi-search"></i> Search
+                                    <i class="bi bi-search"></i> Tìm kiếm
                                 </button>
                             </div>
+
                             <div class="col-md-2">
                                 <a asp-action="Index" class="btn btn-secondary btn-block ajax-link">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                    <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
                                 </a>
                             </div>
                         </div>
                     </form>
 
-                    <!-- Staff Table -->
+                    <!-- Table -->
                     <div class="table-responsive mt-3">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Avatar</th>
-                                    <th>ID</th>
-                                    <th>Full Name</th>
+                                    <th>Ảnh</th>
+                                    <th>Mã NV</th>
+                                    <th>Họ tên</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>SĐT</th>
+                                    <th>Vai trò</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 @if (!Model.Any())
                                 {
                                     <tr>
                                         <td colspan="8" class="text-center text-muted py-4">
                                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                            No staff found.
+                                            Không tìm thấy nhân viên nào.
                                         </td>
                                     </tr>
                                 }
@@ -109,7 +115,7 @@
                                             <td class="text-center" style="width: 60px;">
                                                 @if (!string.IsNullOrEmpty(staff.Avatar))
                                                 {
-                                                    <img src="@staff.Avatar" alt="Avatar" class="rounded-circle"
+                                                    <img src="@staff.Avatar" class="rounded-circle"
                                                          style="width: 40px; height: 40px; object-fit: cover;" />
                                                 }
                                                 else
@@ -120,48 +126,53 @@
                                                     </div>
                                                 }
                                             </td>
-                                            <td>
-                                                <strong>@staff.StaffId</strong>
-                                            </td>
+
+                                            <td><strong>@staff.StaffId</strong></td>
                                             <td>@staff.FullName</td>
                                             <td>@staff.Email</td>
                                             <td>@staff.Phone</td>
+
                                             <td>
                                                 @if (staff.Role == "Admin")
                                                 {
-                                                    <span class="badge bg-primary">Admin</span>
+                                                    <span class="badge bg-primary">Quản trị</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-info">Employee</span>
+                                                    <span class="badge bg-info">Nhân viên</span>
                                                 }
                                             </td>
+
                                             <td>
                                                 @if (staff.Status)
                                                 {
-                                                    <span class="badge bg-success">Active</span>
+                                                    <span class="badge bg-success">Hoạt động</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-danger">Deleted</span>
+                                                    <span class="badge bg-danger">Đã xóa</span>
                                                 }
                                             </td>
+
                                             <td>
                                                 <div class="btn-group">
                                                     <a asp-action="Details" asp-route-id="@staff.StaffId"
-                                                       class="btn btn-sm btn-outline-secondary ajax-link" title="Details">
+                                                       class="btn btn-sm btn-outline-secondary ajax-link" title="Chi tiết">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
+
                                                     <a asp-action="Edit" asp-route-id="@staff.StaffId"
-                                                       class="btn btn-sm btn-outline-primary ajax-link" title="Edit">
+                                                       class="btn btn-sm btn-outline-primary ajax-link" title="Chỉnh sửa">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
+
                                                     @if (staff.Status)
                                                     {
-                                                        <form asp-action="Delete" asp-route-id="@staff.StaffId" method="post" style="display:inline;" class="ajax-delete-form">
+                                                        <form asp-action="Delete" asp-route-id="@staff.StaffId"
+                                                              method="post" class="ajax-delete-form">
                                                             @Html.AntiForgeryToken()
                                                             <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                                    title="Delete">
+                                                                    title="Xóa">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
@@ -180,8 +191,9 @@
                     {
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div class="text-muted">
-                                Showing @startItem to @endItem of @totalStaffs staff members
+                                Hiển thị @startItem - @endItem / @totalStaffs nhân viên
                             </div>
+
                             <nav>
                                 <ul class="pagination mb-0">
                                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
@@ -190,7 +202,7 @@
                                             role = ViewBag.Role,
                                             status = ViewBag.Status,
                                             page = currentPage - 1
-                                        })">Previous</a>
+                                        })">Trước</a>
                                     </li>
 
                                     @for (int i = 1; i <= totalPages; i++)
@@ -211,7 +223,7 @@
                                             role = ViewBag.Role,
                                             status = ViewBag.Status,
                                             page = currentPage + 1
-                                        })">Next</a>
+                                        })">Sau</a>
                                     </li>
                                 </ul>
                             </nav>

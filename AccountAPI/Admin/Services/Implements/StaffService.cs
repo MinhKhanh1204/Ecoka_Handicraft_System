@@ -96,10 +96,10 @@ namespace AccountAPI.Admin.Services.Implements
             // ===== VALIDATION =====
 
             if (await _repo.EmailExistsAsync(dto.Email))
-                throw new InvalidOperationException("EMAIL_EXISTS");
+                throw new InvalidOperationException("Email đã tồn tại");
 
             if (await _repo.PhoneExistsAsync(dto.Phone))
-                throw new InvalidOperationException("PHONE_EXISTS");
+                throw new InvalidOperationException("Số điện thoại đã tồn tại");
 
             if (!string.IsNullOrEmpty(dto.CitizenId))
             {
@@ -107,7 +107,7 @@ namespace AccountAPI.Admin.Services.Implements
                     .Any(s => s.CitizenId == dto.CitizenId);
 
                 if (existsCitizen)
-                    throw new InvalidOperationException("CITIZENID_EXISTS"); // ✅ FIX
+                    throw new InvalidOperationException("CCCD đã tồn tại"); // ✅ FIX
             }
 
             if (dto.DateOfBirth.HasValue)
@@ -119,7 +119,7 @@ namespace AccountAPI.Admin.Services.Implements
                     age--;
 
                 if (age < 18)
-                    throw new InvalidOperationException("INVALID_AGE");
+                    throw new InvalidOperationException("Nhân viên phải từ 18 tuổi trở lên");
             }
 
             // ===== USERNAME AUTO =====
@@ -153,7 +153,7 @@ namespace AccountAPI.Admin.Services.Implements
 
                 var role = await _repo.GetRoleByIdAsync(dto.RoleID);
                 if (role == null)
-                    throw new InvalidOperationException("ROLE_NOT_FOUND");
+                    throw new InvalidOperationException("Không tìm thấy role");
 
                 await _repo.AddUserRoleAsync(new UserRole
                 {
@@ -198,7 +198,7 @@ namespace AccountAPI.Admin.Services.Implements
             {
                 var age = DateTime.Now.Year - dto.DateOfBirth.Value.Year;
                 if (age < 18)
-                    throw new InvalidOperationException("INVALID_AGE");
+                    throw new InvalidOperationException("Nhân viên phải từ 18 tuổi trở lên");
             }
 
             if (!string.IsNullOrEmpty(dto.CitizenId))
@@ -207,7 +207,7 @@ namespace AccountAPI.Admin.Services.Implements
                     .Any(s => s.CitizenId == dto.CitizenId && s.StaffId != dto.StaffId);
 
                 if (existsCitizen)
-                    throw new InvalidOperationException("CITIZENID_EXISTS");
+                    throw new InvalidOperationException("CCCD đã tồn tại");
             }
 
             // ===== UPDATE =====
