@@ -51,13 +51,7 @@
                                        maxlength="100" />
                             </div>
 
-                            <div class="col-md-2">
-                                <select name="role" class="form-control">
-                                    <option value="">Tất cả vai trò</option>
-                                    <option value="Employee" selected="@(ViewBag.Role == "Employee")">Nhân viên</option>
-                                    <option value="Admin" selected="@(ViewBag.Role == "Admin")">Quản trị</option>
-                                </select>
-                            </div>
+
 
                             <div class="col-md-2">
                                 <select name="status" class="form-control">
@@ -199,7 +193,6 @@
                                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                                         <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                             keyword = ViewBag.Keyword,
-                                            role = ViewBag.Role,
                                             status = ViewBag.Status,
                                             page = currentPage - 1
                                         })">Trước</a>
@@ -210,7 +203,6 @@
                                         <li class="page-item @(i == currentPage ? "active" : "")">
                                             <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                                 keyword = ViewBag.Keyword,
-                                                role = ViewBag.Role,
                                                 status = ViewBag.Status,
                                                 page = i
                                             })">@i</a>
@@ -220,7 +212,6 @@
                                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                                         <a class="page-link ajax-link" href="@Url.Action("Index", new {
                                             keyword = ViewBag.Keyword,
-                                            role = ViewBag.Role,
                                             status = ViewBag.Status,
                                             page = currentPage + 1
                                         })">Sau</a>
