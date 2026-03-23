@@ -1,7 +1,7 @@
 @model MVCApplication.Models.DTOs.VoucherDto
 
 @{
-    ViewData["Title"] = "Voucher Details";
+    ViewData["Title"] = "Chi tiết voucher";
 }
 
 <div class="container mt-5">
@@ -9,7 +9,7 @@
         <div class="col-md-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-action="Index">Vouchers</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Danh sách voucher</a></li>
                     <li class="breadcrumb-item active" aria-current="page">@Model.Code</li>
                 </ol>
             </nav>
@@ -20,53 +20,53 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Name</div>
+                        <div class="col-sm-4 text-muted fw-bold">Tên</div>
                         <div class="col-sm-8">@Model.VoucherName</div>
                     </div>
                     <hr />
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Description</div>
-                        <div class="col-sm-8">@Model.Description</div>
+                        <div class="col-sm-4 text-muted fw-bold">Mô tả</div>
+                        <div class="col-sm-8">@(Model.Description ?? "-")</div>
                     </div>
                     <hr />
                     <div class="row mb-4">
                         <div class="col-sm-6">
                             <div class="p-3 bg-light rounded text-center">
-                                <span class="text-muted d-block small">Discount</span>
-                                <span class="h4 text-primary">@Model.DiscountPercentage%</span>
+                                <span class="text-muted d-block small">Giảm giá</span>
+                                <span class="h4 text-primary">@(Model.DiscountPercentage.HasValue ? Model.DiscountPercentage.Value.ToString("0.##") + "%" : "-")</span>
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <div class="p-3 bg-light rounded text-center">
-                                <span class="text-muted d-block small">Max Reducing</span>
-                                <span class="h4 text-primary">@string.Format("{0:C0}", Model.MaxReducing)</span>
+                                <span class="text-muted d-block small">Giảm tối đa</span>
+                                <span class="h4 text-primary">@(Model.MaxReducing.HasValue ? Model.MaxReducing.Value.ToString("N0") + " đ" : "-")</span>
                             </div>
                         </div>
                     </div>
                     <hr />
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Expiry Date</div>
+                        <div class="col-sm-4 text-muted fw-bold">Ngày hết hạn</div>
                         <div class="col-sm-8 text-danger fw-bold">@Model.ExpiryDate?.ToString("dd/MM/yyyy")</div>
                     </div>
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Remaining Quantity</div>
-                        <div class="col-sm-8">@Model.Quantity</div>
+                        <div class="col-sm-4 text-muted fw-bold">Số lượng còn lại</div>
+                        <div class="col-sm-8">@(Model.Quantity?.ToString() ?? "-")</div>
                     </div>
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Min Order Value</div>
-                        <div class="col-sm-8">@string.Format("{0:C0}", Model.MinOrderValue)</div>
+                        <div class="col-sm-4 text-muted fw-bold">Giá trị đơn tối thiểu</div>
+                        <div class="col-sm-8">@(Model.MinOrderValue.HasValue ? Model.MinOrderValue.Value.ToString("N0") + " đ" : "-")</div>
                     </div>
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Status</div>
+                        <div class="col-sm-4 text-muted fw-bold">Trạng thái</div>
                         <div class="col-sm-8">
                             <span class="badge @(Model.IsActive == true ? "bg-success" : "bg-secondary")">
-                                @(Model.IsActive == true ? "Active" : "Inactive")
+                                @(Model.IsActive == true ? "Đang hoạt động" : "Ngừng hoạt động")
                             </span>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer bg-light text-center py-3">
-                    <a asp-action="Index" class="btn btn-secondary me-2">Back to List</a>
+                    <a asp-action="Index" class="btn btn-secondary me-2">Quay lại danh sách</a>
                 </div>
             </div>
         </div>

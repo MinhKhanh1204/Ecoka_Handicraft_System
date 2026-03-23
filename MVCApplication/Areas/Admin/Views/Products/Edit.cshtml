@@ -1,8 +1,8 @@
-﻿@using MVCApplication.Areas.Admin.DTOs
+@using MVCApplication.Areas.Admin.DTOs
 @model UpdateProductDto
 
 @{
-    ViewData["Title"] = "Edit Product";
+    ViewData["Title"] = "Sửa sản phẩm";
     var productId = (string)ViewBag.ProductID;
 }
 
@@ -22,7 +22,7 @@
         <div class="col-lg-12 mx-auto">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Product Information: <span class="text-primary">@productId</span></h5>
+                    <h5 class="card-title">Thông tin sản phẩm: <span class="text-primary">@productId</span></h5>
 
                     <form asp-action="Edit" asp-route-id="@productId" method="post" enctype="multipart/form-data" class="row g-3 ajax-post-form">
                         <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
@@ -42,7 +42,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label asp-for="Price" class="form-label">Giá (VND)</label>
+                            <label asp-for="Price" class="form-label">Giá (VNĐ)</label>
                             <input asp-for="Price" type="number" class="form-control" />
                             <span asp-validation-for="Price" class="text-danger"></span>
                         </div>
@@ -62,8 +62,8 @@
                         <div class="col-md-3">
                             <label asp-for="Status" class="form-label">Trạng thái</label>
                             <select asp-for="Status" class="form-select">
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">Đang bán</option>
+                                <option value="Inactive">Ngừng bán</option>
                             </select>
                             <span asp-validation-for="Status" class="text-danger"></span>
                         </div>
@@ -81,7 +81,7 @@
                         </div>
 
                         <div class="col-12 mt-4">
-                            <h6 class="fw-bold border-bottom pb-2">Ảnh sản phẩm (Cập nhật File or đường dẫn URL)</h6>
+                            <h6 class="fw-bold border-bottom pb-2">Ảnh sản phẩm (tải file hoặc URL)</h6>
                             <p class="text-muted small">Cung cấp 4 hình ảnh. Chọn 1 ảnh chính.</p>
 
                             <div id="image-inputs">

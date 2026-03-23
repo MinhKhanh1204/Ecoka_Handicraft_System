@@ -2,17 +2,17 @@
 @model IReadOnlyList<ReadCategoryDto>
 
 @{
-    ViewData["Title"] = "Categories";
+    ViewData["Title"] = "Danh mục";
     var keyword = (string?)ViewBag.Keyword;
     var status = (string?)ViewBag.Status;
 }
 
 <div class="pagetitle">
-    <h1>Categories</h1>
+    <h1>Danh mục</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item active">Categories</li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Danh mục</li>
         </ol>
     </nav>
 </div>
@@ -23,7 +23,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Categories Management</h5>
+                        <h5 class="card-title mb-0">Quản lý danh mục</h5>
                         <a class="btn btn-primary" asp-area="Admin" asp-controller="Categories" asp-action="Create">
                             <i class="bi bi-plus-circle me-1"></i>Thêm mới
                         </a>
@@ -51,56 +51,56 @@
 
                                 @if (s == "Active")
                                 {
-                                    <option value="Active" selected="selected">Active</option>
+                                    <option value="Active" selected="selected">Hoạt động</option>
                                 }
                                 else
                                 {
-                                    <option value="Active">Active</option>
+                                    <option value="Active">Hoạt động</option>
                                 }
 
                                 @if (s == "Inactive")
                                 {
-                                    <option value="Inactive" selected="selected">Inactive</option>
+                                    <option value="Inactive" selected="selected">Ngừng hoạt động</option>
                                 }
                                 else
                                 {
-                                    <option value="Inactive">Inactive</option>
+                                    <option value="Inactive">Ngừng hoạt động</option>
                                 }
 
                                 @if (s == "Deleted")
                                 {
-                                    <option value="Deleted" selected="selected">Deleted</option>
+                                    <option value="Deleted" selected="selected">Đã xóa</option>
                                 }
                                 else
                                 {
-                                    <option value="Deleted">Deleted</option>
+                                    <option value="Deleted">Đã xóa</option>
                                 }
 
                                 @if (string.Equals(s, "Pending", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <option value="Pending" selected="selected">Pending</option>
+                                    <option value="Pending" selected="selected">Chờ duyệt</option>
                                 }
                                 else
                                 {
-                                    <option value="Pending">Pending</option>
+                                    <option value="Pending">Chờ duyệt</option>
                                 }
 
                                 @if (string.Equals(s, "Rejected", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <option value="Rejected" selected="selected">Rejected</option>
+                                    <option value="Rejected" selected="selected">Từ chối</option>
                                 }
                                 else
                                 {
-                                    <option value="Rejected">Rejected</option>
+                                    <option value="Rejected">Từ chối</option>
                                 }
                             </select>
                         </div>
                         <div class="col-md-3 col-lg-5 d-flex gap-2">
                             <button class="btn btn-outline-primary" type="submit">
-                                <i class="bi bi-search me-1"></i>Search
+                                <i class="bi bi-search me-1"></i>Tìm kiếm
                             </button>
                             <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Categories" asp-action="Index">
-                                Reset
+                                Đặt lại
                             </a>
                         </div>
                     </form>
@@ -151,7 +151,14 @@
                     statusCell.appendChild(badge);
                 }
 
-                badge.innerText = status;
+                const statusVi = {
+                    'Active': 'Hoạt động',
+                    'Deleted': 'Đã xóa',
+                    'Rejected': 'Từ chối',
+                    'Pending': 'Chờ duyệt',
+                    'Inactive': 'Ngừng hoạt động'
+                };
+                badge.innerText = statusVi[status] || status;
                 badge.className = 'badge status-badge';
 
                 if (status === 'Active') badge.classList.add('bg-success');
@@ -202,7 +209,7 @@
             };
 
             window.deleteCategory = function (id) {
-                if (!confirm('Bạn có chắc muốn xóa category này?')) return;
+                if (!confirm('Bạn có chắc muốn xóa danh mục này?')) return;
 
                 fetch('/Admin/Categories/Delete/' + id, {
                     method: 'POST',

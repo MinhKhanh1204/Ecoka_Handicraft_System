@@ -1,7 +1,7 @@
 @using System.Text.Json
 
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Bảng điều khiển";
 
     var stats = ViewBag.DashboardStats;
 
@@ -13,7 +13,7 @@
 
     foreach (var r in revenueData)
     {
-        months.Add("Month " + r.Month);
+        months.Add("Tháng " + r.Month);
         revenues.Add(r.Revenue);
     }
 
@@ -22,12 +22,12 @@
 
     foreach (var o in ordersByMonth)
     {
-        orderMonths.Add("Month " + o.Month);
+        orderMonths.Add("Tháng " + o.Month);
         orderCounts.Add(o.Count);
     }
 }
 
-<h2 class="mb-4">Admin Dashboard</h2>
+<h2 class="mb-4">Bảng điều khiển</h2>
 
 
 <!-- ================= FILTER ================= -->
@@ -36,7 +36,7 @@
 
     <div class="d-flex align-items-center">
 
-        <label class="me-2"><strong>Year:</strong></label>
+        <label class="me-2"><strong>Năm:</strong></label>
 
         <select name="revenueYear"
                 class="form-select w-auto"
@@ -64,7 +64,7 @@
     <div class="col-md-2">
         <div class="card shadow-sm text-center">
             <div class="card-body">
-                <h6>Total Orders</h6>
+                <h6>Tổng đơn hàng</h6>
                 <h3>@(stats?.TotalOrders ?? 0)</h3>
             </div>
         </div>
@@ -73,7 +73,7 @@
     <div class="col-md-2">
         <div class="card shadow-sm text-center">
             <div class="card-body">
-                <h6>Total Items Sold</h6>
+                <h6>Tổng sản phẩm đã bán</h6>
                 <h3>@(stats?.TotalItemsSold ?? 0)</h3>
             </div>
         </div>
@@ -82,7 +82,7 @@
     <div class="col-md-2">
         <div class="card shadow-sm text-center">
             <div class="card-body">
-                <h6>Products Pending</h6>
+                <h6>Sản phẩm chờ duyệt</h6>
                 <h3>@(stats?.ProductPendingCount ?? 0)</h3>
             </div>
         </div>
@@ -91,7 +91,7 @@
     <div class="col-md-2">
         <div class="card shadow-sm text-center">
             <div class="card-body">
-                <h6>Vouchers Pending</h6>
+                <h6>Voucher chờ duyệt</h6>
                 <h3>@(stats?.VoucherApprovalCount ?? 0)</h3>
             </div>
         </div>
@@ -100,7 +100,7 @@
     <div class="col-md-2">
         <div class="card shadow-sm text-center">
             <div class="card-body">
-                <h6>Categories Pending</h6>
+                <h6>Danh mục chờ duyệt</h6>
                 <h3>@(stats?.CategoryApprovalCount ?? 0)</h3>
             </div>
         </div>
@@ -119,7 +119,7 @@
         <div class="card shadow-sm">
 
             <div class="card-header">
-                Revenue by Month (@stats.SelectedRevenueYear)
+                Doanh thu theo tháng (@stats.SelectedRevenueYear)
             </div>
 
             <div class="card-body">
@@ -135,7 +135,7 @@
         <div class="card shadow-sm">
 
             <div class="card-header">
-                Orders by Month
+                Đơn hàng theo tháng
             </div>
 
             <div class="card-body">
@@ -157,7 +157,7 @@
         <div class="card shadow-sm">
 
             <div class="card-header">
-                Feedback Statistics
+                Thống kê đánh giá
             </div>
 
             <div class="card-body">
@@ -165,8 +165,8 @@
                 <canvas id="feedbackChart"></canvas>
 
                 <div class="mt-3">
-                    <p><strong>Positive:</strong> @(stats?.PositiveFeedbackCount ?? 0)</p>
-                    <p><strong>Negative:</strong> @(stats?.NegativeFeedbackCount ?? 0)</p>
+                    <p><strong>Tích cực:</strong> @(stats?.PositiveFeedbackCount ?? 0)</p>
+                    <p><strong>Tiêu cực:</strong> @(stats?.NegativeFeedbackCount ?? 0)</p>
                 </div>
 
             </div>
@@ -182,7 +182,7 @@
         <div class="card shadow-sm">
 
             <div class="card-header">
-                Dashboard Summary
+                Tóm tắt
             </div>
 
             <div class="card-body">
@@ -190,37 +190,37 @@
                 <ul class="list-group">
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Total Orders
+                        Tổng đơn hàng
                         <span>@(stats?.TotalOrders ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Total Items Sold
+                        Tổng sản phẩm đã bán
                         <span>@(stats?.TotalItemsSold ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Positive Feedback
+                        Đánh giá tích cực
                         <span>@(stats?.PositiveFeedbackCount ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Negative Feedback
+                        Đánh giá tiêu cực
                         <span>@(stats?.NegativeFeedbackCount ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Products Pending Approval
+                        Sản phẩm chờ phê duyệt
                         <span>@(stats?.ProductPendingCount ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Vouchers Pending Approval
+                        Voucher chờ phê duyệt
                         <span>@(stats?.VoucherApprovalCount ?? 0)</span>
                     </li>
 
                     <li class="list-group-item d-flex justify-content-between">
-                        Categories Pending Approval
+                        Danh mục chờ phê duyệt
                         <span>@(stats?.CategoryApprovalCount ?? 0)</span>
                     </li>
 
@@ -260,7 +260,7 @@
                         labels: revenueLabels,
 
                         datasets: [{
-                            label: "Revenue",
+                            label: "Doanh thu",
                             data: revenueValues
                         }]
 
@@ -289,7 +289,7 @@
                         labels: orderLabels,
 
                         datasets: [{
-                            label: "Orders",
+                            label: "Đơn hàng",
                             data: orderValues
                         }]
 
@@ -312,7 +312,7 @@
 
                     data: {
 
-                        labels: ["Positive", "Negative"],
+                        labels: ["Tích cực", "Tiêu cực"],
 
                         datasets: [{
                             data: [

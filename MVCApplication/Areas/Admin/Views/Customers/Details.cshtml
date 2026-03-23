@@ -1,7 +1,7 @@
 @model MVCApplication.Models.CustomerViewModel
 
 @{
-    ViewData["Title"] = "Customer Details";
+    ViewData["Title"] = "Chi tiết khách hàng";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
@@ -10,56 +10,56 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="card mb-5">
                 <div class="card-header">
-                    <h3 class="card-title">Customer Information</h3>
+                    <h3 class="card-title">Thông tin khách hàng</h3>
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Customer ID:</dt>
+                        <dt class="col-sm-4">Mã khách hàng:</dt>
                         <dd class="col-sm-8">@Model.CustomerID</dd>
 
-                        <dt class="col-sm-4">Username:</dt>
+                        <dt class="col-sm-4">Tên đăng nhập:</dt>
                         <dd class="col-sm-8">@Model.Username</dd>
 
                         <dt class="col-sm-4">Email:</dt>
                         <dd class="col-sm-8">@Model.Email</dd>
 
-                        <dt class="col-sm-4">Full Name:</dt>
+                        <dt class="col-sm-4">Họ và tên:</dt>
                         <dd class="col-sm-8">@Model.FullName</dd>
 
-                        <dt class="col-sm-4">Date of Birth:</dt>
+                        <dt class="col-sm-4">Ngày sinh:</dt>
                         <dd class="col-sm-8">@Model.DateOfBirth?.ToString("yyyy-MM-dd")</dd>
 
-                        <dt class="col-sm-4">Gender:</dt>
+                        <dt class="col-sm-4">Giới tính:</dt>
                         <dd class="col-sm-8">@Model.Gender</dd>
 
-                        <dt class="col-sm-4">Phone:</dt>
+                        <dt class="col-sm-4">Điện thoại:</dt>
                         <dd class="col-sm-8">@Model.Phone</dd>
 
-                        <dt class="col-sm-4">Address:</dt>
+                        <dt class="col-sm-4">Địa chỉ:</dt>
                         <dd class="col-sm-8">@Model.Address</dd>
 
-                        <dt class="col-sm-4">Status:</dt>
+                        <dt class="col-sm-4">Trạng thái:</dt>
                         <dd class="col-sm-8">
                             @if (Model.Status == "Active")
                             {
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success">Hoạt động</span>
                             }
                             else if (Model.Status == "Inactive")
                             {
-                                <span class="badge bg-danger">Inactive</span>
+                                <span class="badge bg-danger">Ngừng hoạt động</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Unknown</span>
+                                <span class="badge bg-secondary">Không xác định</span>
                             }
                         </dd>
 
-                        <dt class="col-sm-4">Created At:</dt>
+                        <dt class="col-sm-4">Ngày tạo:</dt>
                         <dd class="col-sm-8">@Model.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</dd>
                     </dl>
                 </div>
                 <div class="card-footer">
-                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
                 </div>
             </div>
         </div>

@@ -35,7 +35,7 @@ namespace MVCApplication.Controllers
 			CategoryDto all = new CategoryDto()
 			{
 				CategoryID = 0,
-				CategoryName = "All"
+				CategoryName = "Tất cả"
 			};
 			vm.Categories.Insert(0, all);
 

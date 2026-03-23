@@ -2,16 +2,16 @@
 @model CategoryCreateDto
 
 @{
-    ViewData["Title"] = "Create Category";
+    ViewData["Title"] = "Thêm danh mục";
 }
 
 <div class="pagetitle">
-    <h1>Thêm Category</h1>
+    <h1>Thêm danh mục</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index">Categories</a></li>
-            <li class="breadcrumb-item active">Create</li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index">Danh mục</a></li>
+            <li class="breadcrumb-item active">Thêm mới</li>
         </ol>
     </nav>
 </div>
@@ -21,7 +21,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Thông tin category</h5>
+                    <h5 class="card-title">Thông tin danh mục</h5>
 
                     <form method="post" class="row g-3">
                         <div class="col-12">

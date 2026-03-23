@@ -1,4 +1,46 @@
-﻿@model IEnumerable<MVCApplication.Models.DTOs.Order>
+@model IEnumerable<MVCApplication.Models.DTOs.Order>
+
+@{
+    string PaymentStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chưa thanh toán",
+        "Paid" => "Đã thanh toán",
+        "Refunded" => "Đã hoàn tiền",
+        _ => s ?? "-"
+    };
+
+    string ShippingStatusVi(string? s) => s switch
+    {
+        "Pending" => "Chờ xử lý",
+        "Approved" => "Đã duyệt",
+        "Shipping" => "Đang giao",
+        "Delivered" => "Đã giao",
+        "Completed" => "Hoàn thành",
+        "Cancelled" => "Đã hủy",
+        "Returned" => "Hoàn trả",
+        _ => s ?? "-"
+    };
+
+    string ShippingBadgeClass(string? s) => s switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Approved" => "bg-primary",
+        "Shipping" => "bg-info text-dark",
+        "Delivered" => "bg-success",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-secondary",
+        "Returned" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string PaymentBadgeClass(string? s) => s switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "Paid" => "bg-success",
+        "Refunded" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
 
 <div class="card shadow-sm">
     <div class="card-body">
@@ -7,13 +49,13 @@
 
             <thead class="table-dark">
                 <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Order Date</th>
-                    <th class="text-end">Total</th>
-                    <th>Payment</th>
-                    <th>Shipping</th>
-                    <th class="text-center" style="width:220px">Actions</th>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày đặt</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Giao hàng</th>
+                    <th class="text-center" style="width:220px">Thao tác</th>
                 </tr>
             </thead>
 
@@ -23,7 +65,7 @@
                 {
                     <tr>
                         <td colspan="7" class="text-center text-muted">
-                            No orders found
+                            Không có đơn hàng
                         </td>
                     </tr>
                 }
@@ -44,14 +86,14 @@
                             </td>
 
                             <td>
-                                <span class="badge bg-success">
-                                    @(o.PaymentStatus ?? "-")
+                                <span class="badge @PaymentBadgeClass(o.PaymentStatus)">
+                                    @PaymentStatusVi(o.PaymentStatus)
                                 </span>
                             </td>
 
                             <td>
-                                <span class="badge bg-info text-dark">
-                                    @(o.ShippingStatus ?? "-")
+                                <span class="badge @ShippingBadgeClass(o.ShippingStatus)">
+                                    @ShippingStatusVi(o.ShippingStatus)
                                 </span>
                             </td>
 
@@ -59,7 +101,7 @@
 
                                 <a class="btn btn-sm btn-info"
                                    href="/Admin/Orders/Details/@o.OrderID">
-                                    Details
+                                    Chi tiết
                                 </a>
 
                                 <form method="post"
@@ -71,14 +113,15 @@
                                     <select name="newStatus"
                                             class="form-select form-select-sm d-inline w-auto">
 
-                                        <option value="Pending">Pending</option>
-                                        <option value="Shipping">Shipping</option>
-                                        <option value="Completed">Completed</option>
+                                        <option value="Pending">Chờ xử lý</option>
+                                        <option value="Shipping">Đang giao</option>
+                                        <option value="Delivered">Đã giao</option>
+                                        <option value="Completed">Hoàn thành</option>
 
                                     </select>
 
                                     <button class="btn btn-warning btn-sm">
-                                        Update
+                                        Cập nhật
                                     </button>
 
                                 </form>
