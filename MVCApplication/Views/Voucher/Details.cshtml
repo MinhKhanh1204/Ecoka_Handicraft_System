@@ -4,71 +4,295 @@
     ViewData["Title"] = "Chi tiết voucher";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-action="Index">Danh sách voucher</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">@Model.Code</li>
-                </ol>
-            </nav>
+<style>
+    .voucher-details-container {
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 60px 0;
+    }
 
-            <div class="card shadow border-0">
-                <div class="card-header bg-dark text-white py-3">
-                    <h2 class="mb-0 text-center">Voucher: @Model.Code</h2>
+    .voucher-ticket {
+        display: flex;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+        overflow: hidden;
+        position: relative;
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .voucher-ticket::before,
+    .voucher-ticket::after {
+        content: "";
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background: #f1f3f5;
+        border-radius: 50%;
+        left: 31%;
+        transform: translateX(-50%);
+        z-index: 2;
+    }
+
+    .voucher-ticket::before {
+        top: -20px;
+    }
+
+    .voucher-ticket::after {
+        bottom: -20px;
+    }
+
+    .ticket-left {
+        width: 31%;
+        background: linear-gradient(135deg, #81c408 0%, #619406 100%);
+        color: #fff;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border-right: 2px dashed rgba(255,255,255,0.3);
+    }
+
+    .ticket-right {
+        width: 69%;
+        padding: 40px 50px;
+        background: #fff;
+    }
+
+    .discount-badge {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .discount-label {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.9;
+        font-weight: 600;
+    }
+
+    .voucher-code-box {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 25px 0;
+        transition: all 0.3s ease;
+    }
+
+    .voucher-code-box:hover {
+        border-color: #81c408;
+        background: #fff;
+    }
+
+    .code-text {
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #333;
+        letter-spacing: 1px;
+    }
+
+    .btn-copy {
+        background: #81c408;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-copy:hover {
+        background: #619406;
+        transform: scale(1.05);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .info-icon {
+        width: 45px;
+        height: 45px;
+        background: #f1f8e9;
+        color: #81c408;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.2rem;
+    }
+
+    .info-content label {
+        display: block;
+        font-size: 0.8rem;
+        color: #adb5bd;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+        font-weight: 600;
+    }
+
+    .info-content span {
+        font-weight: 700;
+        color: #495057;
+    }
+
+    .expiry-tag {
+        background: #fff0f0;
+        color: #e03131;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        color: #adb5bd;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 40px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        color: #81c408;
+        transform: translateX(-5px);
+    }
+
+    @@media (max-width: 768px) {
+        .voucher-ticket {
+            flex-direction: column;
+        }
+        .ticket-left, .ticket-right {
+            width: 100%;
+        }
+        .ticket-left {
+            border-right: none;
+            border-bottom: 2px dashed rgba(255,255,255,0.3);
+            padding: 30px;
+        }
+        .voucher-ticket::before, .voucher-ticket::after {
+            display: none;
+        }
+    }
+</style>
+
+<div class="voucher-details-container">
+    <div class="container">
+        <div class="voucher-ticket">
+            <div class="ticket-left">
+                <div class="discount-badge">
+                    @(Model.DiscountPercentage.HasValue ? Model.DiscountPercentage.Value.ToString("0") : "0")
                 </div>
-                <div class="card-body p-4">
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Tên</div>
-                        <div class="col-sm-8">@Model.VoucherName</div>
+                <div class="discount-label">
+                    @(Model.DiscountPercentage.HasValue ? "% OFF" : "GIẢM GIÁ")
+                </div>
+                <div class="mt-4 opacity-75 small text-center px-3">
+                    @Model.VoucherName
+                </div>
+            </div>
+
+            <div class="ticket-right">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h3 class="fw-bold mb-1">Chi tiết Voucher</h3>
+                        <p class="text-muted small">Dùng mã này khi thanh toán để nhận ưu đãi</p>
                     </div>
-                    <hr />
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Mô tả</div>
-                        <div class="col-sm-8">@(Model.Description ?? "-")</div>
-                    </div>
-                    <hr />
-                    <div class="row mb-4">
-                        <div class="col-sm-6">
-                            <div class="p-3 bg-light rounded text-center">
-                                <span class="text-muted d-block small">Giảm giá</span>
-                                <span class="h4 text-primary">@(Model.DiscountPercentage.HasValue ? Model.DiscountPercentage.Value.ToString("0.##") + "%" : "-")</span>
-                            </div>
+                    <span class="badge rounded-pill @(Model.IsActive == true ? "bg-success" : "bg-danger") px-3 py-2">
+                        @(Model.IsActive == true ? "ĐANG HOẠT ĐỘNG" : "HẾT HẠN")
+                    </span>
+                </div>
+
+                <div class="voucher-code-box">
+                    <span class="code-text" id="voucherCode">@Model.Code</span>
+                    <button class="btn-copy" onclick="copyVoucherCode()">
+                        <i class="fas fa-copy me-2"></i> Sao chép
+                    </button>
+                </div>
+
+                <p class="text-secondary mb-4">
+                    @(Model.Description ?? "Không có mô tả chi tiết cho voucher này.")
+                </p>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="info-content">
+                            <label>Hết hạn vào</label>
+                            <span class="expiry-tag">@Model.ExpiryDate?.ToString("dd/MM/yyyy")</span>
                         </div>
-                        <div class="col-sm-6">
-                            <div class="p-3 bg-light rounded text-center">
-                                <span class="text-muted d-block small">Giảm tối đa</span>
-                                <span class="h4 text-primary">@(Model.MaxReducing.HasValue ? Model.MaxReducing.Value.ToString("N0") + " đ" : "-")</span>
-                            </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="info-content">
+                            <label>Đơn tối thiểu</label>
+                            <span>@(Model.MinOrderValue.HasValue ? Model.MinOrderValue.Value.ToString("N0") + " đ" : "0 đ")</span>
                         </div>
                     </div>
-                    <hr />
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Ngày hết hạn</div>
-                        <div class="col-sm-8 text-danger fw-bold">@Model.ExpiryDate?.ToString("dd/MM/yyyy")</div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="info-content">
+                            <label>Số lượng</label>
+                            <span>@(Model.Quantity?.ToString() ?? "Không giới hạn")</span>
+                        </div>
                     </div>
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Số lượng còn lại</div>
-                        <div class="col-sm-8">@(Model.Quantity?.ToString() ?? "-")</div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Giá trị đơn tối thiểu</div>
-                        <div class="col-sm-8">@(Model.MinOrderValue.HasValue ? Model.MinOrderValue.Value.ToString("N0") + " đ" : "-")</div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-sm-4 text-muted fw-bold">Trạng thái</div>
-                        <div class="col-sm-8">
-                            <span class="badge @(Model.IsActive == true ? "bg-success" : "bg-secondary")">
-                                @(Model.IsActive == true ? "Đang hoạt động" : "Ngừng hoạt động")
-                            </span>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-coins"></i></div>
+                        <div class="info-content">
+                            <label>Giảm tối đa</label>
+                            <span>@(Model.MaxReducing.HasValue ? Model.MaxReducing.Value.ToString("N0") + " đ" : "Không giới hạn")</span>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-light text-center py-3">
-                    <a asp-action="Index" class="btn btn-secondary me-2">Quay lại danh sách</a>
-                </div>
+
+                <a asp-action="Index" class="btn-back">
+                    <i class="fas fa-arrow-left me-2"></i> Quay lại danh sách
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function copyVoucherCode() {
+        const codeText = document.getElementById("voucherCode").innerText;
+        navigator.clipboard.writeText(codeText).then(() => {
+            const btn = document.querySelector(".btn-copy");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-2"></i> Đã chép';
+            btn.classList.replace("btn-copy", "btn-success");
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.replace("btn-success", "btn-copy");
+            }, 2000);
+            
+            // Show toast if available
+            if (typeof toastr !== 'undefined') {
+                toastr.success("Đã sao chép mã voucher vào bộ nhớ tạm!");
+            }
+        });
+    }
+</script>

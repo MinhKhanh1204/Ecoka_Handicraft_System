@@ -2,240 +2,310 @@
 @model IEnumerable<Order>
 
 @{
-    ViewData["Title"] = "My Orders";
+    ViewData["Title"] = "Đơn hàng của tôi";
 }
 @{
-    var currentOrders = ViewBag.CurrentOrders as List<Order>;
-    var historyOrders = ViewBag.HistoryOrders as List<Order>;
-
-    int currentPage = ViewBag.CurrentPage;
-    int historyPage = ViewBag.HistoryPage;
-
-    int pageSize = ViewBag.PageSize;
-
-    int currentTotal = ViewBag.CurrentTotal;
-    int historyTotal = ViewBag.HistoryTotal;
-
-    int currentTotalPages = (int)Math.Ceiling((double)currentTotal / pageSize);
-    int historyTotalPages = (int)Math.Ceiling((double)historyTotal / pageSize);
+    var currentOrders = ViewBag.CurrentOrders as List<Order> ?? new List<Order>();
+    var historyOrders = ViewBag.HistoryOrders as List<Order> ?? new List<Order>();
 }
-<div class="container py-5">
-    <h2 class="mb-4">My Orders</h2>
 
-    @if (TempData["PaymentMsg"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fa fa-info-circle me-2"></i> @TempData["PaymentMsg"]
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-    }
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Đơn hàng của tôi</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
+        <li class="breadcrumb-item active text-white">Đơn hàng</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
 
-    <!-- SEARCH FORM -->
-    <form asp-action="Search" id="searchForm" method="get" class="mb-4">
-        <div class="row g-2">
+@section Styles {
+    <style>
+        .orders-page-premium {
+            background-color: #f8f9fa;
+            min-height: 80vh;
+            padding-bottom: 80px;
+        }
 
-            <div class="col-md-3">
-                <input type="text"
-                       name="orderId"
-                       class="form-control"
-                       placeholder="Order ID" />
+        /* Search Bar */
+        .order-search-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            border: none;
+        }
+        .order-search-input {
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        .order-search-input:focus {
+            border-color: #81c408;
+            box-shadow: 0 0 0 0.25rem rgba(129, 196, 8, 0.1);
+        }
+
+        /* Tabs */
+        .order-tabs {
+            border: none;
+            gap: 30px;
+            margin-bottom: 35px !important;
+        }
+        .order-tabs .nav-link {
+            border: none;
+            background: none;
+            padding: 0 0 10px;
+            font-weight: 700;
+            color: #adb5bd;
+            position: relative;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .order-tabs .nav-link.active {
+            color: #333;
+        }
+        .order-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #81c408;
+            border-radius: 3px;
+        }
+
+        /* Order Cards */
+        .order-card-premium {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: #fff;
+            overflow: hidden;
+        }
+        .order-card-premium:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+        .order-card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #f8f9fa;
+            background: #fff;
+        }
+        .order-id {
+            font-weight: 800;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .order-card-body {
+            padding: 25px;
+        }
+        .order-info-label {
+            font-weight: 600;
+            color: #adb5bd;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .order-info-value {
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        /* Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .status-paid { background: rgba(129, 196, 8, 0.1); color: #81c408; }
+        .status-pending { background: rgba(251, 191, 36, 0.1); color: #b45309; }
+        .status-failed { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        
+        .shipping-primary { background: #333; color: #fff; }
+        .shipping-warning { background: #fbbf24; color: #fff; }
+        .shipping-success { background: #81c408; color: #fff; }
+
+        .btn-detail-premium {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 700;
+            color: #495057;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-detail-premium:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+    </style>
+}
+
+<div class="orders-page-premium">
+    <div class="container py-5">
+        @if (TempData["PaymentMsg"] != null)
+        {
+            <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4" role="alert">
+                <i class="fas fa-check-circle me-2 text-success fs-5"></i> @TempData["PaymentMsg"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+        }
 
-            <div class="col-md-2">
-                <input type="date" name="from" class="form-control" />
-            </div>
-
-            <div class="col-md-2">
-                <input type="date" name="to" class="form-control" />
-            </div>
-
-            <div class="col-md-2">
-                <select name="paymentStatus" class="form-select">
-                    <option value="">All Payment</option>
-                    <option>Paid</option>
-                    <option>Pending</option>
-                    <option>Failed</option>
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100">
-                    Tìm kiếm
-                </button>
-            </div>
-
-        </div>
-    </form>
-
-    <!-- ORDER TABS -->
-    <ul class="nav nav-tabs mb-4">
-
-        <li class="nav-item">
-            <button class="nav-link active"
-                    data-bs-toggle="tab"
-                    data-bs-target="#currentOrders">
-                Đơn hàng hiện tại
-            </button>
-        </li>
-
-        <li class="nav-item">
-            <button class="nav-link"
-                    data-bs-toggle="tab"
-                    data-bs-target="#historyOrders">
-                Lịch sử đơn hàng
-            </button>
-        </li>
-
-    </ul>
-    <div id="ordersContainer">
-    <div class="tab-content">
-
-        <!-- CURRENT ORDERS -->
-        <div class="tab-pane fade show active" id="currentOrders">
-
-                @if (!currentOrders.Any())
-            {
-                <div class="alert alert-info">
-                    No current orders.
+        <!-- SEARCH BAR -->
+        <div class="order-search-card">
+            <form asp-action="Search" id="searchForm" method="get">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-3">
+                        <input type="text" name="orderId" class="form-control order-search-input" placeholder="Mã đơn hàng (#123...)" />
+                    </div>
+                    <div class="col-lg-2">
+                        <input type="date" name="from" class="form-control order-search-input" />
+                    </div>
+                    <div class="col-lg-2">
+                        <input type="date" name="to" class="form-control order-search-input" />
+                    </div>
+                    <div class="col-lg-3">
+                        <select name="paymentStatus" class="form-select order-search-input">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Paid">Đã thanh toán</option>
+                            <option value="Pending">Chờ thanh toán</option>
+                            <option value="Failed">Thất bại</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <button class="btn btn-dark w-100 rounded-3 py-2 fw-bold shadow-sm">Tìm kiếm</button>
+                    </div>
                 </div>
-            }
+            </form>
+        </div>
 
-            <div class="row">
+        <!-- TABS -->
+        <ul class="nav nav-tabs order-tabs" id="orderTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#currentOrders">Đơn hàng hiện tại</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#historyOrders">Lịch sử đơn hàng</button>
+            </li>
+        </ul>
 
-                    @foreach (var order in currentOrders)
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm h-100 border-0">
+        <div id="ordersContainer">
+            <div class="tab-content">
+                <!-- CURRENT ORDERS -->
+                <div class="tab-pane fade show active" id="currentOrders">
+                    @if (!currentOrders.Any())
+                    {
+                        <div class="text-center py-5 opacity-50">
+                            <i class="fas fa-box-open fs-1 mb-3"></i>
+                            <p>Bạn không có đơn hàng nào đang chờ.</p>
+                        </div>
+                    }
 
-                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                <strong>#@order.OrderID</strong>
-                                <span class="badge bg-primary">
-                                    @order.PaymentStatus
-                                </span>
-                            </div>
+                    <div class="row g-4">
+                        @foreach (var order in currentOrders)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="order-card-premium h-100">
+                                    <div class="order-card-header d-flex justify-content-between align-items-center">
+                                        <span class="order-id text-uppercase">#@order.OrderID</span>
+                                        <span class="status-badge @(order.PaymentStatus == "Paid" ? "status-paid" : "status-pending")">
+                                            @order.PaymentStatus
+                                        </span>
+                                    </div>
+                                    <div class="order-card-body">
+                                        <div class="order-info-label">Ngày đặt hàng</div>
+                                        <div class="order-info-value">@order.OrderDate?.ToString("dd/MM/yyyy")</div>
 
-                            <div class="card-body">
+                                        <div class="order-info-label">Vận chuyển</div>
+                                        <div class="order-info-value">
+                                            <span class="badge @(order.ShippingStatus == "Pending" ? "bg-warning" : "bg-dark") rounded-pill px-3">
+                                                @order.ShippingStatus
+                                            </span>
+                                        </div>
 
-                                <p>
-                                    <strong>Ngày tạo:</strong>
-                                    @order.OrderDate?.ToString("dd/MM/yyyy")
-                                </p>
+                                        <div class="order-info-label">Tổng cộng</div>
+                                        <div class="order-info-value text-primary fs-5">@order.TotalAmount?.ToString("N0") <small>VND</small></div>
 
-                                <p>
-                                    <strong>Shipping:</strong>
-                                    <span class="badge bg-warning text-dark">
-                                        @order.ShippingStatus
-                                    </span>
-                                </p>
+                                        <hr class="opacity-25 my-4">
 
-                                <p>
-                                    <strong>Địa chỉ:</strong>
-                                    @order.ShippingAddress
-                                </p>
-
-                                <hr />
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="text-danger mb-0">
-                                            @order.TotalAmount?.ToString("N0") VND
-                                    </h5>
-
-                                    <button class="btn btn-sm btn-primary"
-                                            onclick="showOrderDetail('@order.OrderID')">
-                                        Xem chi tiết đơn hàng 
-                                    </button>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn-detail-premium" onclick="showOrderDetail('@order.OrderID')">
+                                                Chi tiết <i class="fas fa-arrow-right ms-1 small"></i>
+                                            </button>
+                                            @if (order.ShippingStatus == "Pending")
+                                            {
+                                                <form asp-action="Cancel" asp-route-id="@order.OrderID" method="post" class="flex-grow-1">
+                                                    @Html.AntiForgeryToken()
+                                                    <button class="btn btn-outline-danger w-100 rounded-3" onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                                                        Hủy
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
-
                             </div>
+                        }
+                    </div>
+                </div>
 
-                            @if (order.ShippingStatus == "Pending")
-                            {
-                                <div class="card-footer bg-white text-end border-0">
-                                    <form asp-action="Cancel" asp-route-id="@order.OrderID" method="post">
-                                        @Html.AntiForgeryToken()
+                <!-- ORDER HISTORY -->
+                <div class="tab-pane fade" id="historyOrders">
+                    @if (!historyOrders.Any())
+                    {
+                        <div class="text-center py-5 opacity-50">
+                            <i class="fas fa-history fs-1 mb-3"></i>
+                            <p>Chưa có lịch sử đơn hàng.</p>
+                        </div>
+                    }
 
-                                        <button class="btn btn-sm btn-danger"
-                                                onclick="return confirm('Cancel this order?');">
-                                            Hủy
+                    <div class="row g-4">
+                        @foreach (var order in historyOrders)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="order-card-premium h-100">
+                                    <div class="order-card-header d-flex justify-content-between align-items-center">
+                                        <span class="order-id">#@order.OrderID</span>
+                                        <span class="status-badge @(order.PaymentStatus == "Paid" ? "status-paid" : "status-failed")">
+                                            @order.PaymentStatus
+                                        </span>
+                                    </div>
+                                    <div class="order-card-body">
+                                        <div class="order-info-label">Hoàn thành ngày</div>
+                                        <div class="order-info-value">@order.OrderDate?.ToString("dd/MM/yyyy")</div>
+
+                                        <div class="order-info-label">Trạng thái</div>
+                                        <div class="order-info-value">
+                                            <span class="badge bg-success rounded-pill px-3">
+                                                @order.ShippingStatus
+                                            </span>
+                                        </div>
+
+                                        <div class="order-info-label">Tổng tiền</div>
+                                        <div class="order-info-value">@order.TotalAmount?.ToString("N0") <small>VND</small></div>
+
+                                        <hr class="opacity-10 my-4">
+
+                                        <button class="btn-detail-premium" onclick="showOrderDetail('@order.OrderID')">
+                                            Xem lại đơn hàng
                                         </button>
-                                    </form>
+                                    </div>
                                 </div>
-                            }
-
-                        </div>
+                            </div>
+                        }
                     </div>
-                }
-
-            </div>
-
-        </div>
-
-
-        <!-- ORDER HISTORY -->
-        <div class="tab-pane fade" id="historyOrders">
-
-                @if (currentOrders == null || !currentOrders.Any())
-            {
-                <div class="alert alert-info">
-                    Không có lịch sử đơn hàng.
                 </div>
-            }
-
-            <div class="row">
-
-                    @foreach (var order in historyOrders ?? new List<Order>())
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm h-100 border-0">
-
-                            <div class="card-header bg-white d-flex justify-content-between">
-                                <strong>#@order.OrderID</strong>
-                                <span class="badge bg-secondary">
-                                    @order.PaymentStatus
-                                </span>
-                            </div>
-
-                            <div class="card-body">
-
-                                <p>
-                                    <strong>Ngày tạo:</strong>
-                                    @order.OrderDate?.ToString("dd/MM/yyyy")
-                                </p>
-
-                                <p>
-                                    <strong>Trạng thái:</strong>
-                                    <span class="badge bg-success">
-                                        @order.ShippingStatus
-                                    </span>
-                                </p>
-
-                                <p>
-                                    <strong>Địa chỉ:</strong>
-                                    @order.ShippingAddress
-                                </p>
-
-                                <hr />
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="text-danger mb-0">
-                                        @order.TotalAmount?.ToString("N0") VND
-                                    </h5>
-
-                                    <button class="btn btn-sm btn-outline-primary"
-                                            onclick="showOrderDetail('@order.OrderID')">
-                                        Xem chi tiết
-                                    </button>
-                                </div>
-
-                            </div>
-
-                        </div>
-                    </div>
-                }
-
             </div>
-
-        </div>
         </div>
     </div>
 </div>

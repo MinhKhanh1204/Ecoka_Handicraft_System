@@ -4,44 +4,245 @@
     ViewData["Title"] = "Danh sách Voucher";
 }
 
-<div class="container mt-4">
-    <h1 class="text-center mb-4">Voucher hiện có</h1>
-    <div class="row">
-        @foreach (var item in Model)
-        {
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm border-0 rounded-lg overflow-hidden transition-hover">
-                    <div class="card-header bg-primary text-white text-center py-3">
-                        <h5 class="card-title mb-0">@item.Code</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text text-muted">@item.VoucherName</p>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="badge bg-success p-2">
-                                @(item.DiscountPercentage > 0 ? $"Giảm {item.DiscountPercentage}%" : "Giảm giá đặc biệt")
-                            </span>
-                            @if (item.MaxReducing.HasValue)
-                            {
-                                <small class="text-muted">Tối đa: @string.Format("{0:N0} ₫", item.MaxReducing)</small>
-                            }
+<style>
+    .voucher-index-container {
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 50px 0;
+    }
+
+    .ticket-card {
+        display: flex;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        overflow: hidden;
+        position: relative;
+        height: 200px;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+        border: none;
+    }
+
+    .ticket-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(129, 196, 8, 0.15);
+    }
+
+    .ticket-card::before,
+    .ticket-card::after {
+        content: "";
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: #f1f3f5;
+        border-radius: 50%;
+        left: 30%;
+        transform: translateX(-50%);
+        z-index: 2;
+    }
+
+    .ticket-card::before { top: -15px; }
+    .ticket-card::after { bottom: -15px; }
+
+    .ticket-left {
+        width: 30%;
+        background: linear-gradient(135deg, #81c408 0%, #619406 100%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border-right: 2px dashed rgba(255,255,255,0.3);
+        padding: 20px;
+        text-align: center;
+    }
+
+    .ticket-right {
+        width: 70%;
+        padding: 25px 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .ticket-discount {
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .ticket-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        font-weight: 600;
+    }
+
+    .ticket-title {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #333;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ticket-code-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #f8f9fa;
+        border: 1px dashed #dee2e6;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-weight: 700;
+        color: #619406;
+        font-size: 0.95rem;
+    }
+
+    .copy-btn-mini {
+        background: none;
+        border: none;
+        color: #81c408;
+        padding: 0;
+        margin-left: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .copy-btn-mini:hover {
+        transform: scale(1.2);
+    }
+
+    .ticket-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+    }
+
+    .btn-view-details {
+        background: #81c408;
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view-details:hover {
+        background: #619406;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(129, 196, 8, 0.3);
+    }
+
+    .status-active {
+        color: #40c057;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+    }
+
+    .status-active::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        background: currentColor;
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 5px currentColor;
+    }
+
+    @@media (max-width: 992px) {
+        .ticket-card { height: auto; flex-direction: column; }
+        .ticket-left, .ticket-right { width: 100%; }
+        .ticket-left { 
+            border-right: none; 
+            border-bottom: 2px dashed rgba(255,255,255,0.3); 
+            padding: 25px; 
+        }
+        .ticket-card::before, .ticket-card::after { display: none; }
+    }
+</style>
+
+<div class="voucher-index-container">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold mb-2">Ưu đãi dành cho bạn</h1>
+            <p class="text-muted fs-5">Khám phá các voucher giảm giá cực hot từ Ecoka</p>
+        </div>
+
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-xl-4 col-lg-6">
+                    <div class="ticket-card">
+                        <div class="ticket-left">
+                            <div class="ticket-discount">
+                                @(item.DiscountPercentage > 0 ? item.DiscountPercentage.Value.ToString("0") : "???")
+                            </div>
+                            <div class="ticket-label">
+                                @(item.DiscountPercentage > 0 ? "% GIẢM GIÁ" : "HOT DEAL")
+                            </div>
                         </div>
-                        <p class="card-text small text-dark">@item.Description</p>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 pb-3">
-                        <div class="d-grid">
-                            <a asp-action="Details" asp-route-id="@item.VoucherId" class="btn btn-outline-primary">Xem chi tiết</a>
+                        <div class="ticket-right">
+                            <div class="d-flex justify-content-between">
+                                <span class="status-active">Đang hoạt động</span>
+                                <small class="text-muted"><i class="far fa-clock me-1"></i> @item.ExpiryDate?.ToString("dd/MM/yyyy")</small>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <div class="ticket-title">@item.VoucherName</div>
+                                <div class="ticket-code-badge mt-1">
+                                    <span class="code-val">@item.Code</span>
+                                    <button class="copy-btn-mini" onclick="copyInlineCode('@item.Code', this)" title="Sao chép mã">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="ticket-footer d-block">
+                                <div class="text-muted mb-2 pt-2" style="font-size: 0.85rem; border-top: 1px solid #f1f3f5;">
+                                    <i class="fas fa-info-circle me-1" style="font-size: 0.75rem;"></i> Hạn mức: @(item.MinOrderValue.HasValue ? item.MinOrderValue.Value.ToString("N0") + "đ" : "N/A")
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@item.VoucherId" class="btn-view-details py-1 px-3" style="font-size: 0.8rem;">
+                                        Xem chi tiết <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
 
-<style>
-    .transition-hover:hover {
-        transform: translateY(-5px);
-        transition: transform 0.3s ease-in-out;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+<script>
+    function copyInlineCode(code, btn) {
+        navigator.clipboard.writeText(code).then(() => {
+            const icon = btn.querySelector("i");
+            const originalClass = icon.className;
+            icon.className = "fas fa-check text-success";
+            
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 2000);
+
+            if (typeof toastr !== 'undefined') {
+                toastr.success("Đã sao chép mã: " + code);
+            }
+        });
     }
-</style>
+</script>
