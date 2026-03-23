@@ -143,7 +143,11 @@ app.UseMiddleware<ExceptionMiddleware>();
 // HTTP pipeline
 // ========================
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Feedback API v1");
+        c.RoutePrefix = string.Empty; // Serve Swagger UI at the app's root
+    });
 
 app.UseHttpsRedirection();
 app.UseCors("AllowConfigured");
