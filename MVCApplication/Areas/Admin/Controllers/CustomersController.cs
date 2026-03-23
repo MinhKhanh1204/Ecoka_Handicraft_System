@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Models;
 using MVCApplication.Services;
@@ -5,6 +6,7 @@ using MVCApplication.Services;
 namespace MVCApplication.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,Employee")]
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;

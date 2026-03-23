@@ -10,12 +10,10 @@ namespace OrderAPI.Admin.Services.Implements
         private readonly IAdminOrderRepository _orderRepo;
         private readonly IMapper _mapper;
 
-
         public AdminOrderService(IAdminOrderRepository repository, IMapper mapper)
         {
             _orderRepo = repository;
             _mapper = mapper;
-
         }
 
         public async Task<IEnumerable<RevenueByMonthDto>> GetRevenueByYearAsync(int year)
@@ -56,10 +54,12 @@ namespace OrderAPI.Admin.Services.Implements
 
         // ================= GENERAL =================
 
-        public async Task<OrderReadDto?> GetByIdAsync(string orderId)
+        public Task<bool> UpdatePaymentStatusAsync(string orderId, string paymentStatus, string? note, string? staffId)
+            => _orderRepo.UpdatePaymentStatusAsync(orderId, paymentStatus, note, staffId);
+
+        public Task<OrderReadDto?> GetByIdAsync(string orderId)
         {
-            var order = await _orderRepo.GetByIdAsync(orderId);
-            return order == null ? null : _mapper.Map<OrderReadDto>(order);
+            throw new NotImplementedException();
         }
     }
 }

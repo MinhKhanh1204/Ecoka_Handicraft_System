@@ -1,341 +1,786 @@
-@model IEnumerable<MVCApplication.Models.DTOs.Order>
+@using MVCApplication.Models.DTOs
+@using System.Text.Json
+@model IEnumerable<Order>
 
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
 
-    var currentPage = ViewBag.CurrentPage as int? ?? 1;
-    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalItems = ViewBag.TotalItems ?? 0;
 
-    string q(string? v) => string.IsNullOrWhiteSpace(v) ? "" : System.Net.WebUtility.UrlEncode(v!);
-    string baseUrl = Url.Action("Index", "Orders", new { area = "Admin" }) ?? "/Admin/Orders";
-    string buildPageUrl(int p) =>
-        baseUrl + "?" +
-        $"orderId={q(ViewBag.OrderId as string)}&customerId={q(ViewBag.CustomerId as string)}&from={q(ViewBag.From as string)}&to={q(ViewBag.To as string)}&shippingStatus={q(ViewBag.ShippingStatus as string)}&paymentStatus={q(ViewBag.PaymentStatus as string)}&page={p}";
+    string? orderId = ViewBag.OrderId as string;
+    string? customerId = ViewBag.CustomerId as string;
+    string? from = ViewBag.From as string;
+    string? to = ViewBag.To as string;
+    string? shippingStatus = ViewBag.ShippingStatus as string;
+    string? paymentStatus = ViewBag.PaymentStatus as string;
 
-    string PaymentStatusVi(string? s) => s switch
+    string ShippingStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
     {
-        "Pending" => "Chưa thanh toán",
-        "Paid" => "Đã thanh toán",
-        "Refunded" => "Đã hoàn tiền",
-        _ => s ?? "-"
+        "pending" => "Chờ xử lý",
+        "approved" => "Đã xác nhận",
+        "shipping" => "Đang giao",
+        "delivered" => "Đã giao",
+        "cancelled" => "Đã hủy",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
     };
 
-    string ShippingStatusVi(string? s) => s switch
+    string PaymentStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
     {
-        "Pending" => "Chờ xử lý",
-        "Approved" => "Đã duyệt",
-        "Shipping" => "Đang giao",
-        "Delivered" => "Đã giao",
-        "Completed" => "Hoàn thành",
-        "Cancelled" => "Đã hủy",
-        "Returned" => "Hoàn trả",
-        _ => s ?? "-"
+        "pending" => "Chưa thanh toán",
+        "paid" => "Đã thanh toán",
+        "failed" => "Thanh toán lỗi",
+        "refunded" => "Đã hoàn tiền",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
     };
 
-    string ShippingBadgeClass(string? s) => s switch
+    string ShippingBadgeClass(string? status) => (status ?? "").Trim().ToLower() switch
     {
-        "Pending" => "bg-warning text-dark",
-        "Approved" => "bg-primary",
-        "Shipping" => "bg-info text-dark",
-        "Delivered" => "bg-success",
-        "Completed" => "bg-success",
-        "Cancelled" => "bg-secondary",
-        "Returned" => "bg-danger",
+        "pending" => "bg-warning text-dark",
+        "approved" => "bg-primary",
+        "shipping" => "bg-info text-dark",
+        "delivered" => "bg-success",
+        "cancelled" => "bg-danger",
         _ => "bg-secondary"
     };
 
-    string PaymentBadgeClass(string? s) => s switch
+    string PaymentBadgeClass(string? status) => (status ?? "").Trim().ToLower() switch
     {
-        "Pending" => "bg-warning text-dark",
-        "Paid" => "bg-success",
-        "Refunded" => "bg-danger",
+        "pending" => "bg-warning text-dark",
+        "paid" => "bg-success",
+        "failed" => "bg-danger",
+        "refunded" => "bg-secondary",
         _ => "bg-secondary"
     };
-}
 
-<h1 class="mb-4">Quản lý đơn hàng</h1>
+    string FormatVnd(decimal? amount)
+    {
+        var value = amount ?? 0;
+        return string.Format("{0:N0} đ", value);
+    }
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+    List<string> GetAllowedNextStatuses(string? currentStatus, string? paymentStatusValue)
+    {
+        var shipping = (currentStatus ?? "Pending").Trim();
+        var payment = (paymentStatusValue ?? "Pending").Trim();
 
-<!-- Form tìm kiếm -->
-<form method="get" class="row g-2 mb-3">
-    <div class="col-sm-2">
-        <input name="orderId" value="@(ViewBag.OrderId ?? "")" class="form-control" placeholder="Mã đơn hàng" />
-    </div>
-    <div class="col-sm-2">
-        <input name="customerId" value="@(ViewBag.CustomerId ?? "")" class="form-control" placeholder="Mã khách hàng" />
-    </div>
-    <div class="col-sm-2">
-        <input type="date" name="from" value="@(ViewBag.From ?? "")" class="form-control" />
-    </div>
-    <div class="col-sm-2">
-        <input type="date" name="to" value="@(ViewBag.To ?? "")" class="form-control" />
-    </div>
-    <div class="col-sm-2">
-        <select name="shippingStatus" class="form-select">
-            <option value="">Tất cả giao hàng</option>
-            <option value="Pending" selected="@(ViewBag.ShippingStatus == "Pending")">Chờ xử lý</option>
-            <option value="Approved" selected="@(ViewBag.ShippingStatus == "Approved")">Đã duyệt</option>
-            <option value="Cancelled" selected="@(ViewBag.ShippingStatus == "Cancelled")">Đã hủy</option>
-            <option value="Returned" selected="@(ViewBag.ShippingStatus == "Returned")">Hoàn trả</option>
-        </select>
-    </div>
-    <div class="col-sm-2">
-        <select name="paymentStatus" class="form-select">
-            <option value="">Tất cả thanh toán</option>
-            <option value="Pending" selected="@(ViewBag.PaymentStatus == "Pending")">Chưa thanh toán</option>
-            <option value="Paid" selected="@(ViewBag.PaymentStatus == "Paid")">Đã thanh toán</option>
-            <option value="Refunded" selected="@(ViewBag.PaymentStatus == "Refunded")">Đã hoàn tiền</option>
-        </select>
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Orders", new { area = "Admin" })">Đặt lại</a>
-    </div>
-</form>
+        var isPaid = string.Equals(payment, "Paid", StringComparison.OrdinalIgnoreCase);
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>Mã đơn</th>
-            <th>Khách hàng</th>
-            <th>Ngày đặt</th>
-            <th class="text-end">Tổng tiền</th>
-            <th>Thanh toán</th>
-            <th>Giao hàng</th>
-            <th style="width:220px">Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model == null || !Model.Any())
+        if (isPaid)
         {
-            <tr>
-                <td colspan="7" class="text-center">Không có đơn hàng.</td>
-            </tr>
-        }
-        else
-        {
-            foreach (var o in Model)
+            return shipping switch
             {
-                <tr>
-                    <td>@o.OrderID</td>
-                    <td>@(string.IsNullOrWhiteSpace(o.CustomerID) ? "-" : o.CustomerID)</td>
-                    <td>@(o.OrderDate.HasValue? o.OrderDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
-                    <td class="text-end">@((o.TotalAmount ?? 0).ToString("C"))</td>
-                    <td><span class="badge @PaymentBadgeClass(o.PaymentStatus)">@PaymentStatusVi(o.PaymentStatus)</span></td>
-                    <td><span class="badge @ShippingBadgeClass(o.ShippingStatus)">@ShippingStatusVi(o.ShippingStatus)</span></td>
-                    <td>
+                "Pending" => new List<string> { "Shipping", "Cancelled" },
+                "Approved" => new List<string> { "Shipping", "Cancelled" },
+                "Shipping" => new List<string> { "Delivered", "Cancelled" },
+                _ => new List<string>()
+            };
+        }
 
-                        <button class="btn btn-sm btn-info btn-show-details"
-                                data-orderid="@o.OrderID">
-                            Chi tiết
-                        </button>
+        return shipping switch
+        {
+            "Pending" => new List<string> { "Approved", "Cancelled" },
+            "Approved" => new List<string> { "Shipping", "Cancelled" },
+            "Shipping" => new List<string> { "Delivered", "Cancelled" },
+            _ => new List<string>()
+        };
+    }
 
-                        @{
-                            bool isPendingShipping = string.Equals(o.ShippingStatus ?? "", "Pending", StringComparison.OrdinalIgnoreCase);
-                            bool isPaid = string.Equals(o.PaymentStatus ?? "", "Paid", StringComparison.OrdinalIgnoreCase);
-                            bool needAction = isPendingShipping && !isPaid;
-                        }
+    bool IsSelected(string? actual, string expected)
+        => string.Equals(actual ?? "", expected, StringComparison.OrdinalIgnoreCase);
 
-                        @if (isPendingShipping && !isPaid)
+    int maxPageButtons = 10;
+    int startPage = Math.Max(1, currentPage - 4);
+    int endPage = startPage + maxPageButtons - 1;
+
+    if (endPage > totalPages)
+    {
+        endPage = totalPages;
+        startPage = Math.Max(1, endPage - maxPageButtons + 1);
+    }
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">Quản lý đơn hàng</h2>
+            <div class="text-muted">Theo dõi, lọc và cập nhật trạng thái đơn hàng</div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form id="searchForm" class="row g-3 align-items-end">
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="orderId" class="form-label">Mã đơn</label>
+                    <input id="orderId" name="orderId" value="@orderId" class="form-control" placeholder="Nhập mã đơn" />
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="customerId" class="form-label">Mã khách hàng</label>
+                    <input id="customerId" name="customerId" value="@customerId" class="form-control" placeholder="Nhập mã KH" />
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="fromDate" class="form-label">Từ ngày</label>
+                    <input id="fromDate" type="date" name="from" value="@from" class="form-control" />
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="toDate" class="form-label">Đến ngày</label>
+                    <input id="toDate" type="date" name="to" value="@to" class="form-control" />
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="shippingStatus" class="form-label">Giao hàng</label>
+                    <select id="shippingStatus" name="shippingStatus" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="Pending" selected="@IsSelected(shippingStatus, "Pending")">Chờ xử lý</option>
+                        <option value="Approved" selected="@IsSelected(shippingStatus, "Approved")">Đã xác nhận</option>
+                        <option value="Shipping" selected="@IsSelected(shippingStatus, "Shipping")">Đang giao</option>
+                        <option value="Delivered" selected="@IsSelected(shippingStatus, "Delivered")">Đã giao</option>
+                        <option value="Cancelled" selected="@IsSelected(shippingStatus, "Cancelled")">Đã hủy</option>
+                    </select>
+                </div>
+
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <label for="paymentStatus" class="form-label">Thanh toán</label>
+                    <select id="paymentStatus" name="paymentStatus" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="Pending" selected="@IsSelected(paymentStatus, "Pending")">Chưa thanh toán</option>
+                        <option value="Paid" selected="@IsSelected(paymentStatus, "Paid")">Đã thanh toán</option>
+                        <option value="Failed" selected="@IsSelected(paymentStatus, "Failed")">Thanh toán lỗi</option>
+                        <option value="Refunded" selected="@IsSelected(paymentStatus, "Refunded")">Đã hoàn tiền</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">Lọc</button>
+                    <button type="button" id="btnClearFilter" class="btn btn-outline-secondary">Xóa lọc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <strong>Danh sách đơn hàng</strong>
+                    <div id="totalItemsLabel" class="text-muted small">Tổng số: @totalItems đơn</div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Mã khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Giao hàng</th>
+                            <th style="width: 220px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        @if (Model != null && Model.Any())
                         {
-                            <button type="button"
-                                    class="btn btn-sm btn-warning me-1 btn-open-update"
-                                    data-orderid="@o.OrderID"
-                                    data-currentstatus="@o.ShippingStatus">
+                            foreach (var o in Model)
+                            {
+                                var isFinal =
+                                string.Equals(o.ShippingStatus, "Delivered", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(o.ShippingStatus, "Cancelled", StringComparison.OrdinalIgnoreCase);
 
-                                Cập nhật
+                                var canUpdate = !isFinal;
+                                var nextStatuses = GetAllowedNextStatuses(o.ShippingStatus, o.PaymentStatus);
 
-                                @if (needAction)
-                                {
-                                    <span class="text-danger fw-bold ms-1">!</span>
-                                }
+                                <tr data-orderid="@o.OrderID">
+                                    <td class="fw-semibold">@o.OrderID</td>
+                                    <td>@(string.IsNullOrWhiteSpace(o.CustomerID) ? "-" : o.CustomerID)</td>
+                                    <td>@(o.OrderDate.HasValue? o.OrderDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                                    <td class="text-end">@FormatVnd(o.TotalAmount)</td>
+                                    <td>
+                                        <span class="badge payment-badge @PaymentBadgeClass(o.PaymentStatus)">
+                                            @PaymentStatusVi(o.PaymentStatus)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge shipping-badge @ShippingBadgeClass(o.ShippingStatus)">
+                                            @ShippingStatusVi(o.ShippingStatus)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-info btn-detail"
+                                                    data-orderid="@o.OrderID">
+                                                Chi tiết
+                                            </button>
 
-                            </button>
+                                            @if (canUpdate)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-warning btn-open-update"
+                                                        data-orderid="@o.OrderID"
+                                                        data-currentstatus="@o.ShippingStatus"
+                                                        data-paymentstatus="@o.PaymentStatus"
+                                                        data-nextstatuses='@JsonSerializer.Serialize(nextStatuses)'>
+                                                    Cập nhật
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-secondary"
+                                                        disabled>
+                                                    Đã khóa
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                         }
                         else
                         {
-                            <button type="button"
-                                    class="btn btn-sm btn-warning me-1"
-                                    disabled
-                                    title="Đơn đã thanh toán hoặc không còn chờ xử lý thì không chỉnh được">
-                                Cập nhật
-                            </button>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Không có đơn hàng nào phù hợp.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div id="pageInfoLabel" class="text-muted small">
+                    Trang @currentPage / @totalPages
+                </div>
+
+                <nav>
+                    <ul class="pagination mb-0" id="paginationList">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link ajax-page-link" href="#" data-page="@(currentPage - 1)">Trước</a>
+                        </li>
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link ajax-page-link" href="#" data-page="@i">@i</a>
+                            </li>
                         }
 
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
-
-@if (totalPages > 1)
-{
-    <nav>
-        <ul class="pagination">
-
-        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-            <a class="page-link" href="@(buildPageUrl(currentPage - 1))">Trước</a>
-        </li>
-
-            @{
-                int window = 5;
-                int start = Math.Max(1, currentPage - 2);
-                int end = Math.Min(totalPages, start + window - 1);
-
-                if (end - start + 1 < window)
-                {
-                    start = Math.Max(1, end - window + 1);
-                }
-            }
-
-            @if (start > 1)
-            {
-                <li class="page-item">
-                    <a class="page-link" href="@(buildPageUrl(1))">1</a>
-                </li>
-
-                @if (start > 2)
-                {
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                }
-            }
-
-            @for (int i = start; i <= end; i++)
-            {
-                <li class="page-item @(i == currentPage ? "active" : "")">
-                    <a class="page-link" href="@(buildPageUrl(i))">@i</a>
-                </li>
-            }
-
-            @if (end < totalPages)
-            {
-                @if (end < totalPages - 1)
-                {
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                }
-
-                <li class="page-item">
-                    <a class="page-link" href="@(buildPageUrl(totalPages))">@totalPages</a>
-                </li>
-            }
-
-            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
-            </li>
-        }
-
-        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-            <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
-        </li>
-
-        </ul>
-    </nav>
-}
-
-<!-- Modal cập nhật -->
-<div class="modal fade" id="updateModal">
-    <div class="modal-dialog">
-        <form id="updateForm" method="post" asp-action="UpdateStatus" asp-controller="Orders" asp-area="Admin">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="orderId" id="modalOrderId" />
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="updateModalLabel">Cập nhật trạng thái đơn hàng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="modalNewStatus" class="form-label">Trạng thái giao hàng mới</label>
-                        <select id="modalNewStatus" name="newStatus" class="form-select">
-                            <option value="Pending">Chờ xử lý</option>
-                            <option value="Approved">Đã duyệt</option>
-                            <option value="Delivered">Đã giao</option>
-                            <option value="Cancelled">Đã hủy</option>
-                        </select>
-                    </div>
-                    <p class="text-muted small">Thay đổi trạng thái sẽ cập nhật tiến trình giao hàng của đơn này.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-warning">Xác nhận cập nhật</button>
-                </div>
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                            <a class="page-link ajax-page-link" href="#" data-page="@(currentPage + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<!-- Modal chi tiết -->
-<div class="modal fade" id="orderDetailsModal">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Chi tiết đơn hàng</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="orderDetailsContent">
-                <div class="text-center p-4">
-                    <div class="spinner-border"></div>
+            <div class="modal-body">
+                Đang tải...
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="updateStatusForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập nhật trạng thái đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="modalOrderId" name="orderId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Mã đơn hàng</label>
+                        <input type="text" id="modalOrderIdText" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái hiện tại</label>
+                        <input type="text" id="modalCurrentStatus" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thanh toán hiện tại</label>
+                        <input type="text" id="modalCurrentPayment" class="form-control" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalNewStatus" class="form-label">Trạng thái mới</label>
+                        <select id="modalNewStatus" name="newStatus" class="form-select" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                        </select>
+                    </div>
+
+                    <div class="small text-muted">
+                        Nếu đơn đã thanh toán và chuyển sang <strong>Đã hủy</strong>, hệ thống sẽ tự chuyển thanh toán sang <strong>Đã hoàn tiền</strong>.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        (function () {
-            var updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+        (() => {
+            const detailModalEl = document.getElementById('orderDetailModal');
+            const updateModalEl = document.getElementById('updateStatusModal');
 
-            document.querySelectorAll('.btn-open-update').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.getElementById('modalOrderId').value = btn.dataset.orderid;
-                    document.getElementById('modalNewStatus').value = btn.dataset.currentstatus || 'Pending';
-                    updateModal.show();
+            const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+            const updateModal = updateModalEl ? new bootstrap.Modal(updateModalEl) : null;
+
+            const searchForm = document.getElementById('searchForm');
+            const btnClearFilter = document.getElementById('btnClearFilter');
+
+            const fromDate = document.getElementById('fromDate');
+            const toDate = document.getElementById('toDate');
+
+            const modalOrderId = document.getElementById('modalOrderId');
+            const modalOrderIdText = document.getElementById('modalOrderIdText');
+            const modalCurrentStatus = document.getElementById('modalCurrentStatus');
+            const modalCurrentPayment = document.getElementById('modalCurrentPayment');
+            const modalNewStatus = document.getElementById('modalNewStatus');
+            const updateStatusForm = document.getElementById('updateStatusForm');
+
+            const tbody = document.getElementById('ordersTableBody');
+            const paginationList = document.getElementById('paginationList');
+            const totalItemsLabel = document.getElementById('totalItemsLabel');
+            const pageInfoLabel = document.getElementById('pageInfoLabel');
+
+            const antiForgeryToken =
+                document.querySelector('#updateStatusForm input[name="__RequestVerificationToken"]')?.value || '';
+
+            let currentState = {
+                page: @currentPage,
+                pageSize: @pageSize
+            };
+
+            function viShippingStatus(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'pending': return 'Chờ xử lý';
+                    case 'approved': return 'Đã xác nhận';
+                    case 'shipping': return 'Đang giao';
+                    case 'delivered': return 'Đã giao';
+                    case 'cancelled': return 'Đã hủy';
+                    default: return status || '-';
+                }
+            }
+
+            function viPaymentStatus(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'pending': return 'Chưa thanh toán';
+                    case 'paid': return 'Đã thanh toán';
+                    case 'failed': return 'Thanh toán lỗi';
+                    case 'refunded': return 'Đã hoàn tiền';
+                    default: return status || '-';
+                }
+            }
+
+            function shippingBadgeClass(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'pending': return 'bg-warning text-dark';
+                    case 'approved': return 'bg-primary';
+                    case 'shipping': return 'bg-info text-dark';
+                    case 'delivered': return 'bg-success';
+                    case 'cancelled': return 'bg-danger';
+                    default: return 'bg-secondary';
+                }
+            }
+
+            function paymentBadgeClass(status) {
+                switch ((status || '').toLowerCase()) {
+                    case 'pending': return 'bg-warning text-dark';
+                    case 'paid': return 'bg-success';
+                    case 'failed': return 'bg-danger';
+                    case 'refunded': return 'bg-secondary';
+                    default: return 'bg-secondary';
+                }
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return '-';
+
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) return '-';
+
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mi = String(d.getMinutes()).padStart(2, '0');
+
+                return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+            }
+
+            function formatVnd(value) {
+                const amount = Number(value || 0);
+                return amount.toLocaleString('vi-VN') + ' đ';
+            }
+
+            function buildSearchParams(page = 1) {
+                const params = new URLSearchParams();
+
+                params.set('page', page);
+                params.set('pageSize', currentState.pageSize);
+
+                const orderId = document.getElementById('orderId')?.value?.trim();
+                const customerId = document.getElementById('customerId')?.value?.trim();
+                const from = fromDate?.value;
+                const to = toDate?.value;
+                const shippingStatus = document.getElementById('shippingStatus')?.value;
+                const paymentStatus = document.getElementById('paymentStatus')?.value;
+
+                if (orderId) params.set('orderId', orderId);
+                if (customerId) params.set('customerId', customerId);
+                if (from) params.set('from', from);
+                if (to) params.set('to', to);
+                if (shippingStatus) params.set('shippingStatus', shippingStatus);
+                if (paymentStatus) params.set('paymentStatus', paymentStatus);
+
+                return params;
+            }
+
+            function renderRows(items) {
+                if (!tbody) return;
+
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Không có đơn hàng nào phù hợp.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = items.map(o => {
+                    const updateButton = o.canUpdate
+                        ? `<button type="button"
+                                class="btn btn-sm btn-warning btn-open-update"
+                                data-orderid="${o.orderID}"
+                                data-currentstatus="${o.shippingStatus || ''}"
+                                data-paymentstatus="${o.paymentStatus || ''}"
+                                data-nextstatuses='${JSON.stringify(o.nextStatuses || [])}'>
+                                Cập nhật
+                           </button>`
+                        : `<button type="button" class="btn btn-sm btn-secondary" disabled>Đã khóa</button>`;
+
+                    return `
+                        <tr data-orderid="${o.orderID}">
+                            <td class="fw-semibold">${o.orderID ?? '-'}</td>
+                            <td>${o.customerID ?? '-'}</td>
+                            <td>${formatDate(o.orderDate)}</td>
+                            <td class="text-end">${formatVnd(o.totalAmount)}</td>
+                            <td>
+                                <span class="badge payment-badge ${paymentBadgeClass(o.paymentStatus)}">
+                                    ${viPaymentStatus(o.paymentStatus)}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge shipping-badge ${shippingBadgeClass(o.shippingStatus)}">
+                                    ${viShippingStatus(o.shippingStatus)}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-info btn-detail"
+                                            data-orderid="${o.orderID}">
+                                        Chi tiết
+                                    </button>
+                                    ${updateButton}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                bindDynamicEvents();
+            }
+
+            function renderPagination(pagination) {
+                if (!paginationList) return;
+
+                const currentPage = pagination.currentPage;
+                const totalPages = pagination.totalPages;
+                const maxButtons = 10;
+
+                let startPage = Math.max(1, currentPage - 4);
+                let endPage = startPage + maxButtons - 1;
+
+                if (endPage > totalPages) {
+                    endPage = totalPages;
+                    startPage = Math.max(1, endPage - maxButtons + 1);
+                }
+
+                let html = `
+                    <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                        <a class="page-link ajax-page-link" href="#" data-page="${currentPage - 1}">Trước</a>
+                    </li>
+                `;
+
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link ajax-page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                }
+
+                html += `
+                    <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                        <a class="page-link ajax-page-link" href="#" data-page="${currentPage + 1}">Sau</a>
+                    </li>
+                `;
+
+                paginationList.innerHTML = html;
+
+                document.querySelectorAll('.ajax-page-link').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const page = parseInt(this.dataset.page);
+                        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+                            loadOrders(page);
+                        }
+                    });
+                });
+
+                if (pageInfoLabel) {
+                    pageInfoLabel.textContent = `Trang ${pagination.currentPage} / ${pagination.totalPages}`;
+                }
+
+                if (totalItemsLabel) {
+                    totalItemsLabel.textContent = `Tổng số: ${pagination.totalItems} đơn`;
+                }
+            }
+
+            async function loadOrders(page = 1) {
+                const params = buildSearchParams(page);
+
+                try {
+                    const response = await fetch(`@Url.Action("SearchAjax", "Orders", new { area = "Admin" })?${params.toString()}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        alert(result.message || 'Không tải được danh sách đơn hàng.');
+                        return;
+                    }
+
+                    currentState.page = result.data.pagination.currentPage;
+                    renderRows(result.data.items);
+                    renderPagination(result.data.pagination);
+
+                    const url = new URL(window.location.href);
+                    url.search = params.toString();
+                    window.history.replaceState({}, '', url.toString());
+                } catch {
+                    alert('Có lỗi xảy ra khi tải dữ liệu.');
+                }
+            }
+
+            async function loadDetail(orderId) {
+                if (!orderId || !detailModalEl) return;
+
+                detailModalEl.querySelector('.modal-body').innerHTML = 'Đang tải...';
+                detailModal.show();
+
+                try {
+                    const url = '@Url.Action("Details", "Orders", new { area = "Admin" })' + '?orderId=' + encodeURIComponent(orderId);
+                    const response = await fetch(url, { method: 'GET' });
+
+                    if (!response.ok) {
+                        detailModalEl.querySelector('.modal-body').innerHTML =
+                            '<div class="alert alert-danger">Không tải được chi tiết đơn hàng.</div>';
+                        return;
+                    }
+
+                    const html = await response.text();
+                    detailModalEl.querySelector('.modal-body').innerHTML = html;
+                } catch {
+                    detailModalEl.querySelector('.modal-body').innerHTML =
+                        '<div class="alert alert-danger">Có lỗi xảy ra khi tải chi tiết.</div>';
+                }
+            }
+
+            function openUpdateModal(button) {
+                const orderId = button.dataset.orderid || '';
+                const currentStatus = button.dataset.currentstatus || '';
+                const paymentStatus = button.dataset.paymentstatus || '';
+                let nextStatuses = [];
+
+                try {
+                    nextStatuses = JSON.parse(button.dataset.nextstatuses || '[]');
+                } catch {
+                    nextStatuses = [];
+                }
+
+                modalOrderId.value = orderId;
+                modalOrderIdText.value = orderId;
+                modalCurrentStatus.value = viShippingStatus(currentStatus);
+                modalCurrentPayment.value = viPaymentStatus(paymentStatus);
+
+                modalNewStatus.innerHTML = '<option value="">-- Chọn trạng thái --</option>';
+
+                nextStatuses.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = viShippingStatus(status);
+                    modalNewStatus.appendChild(option);
+                });
+
+                modalNewStatus.disabled = nextStatuses.length === 0;
+                updateModal.show();
+            }
+
+            function bindDynamicEvents() {
+                document.querySelectorAll('.btn-detail').forEach(btn => {
+                    btn.onclick = () => loadDetail(btn.dataset.orderid);
+                });
+
+                document.querySelectorAll('.btn-open-update').forEach(btn => {
+                    btn.onclick = () => openUpdateModal(btn);
+                });
+            }
+
+            if (searchForm) {
+                searchForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const from = fromDate?.value;
+                    const to = toDate?.value;
+
+                    if (from && to && new Date(from) > new Date(to)) {
+                        alert('Ngày bắt đầu không được lớn hơn ngày kết thúc.');
+                        return;
+                    }
+
+                    loadOrders(1);
+                });
+            }
+
+            if (btnClearFilter) {
+                btnClearFilter.addEventListener('click', function () {
+                    document.getElementById('orderId').value = '';
+                    document.getElementById('customerId').value = '';
+                    document.getElementById('fromDate').value = '';
+                    document.getElementById('toDate').value = '';
+                    document.getElementById('shippingStatus').value = '';
+                    document.getElementById('paymentStatus').value = '';
+                    loadOrders(1);
+                });
+            }
+
+            if (updateStatusForm) {
+                updateStatusForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const orderId = modalOrderId.value;
+                    const newStatus = modalNewStatus.value;
+
+                    if (!orderId || !newStatus) {
+                        alert('Thiếu dữ liệu cập nhật.');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.set('__RequestVerificationToken', antiForgeryToken);
+                    formData.set('orderId', orderId);
+                    formData.set('newStatus', newStatus);
+
+                    try {
+                        const response = await fetch('@Url.Action("UpdateStatus", "Orders", new { area = "Admin" })', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (!data.success) {
+                            alert(data.message || 'Cập nhật thất bại.');
+                            return;
+                        }
+
+                                const row = document.querySelector(`tr[data-orderid="${orderId}"]`);
+        if (row) {
+            const shippingBadge = row.querySelector('.shipping-badge');
+            if (shippingBadge) {
+                shippingBadge.className = `badge shipping-badge ${shippingBadgeClass(data.newStatus)}`;
+                shippingBadge.textContent = viShippingStatus(data.newStatus);
+            }
+
+            if (data.newPaymentStatus) {
+                const paymentBadge = row.querySelector('.payment-badge');
+                if (paymentBadge) {
+                    paymentBadge.className = `badge payment-badge ${paymentBadgeClass(data.newPaymentStatus)}`;
+                    paymentBadge.textContent = viPaymentStatus(data.newPaymentStatus);
+                }
+            }
+        }
+
+        updateModal.hide();
+        await loadOrders(currentState.page);
+                    } catch {
+                        alert('Có lỗi hệ thống khi cập nhật trạng thái.');
+                    }
+                });
+            }
+
+            bindDynamicEvents();
+
+            document.querySelectorAll('.ajax-page-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const page = parseInt(this.dataset.page);
+                    if (!isNaN(page)) {
+                        loadOrders(page);
+                    }
                 });
             });
-        })();
 
-        document.addEventListener("click", function (e) {
-            const btn = e.target.closest(".btn-show-details");
-            if (!btn) return;
-
-            const modal = new bootstrap.Modal(document.getElementById("orderDetailsModal"));
-            const container = document.getElementById("orderDetailsContent");
-
-            container.innerHTML = '<div class="text-center p-4"><div class="spinner-border"></div></div>';
-
-            fetch(`/Admin/Orders/Details?orderId=${btn.dataset.orderid}`)
-                .then(res => res.text())
-                .then(html => container.innerHTML = html);
-
-            modal.show();
-        });
-
-        document.getElementById("updateForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const res = await fetch(this.action, {
-                method: "POST",
-                body: new FormData(this)
+            document.addEventListener('DOMContentLoaded', function () {
+                loadOrders(currentState.page);
             });
-
-            const data = await res.json();
-
-            alert(data.message);
-            if (data.success) location.reload();
-        });
+        })();
     </script>
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
@@ -5,6 +6,7 @@ using MVCApplication.Areas.Admin.Services;
 namespace MVCApplication.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class StaffsController : Controller
     {
         private readonly IStaffAdminService _staffService;
@@ -284,5 +286,7 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
     }
 }

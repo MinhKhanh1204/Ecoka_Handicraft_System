@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MVCApplication.Areas.Admin.Services;
-using MVCApplication.Services;
-using MVCApplication.Models.DTOs;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MVCApplication.Areas.Admin.DTOs;
+using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Models;
+using MVCApplication.Models.DTOs;
+using MVCApplication.Services;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,Employee")]
     public class DashboardController : Controller
     {
         private readonly IAdminOrderService _adminOrderService;
@@ -29,7 +31,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             _voucherService = voucherService;
             _categoryService = categoryService;
         }
-
         public async Task<IActionResult> Index(int? revenueYear)
         {
             var year = revenueYear ?? DateTime.Now.Year;

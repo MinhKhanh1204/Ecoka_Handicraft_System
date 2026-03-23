@@ -40,53 +40,48 @@ builder.Services.AddHttpClient<IAdminOrderService, AdminOrderService>(client =>
 });
 builder.Services.AddGatewayAuthClient<MVCApplication.Areas.Admin.Services.IVoucherAdminService, MVCApplication.Areas.Admin.Services.Implements.VoucherAdminService>(gatewayBase);
 //setting authen
-builder.Services
-    .AddAuthentication(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Events = new JwtBearerEvents
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies["AccessToken"];
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.Redirect("/Account/Login");
+            return Task.CompletedTask;
+        },
+        OnForbidden = context =>
+        {
+            context.Response.Redirect("/Account/AccessDenied");
+            return Task.CompletedTask;
+        }
+    };
+
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                // Get JWT from Cookie
-                context.Token = context.Request.Cookies["AccessToken"];
-                return Task.CompletedTask;
-            },
-            OnChallenge = context =>
-            {
-                context.HandleResponse();
-                context.Response.Redirect("/Account/Login");
-                return Task.CompletedTask;
-            },
-            OnForbidden = context =>
-            {
-                context.Response.Redirect("/Account/AccessDenied");
-                return Task.CompletedTask;
-            }
-        };
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-
-            NameClaimType = "username",
-            RoleClaimType = "role"
-        };
-    })
-.AddCookie().AddGoogle(options =>
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        NameClaimType = "username",
+        RoleClaimType = ClaimTypes.Role
+    };
+}).AddCookie().AddGoogle(options =>
 {
     options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
     options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];

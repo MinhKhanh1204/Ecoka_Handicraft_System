@@ -34,5 +34,7 @@ namespace OrderAPI.Repositories
             string note);
 
         Task<int> GetVoucherUsageCountAsync(string customerId, int voucherId);
+
+        Task<bool> ConfirmReceiptAsync(string orderId, string customerId);
     }
 }

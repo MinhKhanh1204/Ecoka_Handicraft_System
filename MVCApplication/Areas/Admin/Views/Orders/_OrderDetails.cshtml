@@ -20,10 +20,14 @@
         "Returned" => "Hoàn trả",
         _ => s ?? "-"
     };
+
+    string FormatVnd(decimal? value)
+    {
+        return string.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0} đ", value ?? 0);
+    }
 }
 
 <div class="row mb-3">
-
     <div class="col-md-6">
         <strong>Mã đơn:</strong> @Model.OrderID <br />
         <strong>Khách hàng:</strong> @(Model.CustomerID ?? "-") <br />
@@ -35,7 +39,6 @@
         <strong>Trạng thái thanh toán:</strong> @PaymentStatusVi(Model.PaymentStatus) <br />
         <strong>Trạng thái giao hàng:</strong> @ShippingStatusVi(Model.ShippingStatus)
     </div>
-
 </div>
 
 <div class="table-responsive">
@@ -49,16 +52,19 @@
             </tr>
         </thead>
         <tbody>
-
             @if (Model.OrderItems != null && Model.OrderItems.Any())
             {
                 foreach (var it in Model.OrderItems)
                 {
+                    var quantity = it.Quantity ?? 0;
+                    var unitPrice = it.UnitPrice ?? 0;
+                    var total = unitPrice * quantity;
+
                     <tr>
-                        <td>@(it.ProductName ?? it.ProductID)</td>
-                        <td>@it.Quantity</td>
-                        <td class="text-end">@((it.UnitPrice ?? 0).ToString("C"))</td>
-                        <td class="text-end">@(((it.UnitPrice ?? 0) * (it.Quantity ?? 0)).ToString("C"))</td>
+                        <td>@(it.ProductName ?? it.ProductID ?? "-")</td>
+                        <td>@quantity</td>
+                        <td class="text-end">@FormatVnd(unitPrice)</td>
+                        <td class="text-end">@FormatVnd(total)</td>
                     </tr>
                 }
             }
@@ -68,7 +74,6 @@
                     <td colspan="4" class="text-center">Không có sản phẩm</td>
                 </tr>
             }
-
         </tbody>
     </table>
 </div>

@@ -197,5 +197,31 @@ namespace OrderAPI.Repositories.Implements
             return await _context.Orders
                 .CountAsync(o => o.CustomerID == customerId && o.VoucherID == voucherId);
         }
+        public async Task<bool> ConfirmReceiptAsync(string orderId, string customerId)
+        {
+            if (string.IsNullOrWhiteSpace(orderId) || string.IsNullOrWhiteSpace(customerId))
+                return false;
+
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderID == orderId);
+            if (order == null) return false;
+
+            // Ensure the caller owns the order
+            if (!string.Equals(order.CustomerID, customerId, StringComparison.Ordinal))
+                return false;
+
+            // If already cancelled, returned, or already paid, do not proceed
+            if (order.ShippingStatus == ShippingStatus.Cancelled.ToString() ||
+                order.ShippingStatus == ShippingStatus.Returned.ToString())
+                return false;
+
+            // Mark as paid and delivered/approved
+            order.PaymentStatus = PaymentStatus.Paid.ToString();
+            order.ShippingStatus = ShippingStatus.Approved.ToString();
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

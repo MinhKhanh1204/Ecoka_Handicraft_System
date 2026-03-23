@@ -19,6 +19,12 @@ namespace OrderAPI.Admin.Services
             string? shippingStatus,
             string? paymentStatus);
 
+        // include staffId so UI can pass the acting staff identity
+        Task<bool> UpdatePaymentStatusAsync(string orderId,
+            string paymentStatus,
+            string? note,
+            string? staffId);
+
         Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId);
 
         Task<OrderReadDto?> GetOrderDetailForStaffAsync(string orderId);

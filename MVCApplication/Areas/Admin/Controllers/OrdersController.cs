@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MVCApplication.Areas.Admin.Services;
 using MVCApplication.Models.DTOs;
-using System.Security.Claims;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,Employee")]
     public class OrdersController : Controller
     {
         private readonly IAdminOrderService _service;
@@ -18,7 +20,98 @@ namespace MVCApplication.Areas.Admin.Controllers
             _logger = logger;
         }
 
-        // GET: /Admin/Orders
+        private static List<string> GetAllowedNextStatuses(string? currentStatus, string? paymentStatus)
+        {
+            var shipping = string.IsNullOrWhiteSpace(currentStatus) ? "Pending" : currentStatus.Trim();
+            var payment = string.IsNullOrWhiteSpace(paymentStatus) ? "Pending" : paymentStatus.Trim();
+
+            var isPaid = string.Equals(payment, "Paid", StringComparison.OrdinalIgnoreCase);
+
+            if (isPaid)
+            {
+                return shipping switch
+                {
+                    "Pending" => new List<string> { "Shipping", "Cancelled" },
+                    "Approved" => new List<string> { "Shipping", "Cancelled" },
+                    "Shipping" => new List<string> { "Delivered", "Cancelled" },
+                    _ => new List<string>()
+                };
+            }
+
+            return shipping switch
+            {
+                "Pending" => new List<string> { "Approved", "Cancelled" },
+                "Approved" => new List<string> { "Shipping", "Cancelled" },
+                "Shipping" => new List<string> { "Delivered", "Cancelled" },
+                _ => new List<string>()
+            };
+        }
+
+        private static object BuildPagedResult(
+            IEnumerable<Order> orders,
+            int page,
+            int pageSize,
+            string? orderId,
+            string? customerId,
+            DateTime? from,
+            DateTime? to,
+            string? shippingStatus,
+            string? paymentStatus)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+            if (pageSize > 100) pageSize = 10;
+
+            var totalItems = orders.Count();
+            var totalPages = totalItems == 0 ? 1 : (int)Math.Ceiling((double)totalItems / pageSize);
+
+            if (page > totalPages) page = totalPages;
+
+            var pagedOrders = orders
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(o =>
+                {
+                    var isFinal =
+                        string.Equals(o.ShippingStatus, "Delivered", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(o.ShippingStatus, "Cancelled", StringComparison.OrdinalIgnoreCase);
+
+                    return new
+                    {
+                        o.OrderID,
+                        o.CustomerID,
+                        o.OrderDate,
+                        o.TotalAmount,
+                        o.PaymentStatus,
+                        o.ShippingStatus,
+                        CanUpdate = !isFinal,
+                        NextStatuses = GetAllowedNextStatuses(o.ShippingStatus, o.PaymentStatus)
+                    };
+                })
+                .ToList();
+
+            return new
+            {
+                items = pagedOrders,
+                pagination = new
+                {
+                    currentPage = page,
+                    pageSize,
+                    totalItems,
+                    totalPages
+                },
+                filters = new
+                {
+                    orderId,
+                    customerId,
+                    from = from?.ToString("yyyy-MM-dd"),
+                    to = to?.ToString("yyyy-MM-dd"),
+                    shippingStatus,
+                    paymentStatus
+                }
+            };
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index(
             string? orderId,
@@ -30,7 +123,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             int page = 1,
             int pageSize = 10)
         {
-            // Keep incoming filters for view
             ViewBag.OrderId = orderId;
             ViewBag.CustomerId = customerId;
             ViewBag.From = from?.ToString("yyyy-MM-dd");
@@ -38,47 +130,47 @@ namespace MVCApplication.Areas.Admin.Controllers
             ViewBag.ShippingStatus = shippingStatus;
             ViewBag.PaymentStatus = paymentStatus;
 
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+            if (pageSize > 100) pageSize = 10;
+
             IEnumerable<Order> orders = Enumerable.Empty<Order>();
 
             try
             {
-                Console.WriteLine($"customerId = {customerId}");
+                if (from.HasValue && to.HasValue && from.Value.Date > to.Value.Date)
+                {
+                    TempData["Error"] = "Ngày bắt đầu không được lớn hơn ngày kết thúc.";
+                    ViewBag.CurrentPage = 1;
+                    ViewBag.PageSize = pageSize;
+                    ViewBag.TotalItems = 0;
+                    ViewBag.TotalPages = 1;
+                    return View(Enumerable.Empty<Order>());
+                }
 
-                if (!string.IsNullOrEmpty(orderId) ||
-                    !string.IsNullOrEmpty(customerId) ||
-                    from != null || to != null ||
-                    !string.IsNullOrEmpty(shippingStatus) ||
-                    !string.IsNullOrEmpty(paymentStatus))
-                {
-                    orders = await _service.SearchOrdersForStaffAsync(
-                        orderId,
-                        customerId,
-                        from,
-                        to,
-                        shippingStatus,
-                        paymentStatus
-                    ) ?? Enumerable.Empty<Order>();
-                }
-                else
-                {
-                    orders = await _service.GetAllOrdersForStaffAsync() ?? Enumerable.Empty<Order>();
-                }
+                var hasFilter =
+                    !string.IsNullOrWhiteSpace(orderId) ||
+                    !string.IsNullOrWhiteSpace(customerId) ||
+                    from != null ||
+                    to != null ||
+                    !string.IsNullOrWhiteSpace(shippingStatus) ||
+                    !string.IsNullOrWhiteSpace(paymentStatus);
+
+                orders = hasFilter
+                    ? await _service.SearchOrdersForStaffAsync(orderId, customerId, from, to, shippingStatus, paymentStatus)
+                        ?? Enumerable.Empty<Order>()
+                    : await _service.GetAllOrdersForStaffAsync()
+                        ?? Enumerable.Empty<Order>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading orders from API");
-                TempData["Error"] = "Cannot load orders from API.";
+                TempData["Error"] = "Không tải được danh sách đơn hàng.";
                 orders = Enumerable.Empty<Order>();
             }
 
-            // Ensure valid paging parameters
-            if (pageSize <= 0) pageSize = 10;
-            if (page <= 0) page = 1;
-
             var totalItems = orders.Count();
             var totalPages = totalItems == 0 ? 1 : (int)Math.Ceiling((double)totalItems / pageSize);
-
-            // clamp current page
             if (page > totalPages) page = totalPages;
 
             var pagedOrders = orders
@@ -94,7 +186,74 @@ namespace MVCApplication.Areas.Admin.Controllers
             return View(pagedOrders);
         }
 
-        // GET: /Admin/Orders/Details/{orderId}
+        [HttpGet]
+        public async Task<IActionResult> SearchAjax(
+            string? orderId,
+            string? customerId,
+            DateTime? from,
+            DateTime? to,
+            string? shippingStatus,
+            string? paymentStatus,
+            int page = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                if (page <= 0) page = 1;
+                if (pageSize <= 0) pageSize = 10;
+                if (pageSize > 100) pageSize = 10;
+
+                if (from.HasValue && to.HasValue && from.Value.Date > to.Value.Date)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Ngày bắt đầu không được lớn hơn ngày kết thúc."
+                    });
+                }
+
+                var hasFilter =
+                    !string.IsNullOrWhiteSpace(orderId) ||
+                    !string.IsNullOrWhiteSpace(customerId) ||
+                    from != null ||
+                    to != null ||
+                    !string.IsNullOrWhiteSpace(shippingStatus) ||
+                    !string.IsNullOrWhiteSpace(paymentStatus);
+
+                var orders = hasFilter
+                    ? await _service.SearchOrdersForStaffAsync(orderId, customerId, from, to, shippingStatus, paymentStatus)
+                        ?? Enumerable.Empty<Order>()
+                    : await _service.GetAllOrdersForStaffAsync()
+                        ?? Enumerable.Empty<Order>();
+
+                var result = BuildPagedResult(
+                    orders,
+                    page,
+                    pageSize,
+                    orderId,
+                    customerId,
+                    from,
+                    to,
+                    shippingStatus,
+                    paymentStatus);
+
+                return Json(new
+                {
+                    success = true,
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching orders");
+                return Json(new
+                {
+                    success = false,
+                    message = "Không tải được danh sách đơn hàng."
+                });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> Details(string orderId)
         {
@@ -108,95 +267,147 @@ namespace MVCApplication.Areas.Admin.Controllers
                 if (dto == null)
                     return NotFound();
 
-                // Return the partial view so the caller can render it in a modal or inline.
                 return PartialView("_OrderDetails", dto);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get order detail {OrderId}", orderId);
-                TempData["Error"] = "Cannot load order detail";
-                return RedirectToAction(nameof(Index));
+                return Content("<div class='alert alert-danger'>Không tải được chi tiết đơn hàng.</div>", "text/html");
             }
         }
 
-        // POST: /Admin/Orders/UpdateStatus
+        [HttpGet]
+        public IActionResult GetNextStatuses(string currentStatus, string payment)
+        {
+            return Json(new
+            {
+                success = true,
+                statuses = GetAllowedNextStatuses(currentStatus, payment)
+            });
+        }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(string orderId, string newStatus)
         {
-            if (string.IsNullOrWhiteSpace(orderId) ||
-                string.IsNullOrWhiteSpace(newStatus))
+            if (string.IsNullOrWhiteSpace(orderId) || string.IsNullOrWhiteSpace(newStatus))
             {
-                return Json(new { success = false, message = "Invalid request" });
+                return Json(new
+                {
+                    success = false,
+                    message = "Thiếu dữ liệu cập nhật."
+                });
             }
 
             try
             {
-                var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "ADMIN";
+                newStatus = newStatus.Trim();
 
-                // kiểm tra order
+                var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "STF001";
+
                 var order = await _service.GetOrderDetailForStaffAsync(orderId);
-
                 if (order == null)
                 {
                     return Json(new
                     {
                         success = false,
-                        message = "Order not found"
+                        message = "Không tìm thấy đơn hàng."
                     });
                 }
 
-                if (order.PaymentStatus == "Paid")
+                var currentStatus = string.IsNullOrWhiteSpace(order.ShippingStatus)
+                    ? "Pending"
+                    : order.ShippingStatus.Trim();
+
+                var allowedNextStatuses = GetAllowedNextStatuses(currentStatus, order.PaymentStatus);
+
+                if (!allowedNextStatuses.Contains(newStatus, StringComparer.OrdinalIgnoreCase))
                 {
                     return Json(new
                     {
                         success = false,
-                        message = "Paid orders cannot be modified"
+                        message = $"Không thể chuyển từ {currentStatus} sang {newStatus}."
                     });
                 }
 
-                var result = await _service.UpdateOrderStatusAsync(
-                    orderId,
-                    newStatus,
-                    staffId
-                );
-
-                if (result)
+                var updatedShipping = await _service.UpdateOrderStatusAsync(orderId, newStatus, staffId);
+                if (!updatedShipping)
                 {
                     return Json(new
                     {
-                        success = true,
-                        message = "Order status updated successfully"
+                        success = false,
+                        message = "Cập nhật trạng thái giao hàng thất bại."
                     });
                 }
 
+                if (string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(newStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    var paymentMethod = string.IsNullOrWhiteSpace(order.PaymentMethod)
+                        ? "Online"
+                        : order.PaymentMethod.Trim();
+
+                    var updatedPayment = await _service.UpdatePaymentStatusAsync(
+                        orderId: orderId,
+                        paymentMethod: paymentMethod,
+                        newPaymentStatus: "Refunded",
+                        status: "Canceled",
+                        note: "Refund after order cancellation.",
+                        staffId: staffId
+                    );
+
+                    if (!updatedPayment)
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = "Đã hủy đơn nhưng cập nhật hoàn tiền thất bại."
+                        });
+                    }
+                }
+
+                // Đọc lại order mới nhất từ backend
+                var refreshedOrder = await _service.GetOrderDetailForStaffAsync(orderId);
+                var resultingShippingStatus = refreshedOrder?.ShippingStatus ?? newStatus;
+                var resultingPaymentStatus = refreshedOrder?.PaymentStatus ?? order.PaymentStatus;
+
+                var canUpdateAfter =
+                    !string.Equals(resultingShippingStatus, "Delivered", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(resultingShippingStatus, "Cancelled", StringComparison.OrdinalIgnoreCase);
+
                 return Json(new
                 {
-                    success = false,
-                    message = "Update failed"
+                    success = true,
+                    message =
+                        string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(newStatus, "Cancelled", StringComparison.OrdinalIgnoreCase)
+                            ? "Đơn đã được hủy và chuyển sang hoàn tiền."
+                            : "Cập nhật trạng thái thành công.",
+                    orderId,
+                    newStatus = resultingShippingStatus,
+                    newPaymentStatus = resultingPaymentStatus,
+                    canUpdate = canUpdateAfter,
+                    nextStatuses = GetAllowedNextStatuses(resultingShippingStatus, resultingPaymentStatus)
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating order {OrderId}", orderId);
-
                 return Json(new
                 {
                     success = false,
-                    message = "System error"
+                    message = "Lỗi hệ thống."
                 });
             }
         }
 
-        // GET: /Admin/Orders/Revenue?year=2026
         [HttpGet]
         public async Task<IActionResult> Revenue(int? year)
         {
             try
             {
                 int y = year ?? DateTime.UtcNow.Year;
-
                 var revenue = await _service.GetRevenueByYearAsync(y);
-
                 return Json(revenue);
             }
             catch (Exception ex)
@@ -206,7 +417,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             }
         }
 
-        // GET: /Admin/Orders/Get/{orderId}
         [HttpGet("Get/{orderId}")]
         public async Task<IActionResult> Get(string orderId)
         {

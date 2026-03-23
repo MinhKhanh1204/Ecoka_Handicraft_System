@@ -90,7 +90,6 @@ namespace OrderAPI.Admin.Repositories.Implements
                     query = query.Where(o => o.PaymentStatus == paymentStatus);
             }
 
-            // optional: join on customerName if customers table exists (left out here)
             return await query
                 .OrderByDescending(o => o.OrderDate)
                 .Include(o => o.OrderItems)
@@ -106,7 +105,6 @@ namespace OrderAPI.Admin.Repositories.Implements
             if (order == null)
                 return false;
 
-            // try to interpret newStatus as ShippingStatus enum; fall back to raw string
             if (Enum.TryParse<ShippingStatus>(newStatus, true, out var ss))
                 order.ShippingStatus = ss.ToString();
             else
@@ -127,7 +125,6 @@ namespace OrderAPI.Admin.Repositories.Implements
         }
 
         // ================= GENERAL =================
-       
 
         public async Task<Order?> GetByIdAsync(string orderId)
         {
@@ -147,6 +144,56 @@ namespace OrderAPI.Admin.Repositories.Implements
             order.ShippingStatus = ShippingStatus.Approved.ToString();
             if (!string.IsNullOrWhiteSpace(approverStaffId))
                 order.StaffID = approverStaffId;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Updated method: returns bool and accepts optional staffId for audit
+        public async Task<bool> UpdatePaymentStatusAsync(
+            string orderId,
+            string paymentStatus,
+            string? note,
+            string? staffId)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return false;
+
+            // If already the same status, optionally update note/staff and return success
+            if (string.Equals(order.PaymentStatus, paymentStatus, StringComparison.OrdinalIgnoreCase))
+            {
+                var changed = false;
+                if (!string.IsNullOrWhiteSpace(note) && !string.Equals(order.Note, note, StringComparison.Ordinal))
+                {
+                    order.Note = note;
+                    changed = true;
+                }
+                if (!string.IsNullOrWhiteSpace(staffId) && !string.Equals(order.StaffID, staffId, StringComparison.Ordinal))
+                {
+                    order.StaffID = staffId;
+                    changed = true;
+                }
+                if (changed)
+                {
+                    order.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+                return true;
+            }
+
+            if (Enum.TryParse<PaymentStatus>(paymentStatus, true, out var ps))
+                order.PaymentStatus = ps.ToString();
+            else
+                order.PaymentStatus = paymentStatus;
+
+            if (!string.IsNullOrWhiteSpace(note))
+                order.Note = note;
+
+            if (!string.IsNullOrWhiteSpace(staffId))
+                order.StaffID = staffId;
+
+            // allow refund even if shipping status is Cancelled
             order.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

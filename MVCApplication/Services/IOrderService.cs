@@ -13,5 +13,6 @@ namespace MVCApplication.Services
         Task UpdatePaymentStatusAsync(string orderId, string paymentMethod, string paymentStatus, string? note);
         Task<Order?> GetByIdAsync(string orderId);
         Task<int> GetVoucherUsageCountAsync(int voucherId);
+        Task<bool> ConfirmReceiptAsync(string orderId, string customerId);
     }
 }

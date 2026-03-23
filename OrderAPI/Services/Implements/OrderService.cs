@@ -183,6 +183,10 @@ namespace OrderAPI.Services.Implements
                 paymentStatus,
                 note ?? string.Empty);
 
+        // NEW: customer confirms receipt
+        public Task<bool> ConfirmReceiptAsync(string orderId, string customerId)
+            => _orderRepo.ConfirmReceiptAsync(orderId, customerId);
+
         // ================= GENERAL =================
 
         public async Task<OrderReadDto?> GetByIdAsync(string orderId)

@@ -117,6 +117,43 @@ namespace OrderAPI.Admin.Controllers
             }
         }
 
+        // ================= UPDATE PAYMENT =================
+        [HttpPut("{orderId}/payment-status")]
+        public async Task<IActionResult> UpdatePaymentStatus(string orderId, [FromBody] PaymentStatusUpdateDto dto)
+        {
+            if (dto == null)
+                return BadRequest(new { success = false, message = "Request body is required." });
+
+            // Log incoming payload to help diagnose why MVC call returns non-success.
+            _logger.LogDebug("Admin UpdatePaymentStatus called. OrderId={OrderId}, Payload={Payload}",
+                orderId, System.Text.Json.JsonSerializer.Serialize(dto));
+
+            try
+            {
+                var paymentStatus = dto.NewPaymentStatus?.Trim() ?? dto.Status?.Trim() ?? string.Empty;
+                var note = dto.Note?.Trim();
+                var staffId = dto.StaffId?.Trim();
+
+                var success = await _service.UpdatePaymentStatusAsync(orderId, paymentStatus, note, staffId);
+
+                if (!success)
+                {
+                    _logger.LogWarning("UpdatePaymentStatus failed for OrderId={OrderId}. Payload={Payload}", orderId,
+                        System.Text.Json.JsonSerializer.Serialize(dto));
+
+                    return NotFound(new { success = false, message = "Order not found or update not applied." });
+                }
+
+                return Ok(new { success = true, message = "Payment status updated." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception while updating payment status for OrderId={OrderId}. Payload={Payload}", orderId,
+                    System.Text.Json.JsonSerializer.Serialize(dto));
+                return StatusCode(500, new { success = false, message = "Internal error while updating payment status." });
+            }
+        }
+
         // Update order shipping/status by staff
         public record UpdateStatusRequest(string NewStatus, string StaffId);
 

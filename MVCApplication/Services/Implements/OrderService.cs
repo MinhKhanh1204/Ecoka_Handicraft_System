@@ -68,6 +68,15 @@ namespace MVCApplication.Services.Implements
             return res ?? Enumerable.Empty<Order>();
         }
 
+        public async Task<bool> ConfirmReceiptAsync(string orderId, string customerId)
+        {
+            if (string.IsNullOrWhiteSpace(orderId))
+                return false;
+            var uri = $"customer/orders/{Uri.EscapeDataString(orderId)}/confirm-receipt";
+            var resp = await _http.PostAsync(uri, null);
+            return resp.IsSuccessStatusCode;
+        }
+
         public async Task<Order?> GetOrderDetailAsync(string orderId)
         {
             if (string.IsNullOrWhiteSpace(orderId)) return null;

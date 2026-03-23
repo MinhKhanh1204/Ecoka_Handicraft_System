@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
@@ -9,6 +10,7 @@ using MVCApplication.Services;
 namespace MVCApplication.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class ApprovalsController : Controller
     {
         private readonly IProductAdminService _productService;

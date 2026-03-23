@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrderAPI.DTOs;
 using OrderAPI.Services;
 using Microsoft.Extensions.Logging;
+using OrderAPI.Models;
 
 namespace OrderAPI.Controllers
 {
@@ -104,7 +105,15 @@ namespace OrderAPI.Controllers
         [HttpPut("{orderId}/payment-status")]
         public async Task<IActionResult> UpdatePaymentStatus(string orderId, [FromBody] PaymentStatusUpdateDto dto)
         {
-            await _orderService.UpdatePaymentStatusAsync(orderId, dto.PaymentMethod, dto.Status, dto.Note);
+            if (dto == null)
+                return BadRequest("Request body is required.");
+
+            // UI posts { PaymentMethod, Status, Note } — prefer PaymentMethod, fall back to NewPaymentStatus
+            var paymentMethod = !string.IsNullOrWhiteSpace(dto.PaymentMethod)
+                ? dto.PaymentMethod.Trim()
+                : dto.NewPaymentStatus?.Trim() ?? string.Empty;
+
+            await _orderService.UpdatePaymentStatusAsync(orderId, paymentMethod, dto.Status, dto.Note);
             return NoContent();
         }
 
@@ -149,6 +158,29 @@ namespace OrderAPI.Controllers
 
             var count = await _orderService.GetVoucherUsageCountAsync(customerId, voucherId);
             return Ok(count);
+        }
+
+        // ================= CONFIRM RECEIPT (CUSTOMER) =================
+        [HttpPost("{orderId}/confirm-receipt")]
+        public async Task<IActionResult> ConfirmReceipt(string orderId)
+        {
+            var customerId = User.FindFirst("accountID")?.Value;
+            if (string.IsNullOrWhiteSpace(customerId))
+                return Unauthorized();
+
+            try
+            {
+                var success = await _orderService.ConfirmReceiptAsync(orderId, customerId);
+                if (!success)
+                    return BadRequest(new { success = false, message = "Cannot confirm receipt (order not found, not owner, or invalid state)." });
+
+                return Ok(new { success = true, message = "Order marked as paid and delivered." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirming receipt for OrderId: {OrderId}", orderId);
+                return StatusCode(500, new { success = false, message = "Internal error." });
+            }
         }
     }
 }

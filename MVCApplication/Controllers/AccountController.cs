@@ -102,20 +102,20 @@ namespace MVCApplication.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(2)
                 });
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(RedirectByRole));
         }
 
-		//[Authorize]
-		//public IActionResult RedirectByRole()
-		//{
-		//	if (User.IsInRole("Admin"))
-		//		return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+		[Authorize]
+		public IActionResult RedirectByRole()
+		{
+			if (User.IsInRole("Admin"))
+				return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-		//	if (User.IsInRole("Employee"))
-		//		return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
+			if (User.IsInRole("Employee"))
+				return RedirectToAction("Index", "Dashboard", new { area = "Employee" });
 
-		//	return RedirectToAction("Index", "Home");
-		//}
+			return RedirectToAction("Index", "Home");
+		}
 
 		[HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)

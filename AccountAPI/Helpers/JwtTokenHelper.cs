@@ -18,14 +18,18 @@ namespace AccountAPI.Helpers
         public string GenerateToken(Account account)
         {
             var claims = new List<Claim>
-            {
-                new Claim("username", account.Username),
-                new Claim("accountID", account.AccountID.ToString())
-            };
+    {
+        new Claim("username", account.Username),
+        new Claim("accountID", account.AccountID.ToString())
+    };
 
-            foreach (var role in account.UserRoles)
+            foreach (var userRole in account.UserRoles)
             {
-                claims.Add(new Claim("role", role.Role.RoleName));
+                var roleName = userRole.Role.RoleName?.Trim();
+                if (!string.IsNullOrWhiteSpace(roleName))
+                {
+                    claims.Add(new Claim("role", roleName));
+                }
             }
 
             var key = new SymmetricSecurityKey(

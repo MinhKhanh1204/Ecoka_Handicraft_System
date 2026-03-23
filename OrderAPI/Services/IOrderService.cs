@@ -30,5 +30,6 @@ namespace OrderAPI.Services
 
         Task<OrderReadDto> CreateAsync(OrderCreateDto dto);
 
+        Task<bool> ConfirmReceiptAsync(string orderId, string customerId);
     }
 }

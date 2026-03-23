@@ -1,5 +1,5 @@
+using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Models.DTOs;
@@ -17,7 +17,6 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             _logger = logger;
         }
 
-        // ?úng base API
         private const string BasePath = "admin/orders";
 
         // ===============================
@@ -37,11 +36,14 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         // ===============================
         public async Task<IEnumerable<Order>> GetAllOrdersForStaffAsync()
         {
-            var resp = await _http.GetAsync($"{BasePath}");
+            var resp = await _http.GetAsync(BasePath);
             resp.EnsureSuccessStatusCode();
 
-            return await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>()
-                   ?? Enumerable.Empty<Order>();
+            var orders = await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>();
+            return orders?
+                .OrderByDescending(x => x.OrderDate)
+                .ToList()
+                ?? Enumerable.Empty<Order>();
         }
 
         // ===============================
@@ -55,81 +57,121 @@ namespace MVCApplication.Areas.Admin.Services.Implements
             string? shippingStatus,
             string? paymentStatus)
         {
-            var query = new Dictionary<string, string?>()
+            orderId = Normalize(orderId);
+            customerId = Normalize(customerId);
+            shippingStatus = Normalize(shippingStatus);
+            paymentStatus = Normalize(paymentStatus);
+
+            if (from.HasValue && to.HasValue && from.Value.Date > to.Value.Date)
             {
-                ["orderId"] = orderId,
-                ["customerId"] = customerId,
-                ["from"] = from?.ToString("yyyy-MM-dd"),
-                ["to"] = to?.ToString("yyyy-MM-dd"),
-                ["shippingStatus"] = shippingStatus,
-                ["paymentStatus"] = paymentStatus
-            };
-
-            var filtered = query
-                .Where(x => !string.IsNullOrWhiteSpace(x.Value))
-                .ToDictionary(x => x.Key, x => x.Value);
-
-            var uri = QueryHelpers.AddQueryString(
-                $"{BasePath}/search",
-                filtered
-            );
-
-            _logger.LogInformation("AdminOrderService.SearchOrdersForStaffAsync -> GET {Uri}", uri);
-
-            try
-            {
-                var resp = await _http.GetAsync(uri);
-
-                // if backend returns 204 NoContent -> treat as empty result
-                if (resp.StatusCode == System.Net.HttpStatusCode.NoContent)
-                {
-                    _logger.LogDebug("Search returned 204 NoContent for {Uri}", uri);
-                    return Enumerable.Empty<Order>();
-                }
-
-                if (!resp.IsSuccessStatusCode)
-                {
-                    var body = await resp.Content.ReadAsStringAsync();
-                    _logger.LogWarning("SearchOrdersForStaffAsync returned {Status} {Reason} for {Uri}. Body: {Body}",
-                        resp.StatusCode, resp.ReasonPhrase, uri, body);
-                    return Enumerable.Empty<Order>();
-                }
-
-                // Safe read with try/catch to avoid thrown when content is empty/invalid JSON
-                try
-                {
-                    var result = await resp.Content.ReadFromJsonAsync<IEnumerable<Order>>();
-                    return result ?? Enumerable.Empty<Order>();
-                }
-                catch (Exception ex)
-                {
-                    var body = await resp.Content.ReadAsStringAsync();
-                    _logger.LogError(ex, "Failed to deserialize search response for {Uri}. Response body: {Body}", uri, body);
-                    return Enumerable.Empty<Order>();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "HTTP request failed for search {Uri}", uri);
+                _logger.LogWarning("Invalid date range in SearchOrdersForStaffAsync: from={From}, to={To}", from, to);
                 return Enumerable.Empty<Order>();
             }
+
+            var allOrders = await GetAllOrdersForStaffAsync();
+            var query = allOrders.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(orderId))
+            {
+                query = query.Where(x =>
+                    !string.IsNullOrWhiteSpace(x.OrderID) &&
+                    x.OrderID.Contains(orderId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerId))
+            {
+                query = query.Where(x =>
+                    !string.IsNullOrWhiteSpace(x.CustomerID) &&
+                    x.CustomerID.Contains(customerId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (from.HasValue)
+            {
+                query = query.Where(x =>
+                    x.OrderDate.HasValue &&
+                    x.OrderDate.Value.Date >= from.Value.Date);
+            }
+
+            if (to.HasValue)
+            {
+                query = query.Where(x =>
+                    x.OrderDate.HasValue &&
+                    x.OrderDate.Value.Date <= to.Value.Date);
+            }
+
+            if (!string.IsNullOrWhiteSpace(shippingStatus))
+            {
+                query = query.Where(x =>
+                    string.Equals((x.ShippingStatus ?? "").Trim(), shippingStatus, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(paymentStatus))
+            {
+                query = query.Where(x =>
+                    string.Equals((x.PaymentStatus ?? "").Trim(), paymentStatus, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query
+                .OrderByDescending(x => x.OrderDate)
+                .ThenByDescending(x => x.OrderID)
+                .ToList();
         }
 
         // ===============================
-        // UPDATE STATUS
+        // UPDATE SHIPPING STATUS
         // ===============================
         public async Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId)
         {
+            if (string.IsNullOrWhiteSpace(orderId) || string.IsNullOrWhiteSpace(newStatus))
+                return false;
+
             var payload = new
             {
-                NewStatus = newStatus,
-                StaffId = staffId
+                NewStatus = newStatus.Trim(),
+                StaffId = string.IsNullOrWhiteSpace(staffId) ? "ADMIN" : staffId.Trim()
             };
 
             var resp = await _http.PutAsJsonAsync(
-                $"{BasePath}/{Uri.EscapeDataString(orderId)}/status",
+                $"{BasePath}/{Uri.EscapeDataString(orderId.Trim())}/status",
                 payload
             );
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "UpdateOrderStatusAsync failed. OrderId={OrderId}, NewStatus={NewStatus}, StatusCode={StatusCode}",
+                    orderId, newStatus, resp.StatusCode);
+            }
+
+            return resp.IsSuccessStatusCode;
+        }
+
+        // ===============================
+        // UPDATE PAYMENT STATUS
+        // ===============================
+        public async Task<bool> UpdatePaymentStatusAsync(string orderId, string newPaymentStatus, string staffId)
+        {
+            if (string.IsNullOrWhiteSpace(orderId) || string.IsNullOrWhiteSpace(newPaymentStatus))
+                return false;
+
+            var payload = new
+            {
+                NewPaymentStatus = newPaymentStatus.Trim(),
+                StaffId = string.IsNullOrWhiteSpace(staffId) ? "ADMIN" : staffId.Trim()
+            };
+
+            var resp = await _http.PutAsJsonAsync(
+                $"{BasePath}/{Uri.EscapeDataString(orderId.Trim())}/payment-status",
+                payload
+            );
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                _logger.LogWarning(
+                    "UpdatePaymentStatusAsync failed. OrderId={OrderId}, NewPaymentStatus={NewPaymentStatus}, StatusCode={StatusCode}, Body={Body}",
+                    orderId, newPaymentStatus, resp.StatusCode, body);
+            }
 
             return resp.IsSuccessStatusCode;
         }
@@ -139,15 +181,15 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         // ===============================
         public async Task<Order?> GetOrderDetailForStaffAsync(string orderId)
         {
-            var resp = await _http.GetAsync(
-                $"{BasePath}/{Uri.EscapeDataString(orderId)}"
-            );
+            if (string.IsNullOrWhiteSpace(orderId))
+                return null;
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            var resp = await _http.GetAsync($"{BasePath}/{Uri.EscapeDataString(orderId.Trim())}");
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
                 return null;
 
             resp.EnsureSuccessStatusCode();
-
             return await resp.Content.ReadFromJsonAsync<Order?>();
         }
 
@@ -156,16 +198,61 @@ namespace MVCApplication.Areas.Admin.Services.Implements
         // ===============================
         public async Task<Order?> GetByIdAsync(string orderId)
         {
-            var resp = await _http.GetAsync(
-                $"{BasePath}/{Uri.EscapeDataString(orderId)}"
-            );
+            if (string.IsNullOrWhiteSpace(orderId))
+                return null;
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            var resp = await _http.GetAsync($"{BasePath}/{Uri.EscapeDataString(orderId.Trim())}");
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
                 return null;
 
             resp.EnsureSuccessStatusCode();
-
             return await resp.Content.ReadFromJsonAsync<Order?>();
+        }
+
+        private static string? Normalize(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        }
+
+        public async Task<bool> UpdatePaymentStatusAsync(
+     string orderId,
+     string paymentMethod,
+     string newPaymentStatus,
+     string status,
+     string note,
+     string staffId)
+        {
+            if (string.IsNullOrWhiteSpace(orderId) ||
+                string.IsNullOrWhiteSpace(paymentMethod) ||
+                string.IsNullOrWhiteSpace(newPaymentStatus) ||
+                string.IsNullOrWhiteSpace(status))
+            {
+                return false;
+            }
+
+            var payload = new
+            {
+                paymentMethod = paymentMethod.Trim(),
+                newPaymentStatus = newPaymentStatus.Trim(),
+                status = status.Trim(),
+                note = string.IsNullOrWhiteSpace(note) ? "Refund after order cancellation." : note.Trim(),
+                staffId = string.IsNullOrWhiteSpace(staffId) ? "STF001" : staffId.Trim()
+            };
+
+            var resp = await _http.PutAsJsonAsync(
+                $"{BasePath}/{Uri.EscapeDataString(orderId.Trim())}/payment-status",
+                payload
+            );
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "UpdatePaymentStatusAsync failed. OrderId={OrderId}, StatusCode={StatusCode}",
+                    orderId, resp.StatusCode);
+            }
+
+            return resp.IsSuccessStatusCode;
         }
     }
 }

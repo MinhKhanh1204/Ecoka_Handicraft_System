@@ -366,5 +366,28 @@ namespace MVCApplication.Controllers
             await _orderService.CancelOrderAsync(id, "Cancelled by customer");
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost("ConfirmReceipt")]
+        public async Task<IActionResult> ConfirmReceipt(string orderId)
+        {
+            var customerId = User.FindFirst("accountID")?.Value;
+
+            if (string.IsNullOrWhiteSpace(orderId))
+                return Json(new { success = false, message = "Thiếu mã đơn hàng." });
+
+            if (string.IsNullOrWhiteSpace(customerId))
+                return Json(new { success = false, message = "Bạn chưa đăng nhập." });
+
+            var result = await _orderService.ConfirmReceiptAsync(orderId, customerId);
+
+            if (!result)
+                return Json(new { success = false, message = "Xác nhận nhận hàng thất bại." });
+
+            return Json(new
+            {
+                success = true,
+                message = "Đã xác nhận nhận hàng."
+            });
+        }
     }
 }

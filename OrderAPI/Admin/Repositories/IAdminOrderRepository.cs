@@ -19,6 +19,9 @@ namespace OrderAPI.Admin.Repositories
 
         Task<bool> UpdateOrderStatusAsync(string orderId, string newStatus, string staffId);
 
+        // Return bool to indicate success; accept optional staffId for audit
+        Task<bool> UpdatePaymentStatusAsync(string orderId, string paymentStatus, string? note, string? staffId);
+
         Task<Order?> GetOrderDetailForStaffAsync(string orderId);
 
         Task<Order?> GetByIdAsync(string orderId);

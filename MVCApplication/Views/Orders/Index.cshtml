@@ -2,43 +2,81 @@
 @model IEnumerable<Order>
 
 @{
-    ViewData["Title"] = "My Orders";
+    ViewData["Title"] = "Đơn hàng của tôi";
 }
+
 @{
-    var currentOrders = ViewBag.CurrentOrders as List<Order>;
-    var historyOrders = ViewBag.HistoryOrders as List<Order>;
+    var currentOrders = ViewBag.CurrentOrders as List<Order> ?? new List<Order>();
+    var historyOrders = ViewBag.HistoryOrders as List<Order> ?? new List<Order>();
 
-    int currentPage = ViewBag.CurrentPage;
-    int historyPage = ViewBag.HistoryPage;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int historyPage = ViewBag.HistoryPage ?? 1;
 
-    int pageSize = ViewBag.PageSize;
+    int pageSize = ViewBag.PageSize ?? 10;
 
-    int currentTotal = ViewBag.CurrentTotal;
-    int historyTotal = ViewBag.HistoryTotal;
+    int currentTotal = ViewBag.CurrentTotal ?? 0;
+    int historyTotal = ViewBag.HistoryTotal ?? 0;
 
-    int currentTotalPages = (int)Math.Ceiling((double)currentTotal / pageSize);
-    int historyTotalPages = (int)Math.Ceiling((double)historyTotal / pageSize);
+    int currentTotalPages = pageSize <= 0 ? 1 : (int)Math.Ceiling((double)currentTotal / pageSize);
+    int historyTotalPages = pageSize <= 0 ? 1 : (int)Math.Ceiling((double)historyTotal / pageSize);
+
+    string PaymentStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "paid" => "Đã thanh toán",
+        "pending" => "Chưa thanh toán",
+        "failed" => "Thanh toán thất bại",
+        "refunded" => "Đã hoàn tiền",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
+    };
+
+    string ShippingStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "pending" => "Chờ xử lý",
+        "approved" => "Đã xác nhận",
+        "shipping" => "Đang giao hàng",
+        "delivered" => "Đã giao hàng",
+        "cancelled" => "Đã hủy",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
+    };
+
+    string PaymentBadgeClass(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "paid" => "bg-success",
+        "pending" => "bg-warning text-dark",
+        "failed" => "bg-danger",
+        "refunded" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    string ShippingBadgeClass(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "pending" => "bg-warning text-dark",
+        "approved" => "bg-primary",
+        "shipping" => "bg-info text-dark",
+        "delivered" => "bg-success",
+        "cancelled" => "bg-danger",
+        _ => "bg-secondary"
+    };
 }
+
 <div class="container py-5">
-    <h2 class="mb-4">My Orders</h2>
+    <h2 class="mb-4">Đơn hàng của tôi</h2>
 
     @if (TempData["PaymentMsg"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fa fa-info-circle me-2"></i> @TempData["PaymentMsg"]
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <!-- SEARCH FORM -->
     <form asp-action="Search" id="searchForm" method="get" class="mb-4">
         <div class="row g-2">
-
             <div class="col-md-3">
                 <input type="text"
                        name="orderId"
                        class="form-control"
-                       placeholder="Order ID" />
+                       placeholder="Mã đơn hàng" />
             </div>
 
             <div class="col-md-2">
@@ -51,10 +89,11 @@
 
             <div class="col-md-2">
                 <select name="paymentStatus" class="form-select">
-                    <option value="">All Payment</option>
-                    <option>Paid</option>
-                    <option>Pending</option>
-                    <option>Failed</option>
+                    <option value="">Tất cả thanh toán</option>
+                    <option value="Paid">Đã thanh toán</option>
+                    <option value="Pending">Chưa thanh toán</option>
+                    <option value="Failed">Thanh toán thất bại</option>
+                    <option value="Refunded">Đã hoàn tiền</option>
                 </select>
             </div>
 
@@ -63,13 +102,10 @@
                     Tìm kiếm
                 </button>
             </div>
-
         </div>
     </form>
 
-    <!-- ORDER TABS -->
     <ul class="nav nav-tabs mb-4">
-
         <li class="nav-item">
             <button class="nav-link active"
                     data-bs-toggle="tab"
@@ -85,167 +121,156 @@
                 Lịch sử đơn hàng
             </button>
         </li>
-
     </ul>
+
     <div id="ordersContainer">
-    <div class="tab-content">
-
-        <!-- CURRENT ORDERS -->
-        <div class="tab-pane fade show active" id="currentOrders">
-
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="currentOrders">
                 @if (!currentOrders.Any())
-            {
-                <div class="alert alert-info">
-                    No current orders.
-                </div>
-            }
+                {
+                    <div class="alert alert-info">
+                        Không có đơn hàng hiện tại.
+                    </div>
+                }
 
-            <div class="row">
-
+                <div class="row">
                     @foreach (var order in currentOrders)
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm h-100 border-0">
-
-                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                <strong>#@order.OrderID</strong>
-                                <span class="badge bg-primary">
-                                    @order.PaymentStatus
-                                </span>
-                            </div>
-
-                            <div class="card-body">
-
-                                <p>
-                                    <strong>Ngày tạo:</strong>
-                                    @order.OrderDate?.ToString("dd/MM/yyyy")
-                                </p>
-
-                                <p>
-                                    <strong>Shipping:</strong>
-                                    <span class="badge bg-warning text-dark">
-                                        @order.ShippingStatus
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card shadow-sm h-100 border-0">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                    <strong>#@order.OrderID</strong>
+                                    <span class="badge @PaymentBadgeClass(order.PaymentStatus)">
+                                        @PaymentStatusVi(order.PaymentStatus)
                                     </span>
-                                </p>
+                                </div>
 
-                                <p>
-                                    <strong>Địa chỉ:</strong>
-                                    @order.ShippingAddress
-                                </p>
+                                <div class="card-body">
+                                    <p>
+                                        <strong>Ngày tạo:</strong>
+                                        @order.OrderDate?.ToString("dd/MM/yyyy")
+                                    </p>
 
-                                <hr />
+                                    <p>
+                                        <strong>Trạng thái giao hàng:</strong>
+                                        <span class="badge @ShippingBadgeClass(order.ShippingStatus)">
+                                            @ShippingStatusVi(order.ShippingStatus)
+                                        </span>
+                                    </p>
 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="text-danger mb-0">
+                                    <p>
+                                        <strong>Địa chỉ:</strong>
+                                        @order.ShippingAddress
+                                    </p>
+
+                                    <hr />
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="text-danger mb-0">
                                             @order.TotalAmount?.ToString("N0") VND
-                                    </h5>
+                                        </h5>
 
-                                    <button class="btn btn-sm btn-primary"
-                                            onclick="showOrderDetail('@order.OrderID')">
-                                        Xem chi tiết đơn hàng 
-                                    </button>
-                                </div>
-
-                            </div>
-
-                            @if (order.ShippingStatus == "Pending")
-                            {
-                                <div class="card-footer bg-white text-end border-0">
-                                    <form asp-action="Cancel" asp-route-id="@order.OrderID" method="post">
-                                        @Html.AntiForgeryToken()
-
-                                        <button class="btn btn-sm btn-danger"
-                                                onclick="return confirm('Cancel this order?');">
-                                            Hủy
+                                        <button class="btn btn-sm btn-primary"
+                                                type="button"
+                                                onclick="showOrderDetail('@order.OrderID')">
+                                            Xem chi tiết đơn hàng
                                         </button>
-                                    </form>
+                                    </div>
                                 </div>
-                            }
 
+                                @if (string.Equals(order.ShippingStatus, "Pending", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="card-footer bg-white text-end border-0">
+                                        <form asp-action="Cancel" asp-route-id="@order.OrderID" method="post">
+                                            @Html.AntiForgeryToken()
+
+                                            <button class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này không?');">
+                                                Hủy đơn
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                                else if (string.Equals(order.ShippingStatus, "Shipping", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="card-footer bg-white text-end border-0">
+                                        <button class="btn btn-sm btn-success"
+                                                type="button"
+                                                onclick="return confirm('Bạn xác nhận đã nhận được hàng?') && confirmReceived('@order.OrderID')">
+                                            Xác nhận đã nhận được hàng
+                                        </button>
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
-                }
-
-            </div>
-
-        </div>
-
-
-        <!-- ORDER HISTORY -->
-        <div class="tab-pane fade" id="historyOrders">
-
-                @if (currentOrders == null || !currentOrders.Any())
-            {
-                <div class="alert alert-info">
-                    Không có lịch sử đơn hàng.
+                    }
                 </div>
-            }
+            </div>
 
-            <div class="row">
-
-                    @foreach (var order in historyOrders ?? new List<Order>())
+            <div class="tab-pane fade" id="historyOrders">
+                @if (!historyOrders.Any())
                 {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm h-100 border-0">
-
-                            <div class="card-header bg-white d-flex justify-content-between">
-                                <strong>#@order.OrderID</strong>
-                                <span class="badge bg-secondary">
-                                    @order.PaymentStatus
-                                </span>
-                            </div>
-
-                            <div class="card-body">
-
-                                <p>
-                                    <strong>Ngày tạo:</strong>
-                                    @order.OrderDate?.ToString("dd/MM/yyyy")
-                                </p>
-
-                                <p>
-                                    <strong>Trạng thái:</strong>
-                                    <span class="badge bg-success">
-                                        @order.ShippingStatus
-                                    </span>
-                                </p>
-
-                                <p>
-                                    <strong>Địa chỉ:</strong>
-                                    @order.ShippingAddress
-                                </p>
-
-                                <hr />
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="text-danger mb-0">
-                                        @order.TotalAmount?.ToString("N0") VND
-                                    </h5>
-
-                                    <button class="btn btn-sm btn-outline-primary"
-                                            onclick="showOrderDetail('@order.OrderID')">
-                                        Xem chi tiết
-                                    </button>
-                                </div>
-
-                            </div>
-
-                        </div>
+                    <div class="alert alert-info">
+                        Không có lịch sử đơn hàng.
                     </div>
                 }
 
-            </div>
+                <div class="row">
+                    @foreach (var order in historyOrders)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card shadow-sm h-100 border-0">
+                                <div class="card-header bg-white d-flex justify-content-between">
+                                    <strong>#@order.OrderID</strong>
+                                    <span class="badge @PaymentBadgeClass(order.PaymentStatus)">
+                                        @PaymentStatusVi(order.PaymentStatus)
+                                    </span>
+                                </div>
 
-        </div>
+                                <div class="card-body">
+                                    <p>
+                                        <strong>Ngày tạo:</strong>
+                                        @order.OrderDate?.ToString("dd/MM/yyyy")
+                                    </p>
+
+                                    <p>
+                                        <strong>Trạng thái:</strong>
+                                        <span class="badge @ShippingBadgeClass(order.ShippingStatus)">
+                                            @ShippingStatusVi(order.ShippingStatus)
+                                        </span>
+                                    </p>
+
+                                    <p>
+                                        <strong>Địa chỉ:</strong>
+                                        @order.ShippingAddress
+                                    </p>
+
+                                    <hr />
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="text-danger mb-0">
+                                            @order.TotalAmount?.ToString("N0") VND
+                                        </h5>
+
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                type="button"
+                                                onclick="showOrderDetail('@order.OrderID')">
+                                            Xem chi tiết
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-
-<!-- MODAL -->
 <div class="modal fade" id="orderDetailModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
-
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title fw-bold">
                     Chi tiết đơn hàng
@@ -257,80 +282,102 @@
                 </button>
             </div>
 
-            <div class="modal-body p-4"
-                 id="orderDetailContent">
-
+            <div class="modal-body p-4" id="orderDetailContent">
                 <div class="text-center py-5">
                     <div class="spinner-border text-dark"></div>
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>
 
-
 <script>
+    async function showOrderDetail(orderId) {
+        const modal = new bootstrap.Modal(
+            document.getElementById('orderDetailModal')
+        );
 
-async function showOrderDetail(orderId) {
-
-    const modal = new bootstrap.Modal(
-        document.getElementById('orderDetailModal')
-    );
-
-    modal.show();
-
-    document.getElementById("orderDetailContent").innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-dark"></div>
-        </div>`;
-
-    const response = await fetch(`/customer/orders/${orderId}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    });
-
-    if (!response.ok) {
+        modal.show();
 
         document.getElementById("orderDetailContent").innerHTML = `
-            <div class="alert alert-danger">
-                Failed to load order details
+            <div class="text-center py-5">
+                <div class="spinner-border text-dark"></div>
             </div>`;
 
-        return;
+        const response = await fetch(`/customer/orders/${orderId}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+            document.getElementById("orderDetailContent").innerHTML = `
+                <div class="alert alert-danger">
+                    Không tải được chi tiết đơn hàng
+                </div>`;
+            return;
+        }
+
+        const html = await response.text();
+        document.getElementById("orderDetailContent").innerHTML = html;
     }
 
-    const html = await response.text();
+    async function confirmReceived(orderId) {
+        try {
+            const response = await fetch(`/customer/orders/ConfirmReceipt?orderId=${encodeURIComponent(orderId)}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
 
-    document.getElementById("orderDetailContent").innerHTML = html;
-}
+            const contentType = response.headers.get('content-type') || '';
+            const rawText = await response.text();
 
-    document.getElementById("searchForm").addEventListener("submit", async function(e){
+            if (!response.ok) {
+                alert(`Lỗi HTTP ${response.status}: ${rawText}`);
+                return false;
+            }
 
-        e.preventDefault(); // ngăn reload page
+            if (!contentType.includes('application/json')) {
+                alert("Server không trả về JSON. Nội dung nhận được:\n" + rawText);
+                return false;
+            }
+
+            const json = JSON.parse(rawText);
+
+            if (!json.success) {
+                alert(json.message || "Xác nhận nhận hàng thất bại.");
+                return false;
+            }
+
+            alert(json.message || "Đã xác nhận nhận hàng.");
+            location.reload();
+            return true;
+        } catch (err) {
+            alert("Có lỗi xảy ra: " + err.message);
+            return false;
+        }
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
         const form = e.target;
         const formData = new FormData(form);
-
         const query = new URLSearchParams(formData).toString();
 
         const response = await fetch(`/customer/orders/search?${query}`);
 
         if (!response.ok) {
-            alert("Search failed");
+            alert("Tìm kiếm thất bại");
             return;
         }
 
         const html = await response.text();
 
-        // parse HTML
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
-
         const newOrders = doc.querySelector("#ordersContainer");
 
-        document.querySelector("#ordersContainer").innerHTML =
-            newOrders.innerHTML;
-
+        document.querySelector("#ordersContainer").innerHTML = newOrders.innerHTML;
     });
 </script>
