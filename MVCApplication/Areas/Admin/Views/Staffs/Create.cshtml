@@ -1,16 +1,20 @@
-@model MVCApplication.Areas.Admin.DTOs.CreateStaffViewModel
+﻿@model MVCApplication.Areas.Admin.DTOs.CreateStaffViewModel
 
 @{
-    ViewData["Title"] = "Create Employee";
+    ViewData["Title"] = "Tạo nhân viên";
 }
 
 <div class="pagetitle">
-    <h1>Create New</h1>
+    <h1>Tạo mới</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Employees</a></li>
-            <li class="breadcrumb-item active">Create</li>
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index">Nhân viên</a>
+            </li>
+            <li class="breadcrumb-item active">Tạo mới</li>
         </ol>
     </nav>
 </div>
@@ -20,8 +24,9 @@
         <div class="col-12 col-md-10 col-lg-10">
             <div class="card mb-10">
                 <div class="card-header">
-                    <h3 class="card-title">Employee Information</h3>
+                    <h3 class="card-title">Thông tin nhân viên</h3>
                 </div>
+
                 <div class="card-body">
                     <form asp-action="Create" method="post" enctype="multipart/form-data" class="ajax-post-form">
                         @Html.AntiForgeryToken()
@@ -30,16 +35,16 @@
 
                         <!-- FullName -->
                         <div class="row mb-3">
-                            <label asp-for="FullName" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Họ và tên</label>
                             <div class="col-sm-9">
-                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" required />
+                                <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" required />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
                         </div>
 
                         <!-- Email -->
                         <div class="row mb-3">
-                            <label asp-for="Email" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Email</label>
                             <div class="col-sm-9">
                                 <input asp-for="Email" class="form-control" placeholder="example@gmail.com" required />
                                 <span asp-validation-for="Email" class="text-danger"></span>
@@ -48,7 +53,7 @@
 
                         <!-- Phone -->
                         <div class="row mb-3">
-                            <label asp-for="Phone" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Số điện thoại</label>
                             <div class="col-sm-9">
                                 <input asp-for="Phone" class="form-control" placeholder="0901234567" required />
                                 <span asp-validation-for="Phone" class="text-danger"></span>
@@ -57,22 +62,22 @@
 
                         <!-- Password -->
                         <div class="row mb-3">
-                            <label asp-for="Password" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Mật khẩu</label>
                             <div class="col-sm-9">
                                 <input asp-for="Password" type="password" class="form-control"
-                                       placeholder="At least 6 chars, include A-Z, a-z, number, special char" required />
+                                       placeholder="Ít nhất 6 ký tự, gồm chữ hoa, chữ thường, số, ký tự đặc biệt" required />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
                         </div>
 
                         <!-- Role -->
                         <div class="row mb-3">
-                            <label asp-for="RoleID" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Vai trò</label>
                             <div class="col-sm-9">
                                 <select asp-for="RoleID" class="form-control" required>
-                                    <option value="">-- Select role --</option>
-                                    <option value="2">Employee</option>
-                                    <option value="1">Admin</option>
+                                    <option value="">-- Chọn vai trò --</option>
+                                    <option value="2">Nhân viên</option>
+                                    <option value="1">Quản trị</option>
                                 </select>
                                 <span asp-validation-for="RoleID" class="text-danger"></span>
                             </div>
@@ -80,22 +85,22 @@
 
                         <!-- Address -->
                         <div class="row mb-3">
-                            <label asp-for="Address" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Địa chỉ</label>
                             <div class="col-sm-9">
-                                <input asp-for="Address" class="form-control" placeholder="Enter address" required />
+                                <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ" required />
                                 <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
                         </div>
 
                         <!-- Gender -->
                         <div class="row mb-3">
-                            <label asp-for="Gender" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Giới tính</label>
                             <div class="col-sm-9">
                                 <select asp-for="Gender" class="form-control" required>
-                                    <option value="">-- Select gender --</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Male">Nam</option>
+                                    <option value="Female">Nữ</option>
+                                    <option value="Other">Khác</option>
                                 </select>
                                 <span asp-validation-for="Gender" class="text-danger"></span>
                             </div>
@@ -103,17 +108,17 @@
 
                         <!-- CitizenId -->
                         <div class="row mb-3">
-                            <label asp-for="CitizenId" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">CCCD</label>
                             <div class="col-sm-9">
                                 <input asp-for="CitizenId" class="form-control"
-                                       placeholder="9 or 12 digit ID" required />
+                                       placeholder="CMND/CCCD (9 hoặc 12 số)" required />
                                 <span asp-validation-for="CitizenId" class="text-danger"></span>
                             </div>
                         </div>
 
                         <!-- DateOfBirth -->
                         <div class="row mb-3">
-                            <label asp-for="DateOfBirth" class="col-sm-3 col-form-label"></label>
+                            <label class="col-sm-3 col-form-label">Ngày sinh</label>
                             <div class="col-sm-9">
                                 <input asp-for="DateOfBirth" type="date" class="form-control" required />
                                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
@@ -122,10 +127,10 @@
 
                         <!-- Avatar -->
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label">Avatar</label>
+                            <label class="col-sm-3 col-form-label">Ảnh đại diện</label>
                             <div class="col-sm-9">
                                 <input asp-for="AvatarFile" type="file" class="form-control" accept="image/*" />
-                                <small class="text-muted">Optional</small>
+                                <small class="text-muted">Không bắt buộc</small>
                             </div>
                         </div>
 
@@ -133,9 +138,12 @@
                         <div class="row">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary">
-                                    Create Employee
+                                    Tạo nhân viên
                                 </button>
-                                <a asp-action="Index" class="btn btn-secondary ajax-link">Cancel</a>
+
+                                <a asp-action="Index" class="btn btn-secondary ajax-link">
+                                    Hủy
+                                </a>
                             </div>
                         </div>
 

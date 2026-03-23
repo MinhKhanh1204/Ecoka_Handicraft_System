@@ -95,7 +95,7 @@ namespace ProductAPI.Admin.Services.Implements
                 .FirstOrDefaultAsync(p => p.ProductID == id);
 
             if (product == null)
-                throw new Exception("Product not found.");
+                throw new Exception("Không tìm thấy sản phẩm.");
 
             return new ProductDetailDto
             {
@@ -187,7 +187,7 @@ namespace ProductAPI.Admin.Services.Implements
                 .FirstOrDefaultAsync(p => p.ProductID == id);
 
             if (product == null)
-                throw new Exception("Product not found.");
+                throw new Exception("Không tìm thấy sản phẩm.");
 
             ValidateProduct(dto.ProductName, dto.Description, dto.Material,
                             dto.Price, dto.Discount, dto.StockQuantity);
@@ -248,9 +248,9 @@ namespace ProductAPI.Admin.Services.Implements
             var product = await _repository.GetByIdAsync(id);
 
             if (product == null)
-                throw new Exception("Product not found.");
+                throw new Exception("Không tìm thấy sản phẩm.");
 
-            // 🚀 Cho phép delete từ mọi trạng thái
+            // Cho phép delete từ mọi trạng thái
             if (newStatus != ProductStatus.Inactive)
             {
                 var allowedTransitions = new Dictionary<string, List<string>>
@@ -265,7 +265,7 @@ namespace ProductAPI.Admin.Services.Implements
                     !allowedTransitions[product.Status].Contains(newStatus))
                 {
                     throw new Exception(
-                        $"Cannot change status from {product.Status} to {newStatus}.");
+                        $"Không thể thay đổi trạng thái từ {product.Status} to {newStatus}.");
                 }
             }
 
@@ -280,16 +280,16 @@ namespace ProductAPI.Admin.Services.Implements
                                      decimal price, decimal discount, int stock)
         {
             if (string.IsNullOrWhiteSpace(name) || name.Length > 200)
-                throw new Exception("Product name is required and must be less than 200 characters.");
+                throw new Exception("Tên sản phẩm là bắt buộc và phải có độ dài dưới 200 ký tự.");
 
             if (price <= 0)
-                throw new Exception("Price must be greater than 0.");
+                throw new Exception("Giá phải lớn hơn 0.");
 
-            if (discount < 0 || discount > 100)
-                throw new Exception("Discount must be between 0 and 100.");
+            if (discount < 0 || discount > 50)
+                throw new Exception("Mức giảm giá phải nằm trong khoảng từ 0 đến 50.");
 
             if (stock < 0)
-                throw new Exception("Stock quantity cannot be negative.");
+                throw new Exception("Số lượng hàng tồn kho không thể âm.");
         }
 
         private async Task ValidateImagesAsync<T>(
@@ -299,15 +299,15 @@ namespace ProductAPI.Admin.Services.Implements
             Func<T, bool> isMainSelector)
         {
             if (images == null || images.Count != 4)
-                throw new Exception("Product must contain exactly 4 images.");
+                throw new Exception("Sản phẩm phải bao gồm chính xác 4 hình ảnh.");
 
             if (images.Count(i => isMainSelector(i)) != 1)
-                throw new Exception("Product must have exactly 1 main image.");
+                throw new Exception("Sản phẩm phải có chính xác 1 hình ảnh chính.");
 
             foreach (var img in images)
             {
                 if (string.IsNullOrWhiteSpace(imageUrlSelector(img)) && imageFileSelector(img) == null)
-                    throw new Exception("Each image must have either a URL or a file.");
+                    throw new Exception("Mỗi hình ảnh phải có URL hoặc đường dẫn tệp.");
             }
         }
     }

@@ -1,17 +1,21 @@
-@using MVCApplication.Areas.Admin.DTOs
+﻿@using MVCApplication.Areas.Admin.DTOs
 @model ProductDetailDto
 
 @{
-    ViewData["Title"] = "Product Details";
+    ViewData["Title"] = "Chi tiết sản phẩm";
 }
 
 <div class="pagetitle">
-    <h1>Product Details</h1>
+    <h1>Chi tiết sản phẩm</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
-            <li class="breadcrumb-item active">Details</li>
+            <li class="breadcrumb-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index">Sản phẩm</a>
+            </li>
+            <li class="breadcrumb-item active">Chi tiết</li>
         </ol>
     </nav>
 </div>
@@ -24,16 +28,29 @@
                     @{
                         var mainImg = Model.Images.FirstOrDefault() ?? "/images/no-image.png";
                     }
-                    <img src="@mainImg" alt="Main Image" class="img-fluid rounded shadow-sm mb-3">
+                    <img src="@mainImg" alt="Ảnh chính" class="img-fluid rounded shadow-sm mb-3">
+
                     <h2>@Model.ProductName</h2>
                     <h3>@Model.CategoryName</h3>
+
                     <div class="mt-2">
                         @switch (Model.Status)
                         {
-                            case "Active": <span class="badge bg-success">Active</span> break;
-                            case "Pending": <span class="badge bg-warning text-dark">Pending</span> break;
-                            case "Rejected": <span class="badge bg-danger">Rejected</span> break;
-                            case "Inactive": <span class="badge bg-secondary">Inactive</span> break;
+                            case "Active":
+                                <span class="badge bg-success">Đang bán</span>
+                                break;
+                            case "Pending":
+
+                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                break;
+                            case "Rejected":
+
+                                <span class="badge bg-danger">Bị từ chối</span>
+                                break;
+                            case "Inactive":
+
+                                <span class="badge bg-secondary">Ngừng bán</span>
+                                break;
                         }
                     </div>
                 </div>
@@ -41,12 +58,12 @@
 
             <div class="card shadow-sm mt-3">
                 <div class="card-body pt-3">
-                    <h5 class="card-title">Other Images</h5>
+                    <h5 class="card-title">Ảnh khác</h5>
                     <div class="row g-2">
                         @foreach (var img in Model.Images.Skip(1))
                         {
                             <div class="col-6">
-                                <img src="@img" class="img-fluid rounded border" alt="Secondary Image">
+                                <img src="@img" class="img-fluid rounded border" alt="Ảnh phụ">
                             </div>
                         }
                     </div>
@@ -57,68 +74,78 @@
         <div class="col-xl-6">
             <div class="card shadow-sm">
                 <div class="card-body pt-3">
-                    <!-- Bordered Tabs -->
                     <ul class="nav nav-tabs nav-tabs-bordered">
                         <li class="nav-item">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Overview</button>
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">
+                                Tổng quan
+                            </button>
                         </li>
                     </ul>
+
                     <div class="tab-content pt-2">
                         <div class="tab-pane fade show active profile-overview" id="profile-overview">
-                            <h5 class="card-title">Product Description</h5>
+
+                            <h5 class="card-title">Mô tả sản phẩm</h5>
                             <p class="small fst-italic">@Model.Description</p>
 
-                            <h5 class="card-title">Details</h5>
+                            <h5 class="card-title">Thông tin chi tiết</h5>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Product ID</div>
+                                <div class="col-lg-3 col-md-4 label">Mã sản phẩm</div>
                                 <div class="col-lg-9 col-md-8 fw-bold">@Model.ProductID</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Product Name</div>
+                                <div class="col-lg-3 col-md-4 label">Tên sản phẩm</div>
                                 <div class="col-lg-9 col-md-8">@Model.ProductName</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Category</div>
+                                <div class="col-lg-3 col-md-4 label">Danh mục</div>
                                 <div class="col-lg-9 col-md-8">@Model.CategoryName</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Material</div>
+                                <div class="col-lg-3 col-md-4 label">Chất liệu</div>
                                 <div class="col-lg-9 col-md-8">@Model.Material</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Price</div>
-                                <div class="col-lg-9 col-md-8 text-danger fw-bold">@Model.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</div>
+                                <div class="col-lg-3 col-md-4 label">Giá</div>
+                                <div class="col-lg-9 col-md-8 text-danger fw-bold">
+                                    @Model.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))
+                                </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Discount</div>
+                                <div class="col-lg-3 col-md-4 label">Giảm giá</div>
                                 <div class="col-lg-9 col-md-8">@Model.Discount%</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Stock Quantity</div>
+                                <div class="col-lg-3 col-md-4 label">Số lượng tồn</div>
                                 <div class="col-lg-9 col-md-8">@Model.StockQuantity</div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-3 col-md-4 label">Created At</div>
-                                <div class="col-lg-9 col-md-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="col-lg-3 col-md-4 label">Ngày tạo</div>
+                                <div class="col-lg-9 col-md-8">
+                                    @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </div>
                             </div>
 
                         </div>
-                    </div><!-- End Bordered Tabs -->
+                    </div>
 
                     <div class="text-center mt-4 border-top pt-3">
                         <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-primary px-4 ajax-link">
-                            <i class="bi bi-pencil-square me-1"></i>Edit
+                            <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
                         </a>
-                        <a asp-action="Index" class="btn btn-secondary px-4 ms-2 ajax-link">Back to List</a>
+                        <a asp-action="Index" class="btn btn-secondary px-4 ms-2 ajax-link">
+                            Quay lại
+                        </a>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -130,6 +157,7 @@
         font-weight: 600;
         color: rgba(1, 41, 112, 0.6);
     }
+
     .profile-overview .row {
         margin-bottom: 20px;
         font-size: 15px;

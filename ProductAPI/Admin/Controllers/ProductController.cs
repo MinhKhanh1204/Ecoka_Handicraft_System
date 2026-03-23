@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductAPI.Admin.DTOs;
 using ProductAPI.Admin.Services;
@@ -51,12 +51,12 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> Create([FromForm] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
+                return BadRequest(ApiResponse<string>.Fail("Trạng thái không hợp lệ", 400));
 
             try
             {
                 await _service.CreateAsync(dto);
-                return StatusCode(201, ApiResponse<string>.SuccessResponse("Created successfully", "Created successfully"));
+                return StatusCode(201, ApiResponse<string>.SuccessResponse("Đã tạo thành công", "Đã tạo thành công"));
             }
             catch (Exception ex)
             {
@@ -70,12 +70,12 @@ namespace ProductAPI.Admin.Controllers
         public async Task<IActionResult> Update(string id, [FromForm] UpdateProductDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<string>.Fail("Invalid model state", 400));
+                return BadRequest(ApiResponse<string>.Fail("Trạng thái không hợp lệ", 400));
 
             try
             {
                 await _service.UpdateAsync(id, dto);
-                return Ok(ApiResponse<string>.SuccessResponse("Updated successfully", "Updated successfully"));
+                return Ok(ApiResponse<string>.SuccessResponse("Đã cập nhật thành công", "Đã cập nhật thành công"));
             }
             catch (Exception ex)
             {
@@ -91,7 +91,7 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.ApproveAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Approved successfully", "Approved successfully"));
+                return Ok(ApiResponse<string>.SuccessResponse("Đã được phê duyệt thành công", "Đã được phê duyệt thành công"));
             }
             catch (Exception ex)
             {
@@ -107,7 +107,7 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.RejectAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Rejected successfully", "Rejected successfully"));
+                return Ok(ApiResponse<string>.SuccessResponse("Đã từ chối thành công", "Đã từ chối thành công"));
             }
             catch (Exception ex)
             {
@@ -123,7 +123,7 @@ namespace ProductAPI.Admin.Controllers
             try
             {
                 await _service.DeleteAsync(id);
-                return Ok(ApiResponse<string>.SuccessResponse("Product inactivated successfully", "Product inactivated successfully"));
+                return Ok(ApiResponse<string>.SuccessResponse("Sản phẩm đã được vô hiệu hóa thành công", "Sản phẩm đã được vô hiệu hóa thành công"));
             }
             catch (Exception ex)
             {
