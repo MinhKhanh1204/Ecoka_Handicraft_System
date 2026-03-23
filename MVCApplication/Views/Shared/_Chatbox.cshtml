@@ -1,0 +1,59 @@
+<div class="chat-widget" id="chat-widget">
+    <!-- Unread badge -->
+    <span id="chat-unread-badge" style="display:none;"></span>
+
+    <button id="chat-toggle-btn" title="Chat với chúng tôi">
+        <i class="fas fa-comments"></i>
+        <i class="fas fa-times"></i>
+    </button>
+
+    <div id="chat-container">
+        <div class="chat-header">
+            <div>
+                <h5>Ecoka Support</h5>
+                <span class="status">
+                    <!-- Online dot — JS updates online/offline class via updateHealthStatus() -->
+                    <i id="chat-header-dot" class="fas fa-circle online" title="Đang hoạt động"></i>
+                    <span id="chat-header-status-text">Online</span>
+                </span>
+            </div>
+            <div class="chat-header-actions">
+                <button id="chat-clear-btn" class="chat-header-btn" title="Xóa cuộc trò chuyện">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="btn-close btn-close-white" onclick="chatbox.toggle()"></button>
+            </div>
+        </div>
+
+        <div id="chat-messages">
+            <!-- Static init message shown before JS renders anything -->
+            <div id="chat-init" class="chat-message bot">
+                <div class="message-content">
+                    Xin chào! Tôi là trợ lý ảo của Ecoka Handicraft. Tôi có thể giúp bạn tìm sản phẩm, kiểm tra đơn hàng, xem voucher và nhiều thứ khác. Bạn cần gì hôm nay?
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic suggested actions — JS populates this from SuggestedActions in the response -->
+        <div id="chat-suggested-actions" class="chat-suggested-container" style="display:none;"></div>
+
+        <!-- Static quick-replies (always visible, supplementary) -->
+        <div class="chat-quick-replies" id="chat-quick-replies" aria-label="Gợi ý câu hỏi">
+            <span class="chat-quick-label">Gợi ý nhanh:</span>
+            <button type="button" class="chat-quick-btn" data-msg="Ecoka hỗ trợ thanh toán như thế nào? (VNPay, MoMo, thẻ...)">Thanh toán</button>
+            <button type="button" class="chat-quick-btn" data-msg="Tôi muốn biết về đơn hàng và cách theo dõi đơn hàng của mình.">Đơn hàng</button>
+            <button type="button" class="chat-quick-btn" data-msg="Cửa hàng có những sản phẩm thủ công nào? Cho tôi xem giá và danh mục.">Sản phẩm</button>
+            <button type="button" class="chat-quick-btn" data-msg="Giới thiệu về Ecoka Handicraft và điểm nổi bật của cửa hàng.">Giới thiệu</button>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button id="chat-send-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="customer-id" value="@(User.FindFirst("accountID")?.Value ?? "")" />
+<input type="hidden" id="customer-name" value="@(User.Identity.Name ?? "")" />

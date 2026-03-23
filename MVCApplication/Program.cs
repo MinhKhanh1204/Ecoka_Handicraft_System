@@ -14,6 +14,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+// Chat proxy: server-side HttpClient → https://localhost:5000 often fails SSL validation (dev cert). Relax only in Development.
+var isDevelopment = builder.Environment.IsDevelopment();
+builder.Services.AddHttpClient("GatewayProxy")
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler();
+        if (isDevelopment)
+        {
+            handler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+        return handler;
+    });
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 //builder.Services.AddScoped<IProductService, MVCApplication.Services.Implements.ProductService>();
@@ -130,6 +144,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "areas",

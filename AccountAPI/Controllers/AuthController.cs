@@ -50,8 +50,8 @@ namespace AccountAPI.Controllers
         [EnableRateLimiting("ForgotPasswordPolicy")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            await _service.ForgotPasswordAsync(request);
-            return Ok(ApiResponse<object>.SuccessResponse(new object(), "If an account exists with this email, a reset link has been sent."));
+            var result = await _service.ForgotPasswordAsync(request);
+            return Ok(ApiResponse<ForgotPasswordResponseDto>.SuccessResponse(result, result.Message));
         }
 
         [HttpPost("reset-password")]

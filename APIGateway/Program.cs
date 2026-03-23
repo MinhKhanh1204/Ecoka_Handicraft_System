@@ -9,6 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Load ocelot.json
 builder.Configuration.AddJsonFile("gatewaysettings.json", optional: false, reloadOnChange: true);
 
+// CORS - Allow all for testing
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // JWT Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -31,6 +42,7 @@ builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 

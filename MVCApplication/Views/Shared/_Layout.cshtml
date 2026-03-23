@@ -139,6 +139,10 @@
 
     <!-- Custom JS -->
     <script src="~/js/main.js"></script>
+    <script src="~/js/chat.js"></script>
+
+    <!-- Chat CSS -->
+    <link href="~/css/chat.css" rel="stylesheet" />
 
     <script type="text/javascript">
         toastr.options = {
@@ -161,6 +165,9 @@
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Chatbox -->
+    <partial name="_Chatbox" />
 
     @if (TempData["success"] != null)
     {

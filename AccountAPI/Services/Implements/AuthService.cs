@@ -132,19 +132,49 @@ namespace AccountAPI.Services.Implements
             await _repo.SaveChangesAsync();
         }
 
-        public async Task ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        public async Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request)
         {
             var account = await _repo.GetByEmailAsync(request.Email);
             if (account == null)
-                return; // Do not reveal whether email exists; always return success to caller
+            {
+                // Email not found ? still return success (prevent enumeration),
+                // but send an invitation email to register.
+                var registerUrl = $"{_resetSettings.ClientBaseUrl.TrimEnd('/')}/Account/Register";
+                try
+                {
+                    await _emailService.SendUnregisteredEmailAsync(request.Email, registerUrl);
+                }
+                catch
+                {
+                    // Swallow email-sending failures so the response is always the same.
+                }
+                return new ForgotPasswordResponseDto
+                {
+                    EmailExists = false,
+                    Message = "Email nay chua duoc dang ki tai he thong. Lien he dang ki ben duoi.",
+                    RegisterUrl = registerUrl
+                };
+            }
 
             if (account.Status != "Active")
-                return;
+            {
+                return new ForgotPasswordResponseDto
+                {
+                    EmailExists = false,
+                    Message = "Tai khoan cua ban da bi khoa. Vui long lien he ho tro."
+                };
+            }
 
             var token = Guid.NewGuid().ToString("N");
             var expiry = DateTime.UtcNow.AddMinutes(_resetSettings.TokenExpiryMinutes);
             await _repo.SetPasswordRecoveryTokenAsync(account.AccountID, token, expiry);
             await _emailService.SendPasswordResetEmailAsync(account.Email, token);
+
+            return new ForgotPasswordResponseDto
+            {
+                EmailExists = true,
+                Message = "Mot lien ket dat lai mat khau da duoc gui den email cua ban. Vui long kiem tra hop thu."
+            };
         }
 
         public async Task ResetPasswordAsync(ResetPasswordRequestDto request)
