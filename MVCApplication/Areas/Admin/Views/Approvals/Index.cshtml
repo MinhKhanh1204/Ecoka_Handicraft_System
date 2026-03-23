@@ -66,9 +66,11 @@
                                     <th>Trạng thái</th>
                                     <th class="text-end">Thao tác</th>
                                 </tr>
-                            </thead>
-                            <tbody id="productPendingBody">
-                                @if (!Model.PendingProducts.Items.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var p in Model.PendingProducts.Items)
                                 {
                                     <tr id="product-empty-row">
                                         <td colspan="9" class="text-center text-muted">Không có sản phẩm chờ duyệt</td>
@@ -121,9 +123,11 @@
                                     <th>Trạng thái</th>
                                     <th class="text-end">Thao tác</th>
                                 </tr>
-                            </thead>
-                            <tbody id="categoryPendingBody">
-                                @if (!Model.PendingCategories.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var c in Model.PendingCategories)
                                 {
                                     <tr id="category-empty-row">
                                         <td colspan="6" class="text-center text-muted">Không có danh mục chờ duyệt</td>
@@ -169,9 +173,11 @@
                                     <th>Kích hoạt</th>
                                     <th class="text-end">Thao tác</th>
                                 </tr>
-                            </thead>
-                            <tbody id="voucherPendingBody">
-                                @if (!Model.PendingVouchers.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var v in Model.PendingVouchers)
                                 {
                                     <tr id="voucher-empty-row">
                                         <td colspan="10" class="text-center text-muted">Không có voucher chờ duyệt</td>
@@ -210,8 +216,9 @@
     </div>
 </section>
 
+<!-- Toast -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast" class="toast text-bg-primary border-0">
         <div class="d-flex">
             <div class="toast-body" id="toastMessage">Thông báo</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>

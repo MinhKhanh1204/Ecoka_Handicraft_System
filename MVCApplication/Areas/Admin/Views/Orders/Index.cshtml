@@ -64,7 +64,7 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-<!-- Search form -->
+<!-- Form tìm kiếm -->
 <form method="get" class="row g-2 mb-3">
     <div class="col-sm-2">
         <input name="orderId" value="@(ViewBag.OrderId ?? "")" class="form-control" placeholder="Mã đơn hàng" />
@@ -127,7 +127,7 @@
                 <tr>
                     <td>@o.OrderID</td>
                     <td>@(string.IsNullOrWhiteSpace(o.CustomerID) ? "-" : o.CustomerID)</td>
-                    <td>@(o.OrderDate.HasValue ? o.OrderDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                    <td>@(o.OrderDate.HasValue? o.OrderDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
                     <td class="text-end">@((o.TotalAmount ?? 0).ToString("C"))</td>
                     <td><span class="badge @PaymentBadgeClass(o.PaymentStatus)">@PaymentStatusVi(o.PaymentStatus)</span></td>
                     <td><span class="badge @ShippingBadgeClass(o.ShippingStatus)">@ShippingStatusVi(o.ShippingStatus)</span></td>
@@ -153,7 +153,6 @@
 
                                 Cập nhật
 
-                                @* red exclamation *@
                                 @if (needAction)
                                 {
                                     <span class="text-danger fw-bold ms-1">!</span>
@@ -178,59 +177,63 @@
     </tbody>
 </table>
 
-<!-- Pagination with ellipsis -->
 @if (totalPages > 1)
 {
-<nav>
-    <ul class="pagination">
+    <nav>
+        <ul class="pagination">
 
         <li class="page-item @(currentPage == 1 ? "disabled" : "")">
             <a class="page-link" href="@(buildPageUrl(currentPage - 1))">Trước</a>
         </li>
 
-        @{
-            int window = 5;
-            int start = Math.Max(1, currentPage - 2);
-            int end = Math.Min(totalPages, start + window - 1);
+            @{
+                int window = 5;
+                int start = Math.Max(1, currentPage - 2);
+                int end = Math.Min(totalPages, start + window - 1);
 
-            if (end - start + 1 < window)
-            {
-                start = Math.Max(1, end - window + 1);
+                if (end - start + 1 < window)
+                {
+                    start = Math.Max(1, end - window + 1);
+                }
             }
-        }
 
-        @if (start > 1)
-        {
-            <li class="page-item">
-                <a class="page-link" href="@(buildPageUrl(1))">1</a>
-            </li>
-
-            @if (start > 2)
+            @if (start > 1)
             {
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
+                <li class="page-item">
+                    <a class="page-link" href="@(buildPageUrl(1))">1</a>
                 </li>
+
+                @if (start > 2)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
             }
-        }
 
-        @for (int i = start; i <= end; i++)
-        {
-            <li class="page-item @(i == currentPage ? "active" : "")">
-                <a class="page-link" href="@(buildPageUrl(i))">@i</a>
-            </li>
-        }
-
-        @if (end < totalPages)
-        {
-            @if (end < totalPages - 1)
+            @for (int i = start; i <= end; i++)
             {
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" href="@(buildPageUrl(i))">@i</a>
                 </li>
             }
 
-            <li class="page-item">
-                <a class="page-link" href="@(buildPageUrl(totalPages))">@totalPages</a>
+            @if (end < totalPages)
+            {
+                @if (end < totalPages - 1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <li class="page-item">
+                    <a class="page-link" href="@(buildPageUrl(totalPages))">@totalPages</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
             </li>
         }
 
@@ -238,12 +241,12 @@
             <a class="page-link" href="@(buildPageUrl(currentPage + 1))">Sau</a>
         </li>
 
-    </ul>
-</nav>
+        </ul>
+    </nav>
 }
 
-<!-- Update status modal -->
-<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+<!-- Modal cập nhật -->
+<div class="modal fade" id="updateModal">
     <div class="modal-dialog">
         <form id="updateForm" method="post" asp-action="UpdateStatus" asp-controller="Orders" asp-area="Admin">
             @Html.AntiForgeryToken()
@@ -274,21 +277,19 @@
     </div>
 </div>
 
+<!-- Modal chi tiết -->
 <div class="modal fade" id="orderDetailsModal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title">Chi tiết đơn hàng</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body" id="orderDetailsContent">
                 <div class="text-center p-4">
                     <div class="spinner-border"></div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -296,74 +297,45 @@
 @section Scripts {
     <script>
         (function () {
-            var updateModalEl = document.getElementById('updateModal');
-            var updateModal = new bootstrap.Modal(updateModalEl);
-            document.querySelectorAll('.btn-open-update').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var orderId = btn.getAttribute('data-orderid');
-                    var current = btn.getAttribute('data-currentstatus') || 'Pending';
-                    document.getElementById('modalOrderId').value = orderId;
-                    var sel = document.getElementById('modalNewStatus');
-                    sel.value = current;
+            var updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+
+            document.querySelectorAll('.btn-open-update').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('modalOrderId').value = btn.dataset.orderid;
+                    document.getElementById('modalNewStatus').value = btn.dataset.currentstatus || 'Pending';
                     updateModal.show();
                 });
             });
-
         })();
 
         document.addEventListener("click", function (e) {
-
             const btn = e.target.closest(".btn-show-details");
-
             if (!btn) return;
 
-            const orderId = btn.dataset.orderid;
-
-            const modal = new bootstrap.Modal(
-                document.getElementById("orderDetailsModal")
-            );
-
+            const modal = new bootstrap.Modal(document.getElementById("orderDetailsModal"));
             const container = document.getElementById("orderDetailsContent");
 
-            container.innerHTML =
-                '<div class="text-center p-4"><div class="spinner-border"></div></div>';
+            container.innerHTML = '<div class="text-center p-4"><div class="spinner-border"></div></div>';
 
-            fetch(`/Admin/Orders/Details?orderId=${orderId}`)
+            fetch(`/Admin/Orders/Details?orderId=${btn.dataset.orderid}`)
                 .then(res => res.text())
-                .then(html => {
-                    container.innerHTML = html;
-                });
+                .then(html => container.innerHTML = html);
 
             modal.show();
         });
 
         document.getElementById("updateForm").addEventListener("submit", async function (e) {
-
             e.preventDefault();
 
-            const form = this;
-            const formData = new FormData(form);
-
-            const res = await fetch(form.action, {
+            const res = await fetch(this.action, {
                 method: "POST",
-                body: formData
+                body: new FormData(this)
             });
 
             const data = await res.json();
 
-            if (data.success) {
-
-                alert(data.message);
-
-                location.reload(); // reload lại trang list
-
-            } else {
-
-                alert(data.message);
-
-            }
-
+            alert(data.message);
+            if (data.success) location.reload();
         });
     </script>
 }
-
