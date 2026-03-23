@@ -1,13 +1,13 @@
 @model MVCApplication.Models.DTOs.Order
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết tiết đơn hàng";
 }
 
-<h1>Details</h1>
+<h1>Chi tiết đơn hàng</h1>
 
 <div>
-    <h4>Order</h4>
+    <h4>Đơn hàng</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -79,6 +79,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.OrderID">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.OrderID">Chỉnh sửa</a> |
+    <a asp-action="Index">Quay lại danh sách</a>
 </div>

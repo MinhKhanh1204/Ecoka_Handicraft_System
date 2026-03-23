@@ -1,7 +1,7 @@
 @model MVCApplication.Models.CheckoutViewModel
 
 @{
-    ViewData["Title"] = "Checkout";
+    ViewData["Title"] = "Thanh toán";
 }
 
 <style>
@@ -314,14 +314,14 @@
                 url: '/Voucher/Apply?code=' + encodeURIComponent(code),
                 type: 'GET',
                 success: function (res) {
-                    $('#lblVoucherMessage').text("Voucher applied successfully!").removeClass('text-danger').addClass('text-success fw-bold');
+                    $('#lblVoucherMessage').text("Áp dụng mã giảm giá thành công!").removeClass('text-danger').addClass('text-success fw-bold');
                     $('#hidVoucherId').val(res.voucherId);
                     discount = parseFloat(res.discount) || 0;
                     maxReducing = parseFloat(res.maxReducing) || null;
                     updateTotals();
                 },
                 error: function (xhr) {
-                    let msg = "Invalid or expired Voucher code.";
+                    let msg = "Mã giảm giá không hợp lệ hoặc đã hết hạn.";
                     if (xhr.status === 404 && xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }

@@ -60,7 +60,7 @@
 
             <div class="col-md-2">
                 <button class="btn btn-primary w-100">
-                    Search
+                    Tìm kiếm
                 </button>
             </div>
 
@@ -74,7 +74,7 @@
             <button class="nav-link active"
                     data-bs-toggle="tab"
                     data-bs-target="#currentOrders">
-                Current Orders
+                Đơn hàng hiện tại
             </button>
         </li>
 
@@ -82,7 +82,7 @@
             <button class="nav-link"
                     data-bs-toggle="tab"
                     data-bs-target="#historyOrders">
-                Order History
+                Lịch sử đơn hàng
             </button>
         </li>
 
@@ -117,7 +117,7 @@
                             <div class="card-body">
 
                                 <p>
-                                    <strong>Date:</strong>
+                                    <strong>Ngày tạo:</strong>
                                     @order.OrderDate?.ToString("dd/MM/yyyy")
                                 </p>
 
@@ -129,7 +129,7 @@
                                 </p>
 
                                 <p>
-                                    <strong>Address:</strong>
+                                    <strong>Địa chỉ:</strong>
                                     @order.ShippingAddress
                                 </p>
 
@@ -142,7 +142,7 @@
 
                                     <button class="btn btn-sm btn-primary"
                                             onclick="showOrderDetail('@order.OrderID')">
-                                        View Details
+                                        Xem chi tiết đơn hàng 
                                     </button>
                                 </div>
 
@@ -159,7 +159,7 @@
 
                                         <button class="btn btn-sm btn-danger"
                                                 onclick="return confirm('Cancel this order?');">
-                                            Cancel
+                                            Hủy
                                         </button>
                                     </form>
                                 </div>
@@ -180,7 +180,7 @@
                 @if (currentOrders == null || !currentOrders.Any())
             {
                 <div class="alert alert-info">
-                    No order history.
+                    Không có lịch sử đơn hàng.
                 </div>
             }
 
@@ -201,19 +201,19 @@
                             <div class="card-body">
 
                                 <p>
-                                    <strong>Date:</strong>
+                                    <strong>Ngày tạo:</strong>
                                     @order.OrderDate?.ToString("dd/MM/yyyy")
                                 </p>
 
                                 <p>
-                                    <strong>Status:</strong>
+                                    <strong>Trạng thái:</strong>
                                     <span class="badge bg-success">
                                         @order.ShippingStatus
                                     </span>
                                 </p>
 
                                 <p>
-                                    <strong>Address:</strong>
+                                    <strong>Địa chỉ:</strong>
                                     @order.ShippingAddress
                                 </p>
 
@@ -226,7 +226,7 @@
 
                                     <button class="btn btn-sm btn-outline-primary"
                                             onclick="showOrderDetail('@order.OrderID')">
-                                        View Details
+                                        Xem chi tiết
                                     </button>
                                 </div>
 
@@ -251,7 +251,7 @@
 
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title fw-bold">
-                    Order Details
+                    Chi tiết đơn hàng
                 </h5>
 
                 <button type="button"
