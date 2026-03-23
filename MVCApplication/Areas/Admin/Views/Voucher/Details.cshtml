@@ -2,17 +2,17 @@
 @model VoucherDetailDto
 
 @{
-    ViewData["Title"] = "Voucher Details";
+    ViewData["Title"] = "Chi tiết voucher";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <div class="pagetitle">
-    <h1>Voucher Details</h1>
+    <h1>Chi tiết voucher</h1>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index">Voucher Management</a></li>
-            <li class="breadcrumb-item active">Details</li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Quản lý voucher</a></li>
+            <li class="breadcrumb-item active">Chi tiết</li>
         </ol>
     </nav>
 </div>
@@ -25,60 +25,60 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-ticket-perforated me-2"></i>@Model.VoucherName
                         @if (Model.IsActive == true)
-                        { <span class="badge bg-success text-white">Active</span> }
+                        { <span class="badge bg-success text-white">Đang dùng</span> }
                         else
-                        { <span class="badge bg-danger text-white">Inactive</span> }
+                        { <span class="badge bg-danger text-white">Ngừng dùng</span> }
                     </h5>
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Voucher ID</dt>
+                        <dt class="col-sm-4">Mã voucher</dt>
                         <dd class="col-sm-8">@Model.VoucherId</dd>
 
-                        <dt class="col-sm-4">Code</dt>
+                        <dt class="col-sm-4">Mã</dt>
                         <dd class="col-sm-8"><code class="fs-6">@Model.Code</code></dd>
 
-                        <dt class="col-sm-4">Voucher Name</dt>
+                        <dt class="col-sm-4">Tên voucher</dt>
                         <dd class="col-sm-8">@Model.VoucherName</dd>
 
-                        <dt class="col-sm-4">Description</dt>
+                        <dt class="col-sm-4">Mô tả</dt>
                         <dd class="col-sm-8">@(Model.Description ?? "-")</dd>
 
-                        <dt class="col-sm-4">Discount</dt>
+                        <dt class="col-sm-4">Giảm giá</dt>
                         <dd class="col-sm-8">@(Model.DiscountPercentage?.ToString("0.#") ?? "-")%</dd>
 
-                        <dt class="col-sm-4">Max Reducing</dt>
-                        <dd class="col-sm-8">@(Model.MaxReducing.HasValue ? Model.MaxReducing.Value.ToString("N0") + " VND" : "-")</dd>
+                        <dt class="col-sm-4">Giảm tối đa</dt>
+                        <dd class="col-sm-8">@(Model.MaxReducing.HasValue ? Model.MaxReducing.Value.ToString("N0") + " VNĐ" : "-")</dd>
 
-                        <dt class="col-sm-4">Quantity</dt>
+                        <dt class="col-sm-4">Số lượng</dt>
                         <dd class="col-sm-8">@Model.Quantity</dd>
 
-                        <dt class="col-sm-4">Usage Count</dt>
+                        <dt class="col-sm-4">Đã dùng</dt>
                         <dd class="col-sm-8">@(Model.UsageCount ?? 0)</dd>
 
-                        <dt class="col-sm-4">Expiry Date</dt>
+                        <dt class="col-sm-4">Hết hạn</dt>
                         <dd class="col-sm-8">@Model.ExpiryDate?.ToString("yyyy-MM-dd")</dd>
 
-                        <dt class="col-sm-4">Min Order Value</dt>
-                        <dd class="col-sm-8">@(Model.MinOrderValue.HasValue ? Model.MinOrderValue.Value.ToString("N0") + " VND" : "-")</dd>
+                        <dt class="col-sm-4">Đơn tối thiểu</dt>
+                        <dd class="col-sm-8">@(Model.MinOrderValue.HasValue ? Model.MinOrderValue.Value.ToString("N0") + " VNĐ" : "-")</dd>
 
-                        <dt class="col-sm-4">Max Usage Per User</dt>
+                        <dt class="col-sm-4">Lượt / người</dt>
                         <dd class="col-sm-8">@(Model.MaxUsagePerUser?.ToString() ?? "-")</dd>
 
-                        <dt class="col-sm-4">Status</dt>
+                        <dt class="col-sm-4">Trạng thái</dt>
                         <dd class="col-sm-8">
                             @if (Model.IsActive == true)
-                            { <span class="badge bg-success text-white">Active</span> }
+                            { <span class="badge bg-success text-white">Đang dùng</span> }
                             else
-                            { <span class="badge bg-danger text-white">Inactive</span> }
+                            { <span class="badge bg-danger text-white">Ngừng dùng</span> }
                         </dd>
                     </dl>
                 </div>
                 <div class="card-footer">
                     <a asp-action="Edit" asp-route-id="@Model.VoucherId" class="btn btn-primary">
-                        <i class="bi bi-pencil me-1"></i> Edit
+                        <i class="bi bi-pencil me-1"></i> Sửa
                     </a>
-                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
                 </div>
             </div>
         </div>

@@ -30,19 +30,19 @@
                         <td>
                             @if (string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-success status-badge">Active</span>
+                                <span class="badge bg-success status-badge">Hoạt động</span>
                             }
                             else if (string.Equals(c.Status, "Deleted", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-danger status-badge">Deleted</span>
+                                <span class="badge bg-danger status-badge">Đã xóa</span>
                             }
                             else if (string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-warning text-dark status-badge">Rejected</span>
+                                <span class="badge bg-warning text-dark status-badge">Từ chối</span>
                             }
                             else if (string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-info text-dark status-badge">Pending</span>
+                                <span class="badge bg-info text-dark status-badge">Chờ duyệt</span>
                             }
                             else
                             {

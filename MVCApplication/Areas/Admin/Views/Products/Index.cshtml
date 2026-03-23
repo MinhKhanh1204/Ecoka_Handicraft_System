@@ -1,9 +1,9 @@
-﻿@using MVCApplication.Areas.Admin.DTOs
+@using MVCApplication.Areas.Admin.DTOs
 @using MVCApplication.CustomFormatter
 @model PagedResult<ReadProductDto>
 
 @{
-    ViewData["Title"] = "Products";
+    ViewData["Title"] = "Sản phẩm";
     var keyword = (string?)ViewBag.Keyword;
     var status = (string?)ViewBag.Status;
 
@@ -56,7 +56,7 @@
                                     <input name="keyword"
                                            value="@keyword"
                                            class="form-control"
-                                           placeholder="Search by product name..." />
+                                           placeholder="Tìm theo tên sản phẩm..." />
                                     <button class="btn btn-primary" type="submit">
                                         <i class="bi bi-search me-1"></i> Tìm kiếm
                                     </button>
@@ -107,7 +107,7 @@
                                     <th>Giá</th>
                                     <th>Kho</th>
                                     <th>Trạng thái</th>
-                                    <th class="text-end">hành động</th>
+                                    <th class="text-end">Hành động</th>
                                 </tr>
                             </thead>
 
@@ -174,7 +174,17 @@
                                             </td>
 
                                             <td>
-                                                <span class="badge bg-@badgeClass">@p.Status</span>
+                                                @{
+                                                    var statusVi = p.Status switch
+                                                    {
+                                                        "Active" => "Đang bán",
+                                                        "Pending" => "Chờ duyệt",
+                                                        "Rejected" => "Từ chối",
+                                                        "Inactive" => "Ngừng bán",
+                                                        _ => p.Status
+                                                    };
+                                                }
+                                                <span class="badge bg-@badgeClass">@statusVi</span>
                                             </td>
 
                                             <td class="text-end">
@@ -345,7 +355,7 @@
                         submitAjaxForm(form);
                     } else if (form.classList.contains('ajax-delete-form')) {
                         e.preventDefault();
-                        var msg = form.getAttribute('data-confirm') || 'Are you sure?';
+                        var msg = form.getAttribute('data-confirm') || 'Bạn có chắc không?';
                         if (!confirm(msg)) {
                             return;
                         }
@@ -368,9 +378,9 @@
                     })
                     .catch(function(error) {
                         if (typeof showToast === 'function') {
-                            showToast('Failed to load content. Please try again.', 'error');
+                            showToast('Không tải được nội dung. Vui lòng thử lại.', 'error');
                         } else {
-                            alert('Failed to load content. Please try again.');
+                            alert('Không tải được nội dung. Vui lòng thử lại.');
                         }
                         console.error('Error:', error);
                     });
@@ -403,12 +413,12 @@
                             var data = result.data;
                             if (data.success) {
                                 if (typeof showToast === 'function') {
-                                    showToast(data.message || 'Operation successful', 'success');
+                                    showToast(data.message || 'Thao tác thành công', 'success');
                                 }
                                 loadAjaxContent('@Url.Action("Index", "Products", new { area = "Admin" })');
                             } else {
                                 if (typeof showToast === 'function') {
-                                    showToast(data.message || 'Error occurred', 'error');
+                                    showToast(data.message || 'Đã có lỗi xảy ra', 'error');
                                 }
                             }
                         } else {
@@ -420,9 +430,9 @@
                     })
                     .catch(function(error) {
                         if (typeof showToast === 'function') {
-                            showToast('Form submission failed. Please try again.', 'error');
+                            showToast('Gửi biểu mẫu thất bại. Vui lòng thử lại.', 'error');
                         } else {
-                            alert('Form submission failed. Please try again.');
+                            alert('Gửi biểu mẫu thất bại. Vui lòng thử lại.');
                         }
                         console.error('Error:', error);
                     });
@@ -452,7 +462,7 @@
 
 approvalConnection.on("ProductApproved", function (data) {
     if (typeof showToast === 'function') {
-        showToast('Product approved', 'success');
+        showToast('Đã duyệt sản phẩm', 'success');
     }
 
     var listUrl = '@Url.Action("Index", "Products", new { area = "Admin" })';
@@ -462,7 +472,7 @@ approvalConnection.on("ProductApproved", function (data) {
 
 approvalConnection.on("ProductRejected", function (data) { 
     if (typeof showToast === 'function') {
-        showToast('Product rejected', 'warning');
+        showToast('Đã từ chối sản phẩm', 'warning');
     }
 
     var listUrl = '@Url.Action("Index", "Products", new { area = "Admin" })';

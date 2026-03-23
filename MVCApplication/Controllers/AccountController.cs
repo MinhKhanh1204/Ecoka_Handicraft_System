@@ -46,7 +46,7 @@ namespace MVCApplication.Controllers
                 return View(model);
 
             await _accountService.ForgotPasswordAsync(model);
-            TempData["success"] = "If an account exists with this email, a password reset link has been sent.";
+            TempData["success"] = "Nếu có tài khoản với email này, liên kết đặt lại mật khẩu đã được gửi.";
             return RedirectToAction(nameof(Login));
         }
 
@@ -55,7 +55,7 @@ namespace MVCApplication.Controllers
         {
             if (string.IsNullOrEmpty(token))
             {
-                TempData["error"] = "Invalid reset link.";
+                TempData["error"] = "Liên kết đặt lại mật khẩu không hợp lệ.";
                 return RedirectToAction(nameof(Login));
             }
             return View(new ResetPasswordViewModel { Token = token });
@@ -70,10 +70,10 @@ namespace MVCApplication.Controllers
             var success = await _accountService.ResetPasswordAsync(model);
             if (!success)
             {
-                TempData["error"] = "Invalid or expired reset link. Please request a new one.";
+                TempData["error"] = "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu gửi lại.";
                 return View(model);
             }
-            TempData["success"] = "Your password has been reset. You can now log in.";
+            TempData["success"] = "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập.";
             return RedirectToAction(nameof(Login));
         }
 

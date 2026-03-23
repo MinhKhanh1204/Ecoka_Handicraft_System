@@ -1,0 +1,59 @@
+@model MVCApplication.Areas.Admin.ViewModels.AdminProfileSidebarViewModel
+@{
+    string RoleVi(string? r) => r switch
+    {
+        "Admin" => "Quản trị viên",
+        "Employee" => "Nhân viên",
+        "Staff" => "Nhân viên",
+        _ => string.IsNullOrEmpty(r) ? "" : r
+    };
+
+    var displayName = Model.Staff?.FullName;
+    if (string.IsNullOrWhiteSpace(displayName))
+        displayName = Model.FallbackUsername;
+
+    var roleRaw = Model.Staff?.Role ?? Model.FallbackRoles.FirstOrDefault();
+    var roleLabel = RoleVi(roleRaw);
+
+    var email = Model.Staff?.Email;
+    var phone = Model.Staff?.Phone;
+
+    var avatar = Model.Staff?.Avatar;
+    var defaultAvatar = Url.Content("~/admin/assets/img/profile-img.jpg");
+    var avatarSrc = string.IsNullOrWhiteSpace(avatar) ? defaultAvatar : avatar;
+}
+
+<div class="admin-sidebar-profile card border-0 shadow-sm mx-2 mb-3 overflow-hidden" style="border-radius: 8px;">
+    <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <img src="@avatarSrc" alt="" class="rounded-circle flex-shrink-0" width="44" height="44"
+                 style="object-fit: cover;" onerror="this.onerror=null;this.src='@defaultAvatar'" />
+            <div class="min-w-0 flex-grow-1">
+                <div class="fw-semibold text-dark text-truncate" title="@displayName">@displayName</div>
+                @if (!string.IsNullOrEmpty(roleLabel))
+                {
+                    <div class="text-muted text-truncate small" title="@roleRaw">@roleLabel</div>
+                }
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(email))
+        {
+            <div class="text-muted small text-truncate mb-1" title="@email">
+                <i class="bi bi-envelope me-1"></i>@email
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(phone))
+        {
+            <div class="text-muted small text-truncate mb-2" title="@phone">
+                <i class="bi bi-telephone me-1"></i>@phone
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.AccountId))
+        {
+            <a class="btn btn-sm btn-outline-primary w-100 mt-1"
+               asp-area="Admin" asp-controller="Staffs" asp-action="Details" asp-route-id="@Model.AccountId">
+                Xem chi tiết hồ sơ
+            </a>
+        }
+    </div>
+</div>
