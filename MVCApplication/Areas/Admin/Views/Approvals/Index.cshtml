@@ -1,107 +1,112 @@
-@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
-@using System.Globalization
-
+@using MVCApplication.Areas.Admin.DTOs
+@using MVCApplication.Models.DTOs
+@using MVCApplication.CustomFormatter
 @{
-    ViewData["Title"] = "Phê duyệt";
-    var viCulture = new CultureInfo("vi-VN");
+    ViewData["Title"] = "Approvals";
+
+    // Safe reflection-based extraction: the controller may pass a typed view model or place lists in ViewData.
+    object? vm = Model;
+
+    PagedResult<ReadProductDto> pendingProducts = vm?.GetType().GetProperty("PendingProducts")?.GetValue(vm) as PagedResult<ReadProductDto>
+        ?? ViewData["PendingProducts"] as PagedResult<ReadProductDto>
+        ?? new PagedResult<ReadProductDto> { Items = new List<ReadProductDto>(), PageNumber = 1, PageSize = 10, TotalCount = 0 };
+
+    IReadOnlyList<ReadCategoryDto> pendingCategories = vm?.GetType().GetProperty("PendingCategories")?.GetValue(vm) as IReadOnlyList<ReadCategoryDto>
+        ?? ViewData["PendingCategories"] as IReadOnlyList<ReadCategoryDto>
+        ?? Array.Empty<ReadCategoryDto>();
+
+    IList<VoucherDto> pendingVouchers = vm?.GetType().GetProperty("PendingVouchers")?.GetValue(vm) as IList<VoucherDto>
+        ?? ViewData["PendingVouchers"] as IList<VoucherDto>
+        ?? new List<VoucherDto>();
 }
 
 <div class="pagetitle">
-    <h1>Phê duyệt</h1>
+    <h1>Approvals</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item active">Approvals</li>
+        </ol>
+    </nav>
 </div>
 
 <section class="section">
-    <div class="card">
-        <div class="card-body pt-3">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-            <ul class="nav nav-tabs mb-3" id="approvalTabs" role="tablist">
+            <ul class="nav nav-tabs mb-3" id="approvalsTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active"
-                            id="products-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#products"
-                            type="button"
-                            role="tab">
-                        Sản phẩm (<span id="product-count">@Model.PendingProducts.Items.Count</span>)
-                    </button>
+                    <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Products (@pendingProducts.TotalCount)</button>
                 </li>
-
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="categories-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#categories"
-                            type="button"
-                            role="tab">
-                        Danh mục (<span id="category-count">@Model.PendingCategories.Count</span>)
-                    </button>
+                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">Categories (@pendingCategories.Count)</button>
                 </li>
-
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="vouchers-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#vouchers"
-                            type="button"
-                            role="tab">
-                        Voucher (<span id="voucher-count">@Model.PendingVouchers.Count</span>)
-                    </button>
+                    <button class="nav-link" id="vouchers-tab" data-bs-toggle="tab" data-bs-target="#vouchers" type="button" role="tab">Vouchers (@pendingVouchers.Count)</button>
                 </li>
             </ul>
 
-            <div class="tab-content">
+            <div class="tab-content" id="approvalsTabContent">
 
-                <div class="tab-pane fade show active" id="products" role="tabpanel">
+                <!-- PRODUCTS TAB -->
+                <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
-                                    <th>#</th>
-                                    <th>Mã SP</th>
-                                    <th>Ảnh</th>
-                                    <th>Sản phẩm</th>
-                                    <th>Danh mục</th>
-                                    <th>Giá</th>
-                                    <th>Kho</th>
-                                    <th>Trạng thái</th>
-                                    <th class="text-end">Thao tác</th>
+                                    <th style="width:60px;">#</th>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
-                            }
-                            else
-                            {
-                                var index = 0;
-                                foreach (var p in Model.PendingProducts.Items)
+                            </thead>
+                            <tbody>
+                                @if (pendingProducts.Items == null || !pendingProducts.Items.Any())
                                 {
-                                    <tr id="product-empty-row">
-                                        <td colspan="9" class="text-center text-muted">Không có sản phẩm chờ duyệt</td>
-                                    </tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending products</td></tr>
                                 }
                                 else
                                 {
-                                    var index = 0;
-                                    foreach (var p in Model.PendingProducts.Items)
+                                    int idx = (pendingProducts.PageNumber - 1) * pendingProducts.PageSize;
+                                    foreach (var p in pendingProducts.Items)
                                     {
-                                        index++;
-                                        <tr id="product-row-@p.ProductID">
-                                            <td>@index</td>
-                                            <td>@p.ProductID</td>
+                                        idx++;
+                                        <tr>
+                                            <td class="fw-bold">@idx</td>
                                             <td>
-                                                <img src="@(string.IsNullOrWhiteSpace(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
-                                                     width="55"
-                                                     height="55"
-                                                     class="rounded"
-                                                     style="object-fit:cover"
-                                                     alt="Product image"
-                                                     onerror="this.src='/images/no-image.png'" />
+                                                <img src="@(string.IsNullOrEmpty(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
+                                                     style="width:55px;height:55px;object-fit:cover" class="rounded" />
                                             </td>
                                             <td>@p.ProductName</td>
                                             <td>@p.CategoryName</td>
-                                            <td>@p.Price.ToString("C0", viCulture)</td>
+                                            <td class="text-danger fw-bold">@p.Price.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</td>
                                             <td>@p.StockQuantity</td>
-                                            <td>@p.Status</td>
                                             <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('@p.ProductID')">Duyệt</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('@p.ProductID')">Từ chối</button>
+                                                <div class="btn-group">
+
+                                                    <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@p.ProductID">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+
+                                                    <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveProduct" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@p.ProductID" />
+                                                        <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectProduct" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@p.ProductID" />
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Reject">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
@@ -111,97 +116,106 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="categories" role="tabpanel">
+                <!-- CATEGORIES TAB -->
+                <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table table-striped align-middle">
                             <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Mã DM</th>
-                                    <th>Tên</th>
-                                    <th>Mô tả</th>
-                                    <th>Trạng thái</th>
-                                    <th class="text-end">Thao tác</th>
+                                    <th style="width:90px;">ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th style="width:140px;">Status</th>
+                                    <th style="width:180px;" class="text-end">Actions</th>
                                 </tr>
-                            }
-                            else
-                            {
-                                var index = 0;
-                                foreach (var c in Model.PendingCategories)
+                            </thead>
+                            <tbody>
+                                @if (!pendingCategories.Any())
                                 {
-                                    <tr id="category-empty-row">
-                                        <td colspan="6" class="text-center text-muted">Không có danh mục chờ duyệt</td>
-                                    </tr>
+                                    <tr><td colspan="5" class="text-center text-muted py-4">No pending categories</td></tr>
                                 }
                                 else
                                 {
-                                    var index = 0;
-                                    foreach (var c in Model.PendingCategories)
+                                    foreach (var c in pendingCategories)
                                     {
-                                        index++;
-                                        <tr id="category-row-@c.CategoryID">
-                                            <td>@index</td>
+                                        <tr>
                                             <td>@c.CategoryID</td>
-                                            <td>@c.CategoryName</td>
-                                            <td>@c.Description</td>
-                                            <td>@c.Status</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(@c.CategoryID)">Duyệt</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(@c.CategoryID)">Từ chối</button>
+                                            <td class="fw-semibold">@c.CategoryName</td>
+                                            <td class="text-truncate" style="max-width:420px;">@c.Description</td>
+                                            <td>
+                                                <span class="badge @(string.Equals(c.Status, "Active", System.StringComparison.OrdinalIgnoreCase) ? "bg-success" :
+                                                                                                                          string.Equals(c.Status, "Deleted", System.StringComparison.OrdinalIgnoreCase) ? "bg-danger" : "bg-secondary")">
+                                            @c.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveCategory" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@c.CategoryID" />
+                                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i></button>
+                                        </form>
+
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectCategory" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@c.CategoryID" />
+                                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                                                </form>
+
                                             </td>
                                         </tr>
-                                    }
+                                                                }
                                 }
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="vouchers" role="tabpanel">
+                <!-- VOUCHERS TAB -->
+                <div class="tab-pane fade" id="vouchers" role="tabpanel" aria-labelledby="vouchers-tab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
-                                    <th>#</th>
-                                    <th>Mã VC</th>
-                                    <th>Tên</th>
-                                    <th>Mã</th>
-                                    <th>Giảm</th>
-                                    <th>Tối đa</th>
-                                    <th>SL</th>
-                                    <th>Hết hạn</th>
-                                    <th>Kích hoạt</th>
-                                    <th class="text-end">Thao tác</th>
+                                    <th>ID</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Expiry</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
-                            }
-                            else
-                            {
-                                var index = 0;
-                                foreach (var v in Model.PendingVouchers)
+                            </thead>
+                            <tbody>
+                                @if (!pendingVouchers.Any())
                                 {
-                                    <tr id="voucher-empty-row">
-                                        <td colspan="10" class="text-center text-muted">Không có voucher chờ duyệt</td>
-                                    </tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending vouchers</td></tr>
                                 }
                                 else
                                 {
-                                    var index = 0;
-                                    foreach (var v in Model.PendingVouchers)
+                                    foreach (var v in pendingVouchers)
                                     {
-                                        index++;
-                                        <tr id="voucher-row-@v.VoucherId">
-                                            <td>@index</td>
+                                        <tr>
                                             <td>@v.VoucherId</td>
-                                            <td>@v.VoucherName</td>
                                             <td>@v.Code</td>
-                                            <td>@(v.DiscountPercentage.HasValue? v.DiscountPercentage.Value.ToString("0.##") + "%" : "-")</td>
-                                            <td>@(v.MaxReducing.HasValue? v.MaxReducing.Value.ToString("C0", viCulture) : "-")</td>
+                                            <td>@v.VoucherName</td>
+                                            <td>@(v.ExpiryDate?.ToString("dd/MM/yyyy") ?? "-")</td>
                                             <td>@v.Quantity</td>
-                                            <td>@(v.ExpiryDate.HasValue? v.ExpiryDate.Value.ToString("yyyy-MM-dd") : "-")</td>
-                                            <td>@(v?.IsActive == true ? "Có" : "Không")</td>
+                                            <td>
+                                                <span class="badge @(v.IsActive == true ? "bg-success" : "bg-secondary")">
+                                                    @(v.IsActive == true ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
                                             <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(@v.VoucherId)">Duyệt</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(@v.VoucherId)">Từ chối</button>
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="ApproveVoucher" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@v.VoucherId" />
+                                                    <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i></button>
+                                                </form>
+                                                <form asp-area="Admin" asp-controller="Approvals" asp-action="RejectVoucher" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@v.VoucherId" />
+                                                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
                                     }
@@ -216,368 +230,18 @@
     </div>
 </section>
 
-<!-- Toast -->
-<div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="liveToast" class="toast text-bg-primary border-0">
-        <div class="d-flex">
-            <div class="toast-body" id="toastMessage">Thông báo</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    </div>
-</div>
-
-<form id="antiForgeryForm" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
-
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
-
     <script>
-        const pendingConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/pending-approval-hub")
-            .withAutomaticReconnect()
-            .build();
-
-        function getAntiForgeryToken() {
-            const tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
-            return tokenInput ? tokenInput.value : '';
-        }
-
-        function escapeHtml(value) {
-            if (value === null || value === undefined) return '';
-            return String(value)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#39;');
-        }
-
-        function formatMoney(value) {
-            if (value === null || value === undefined || value === '') return '-';
-            const number = Number(value);
-            if (Number.isNaN(number)) return escapeHtml(value);
-            return number.toLocaleString('vi-VN') + ' ₫';
-        }
-
-        function formatPercent(value) {
-            if (value === null || value === undefined || value === '') return '-';
-            return `${value}%`;
-        }
-
-        function formatDate(value) {
-            if (!value) return '-';
-            const date = new Date(value);
-            if (isNaN(date.getTime())) return escapeHtml(value);
-            return date.toISOString().slice(0, 10);
-        }
-
-        function updateCount(elementId, delta) {
-            const el = document.getElementById(elementId);
-            if (!el) return;
-
-            const current = parseInt(el.textContent || '0', 10);
-            el.textContent = Math.max(0, current + delta);
-        }
-
-        function removeRow(rowId, countElementId) {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-
-            row.remove();
-            updateCount(countElementId, -1);
-        }
-
-        function showToast(message, isSuccess = true) {
-            const toastEl = document.getElementById('liveToast');
-            const toastMsg = document.getElementById('toastMessage');
-
-            if (!toastEl || !toastMsg || typeof bootstrap === 'undefined') {
-                console.log((isSuccess ? 'SUCCESS: ' : 'ERROR: ') + message);
-                return;
-            }
-
-            toastMsg.textContent = message;
-            toastEl.classList.remove('text-bg-primary', 'text-bg-success', 'text-bg-danger');
-            toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
-
-            const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
-            toast.show();
-        }
-
-        function renderProductRow(product, rowNumber = 'New') {
-            const productId = product.productId ?? product.ProductID ?? '';
-            const productName = product.productName ?? product.ProductName ?? '';
-            const categoryName = product.categoryName ?? product.CategoryName ?? '';
-            const price = product.price ?? product.Price ?? 0;
-            const stockQuantity = product.stockQuantity ?? product.StockQuantity ?? 0;
-            const status = product.status ?? product.Status ?? 'Pending';
-            const mainImage = product.mainImage ?? product.MainImage ?? '';
-
-            return `
-                <tr id="product-row-${escapeHtml(productId)}">
-                    <td>${rowNumber}</td>
-                    <td>${escapeHtml(productId)}</td>
-                    <td>
-                        ${mainImage
-                            ? `<img src="${escapeHtml(mainImage)}" alt="${escapeHtml(productName)}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" onerror="this.src='/images/no-image.png'" />`
-                            : `<img src="/images/no-image.png" alt="No image" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />`
-                        }
-                    </td>
-                    <td>${escapeHtml(productName)}</td>
-                    <td>${escapeHtml(categoryName)}</td>
-                    <td>${formatMoney(price)}</td>
-                    <td>${escapeHtml(stockQuantity)}</td>
-                    <td>${escapeHtml(status)}</td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('${escapeHtml(productId)}')">Duyệt</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('${escapeHtml(productId)}')">Từ chối</button>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function renderCategoryRow(category, rowNumber = 'New') {
-            const categoryId = category.categoryId ?? category.CategoryID ?? '';
-            const categoryName = category.categoryName ?? category.CategoryName ?? '';
-            const description = category.description ?? category.Description ?? '';
-            const status = category.status ?? category.Status ?? 'Pending';
-
-            return `
-                <tr id="category-row-${escapeHtml(categoryId)}">
-                    <td>${rowNumber}</td>
-                    <td>${escapeHtml(categoryId)}</td>
-                    <td>${escapeHtml(categoryName)}</td>
-                    <td>${escapeHtml(description)}</td>
-                    <td>${escapeHtml(status)}</td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(${categoryId})">Duyệt</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(${categoryId})">Từ chối</button>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function renderVoucherRow(voucher, rowNumber = 'New') {
-            const voucherId = voucher.voucherId ?? voucher.VoucherId ?? '';
-            const voucherName = voucher.voucherName ?? voucher.VoucherName ?? '';
-            const code = voucher.code ?? voucher.Code ?? '';
-            const discountPercentage = voucher.discountPercentage ?? voucher.DiscountPercentage;
-            const maxReducing = voucher.maxReducing ?? voucher.MaxReducing;
-            const quantity = voucher.quantity ?? voucher.Quantity ?? '';
-            const expiryDate = voucher.expiryDate ?? voucher.ExpiryDate;
-            const isActive = voucher.isActive ?? voucher.IsActive ?? false;
-
-            return `
-                <tr id="voucher-row-${escapeHtml(voucherId)}">
-                    <td>${rowNumber}</td>
-                    <td>${escapeHtml(voucherId)}</td>
-                    <td>${escapeHtml(voucherName)}</td>
-                    <td>${escapeHtml(code)}</td>
-                    <td>${formatPercent(discountPercentage)}</td>
-                    <td>${formatMoney(maxReducing)}</td>
-                    <td>${escapeHtml(quantity)}</td>
-                    <td>${formatDate(expiryDate)}</td>
-                    <td>${isActive ? 'Có' : 'Không'}</td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(${voucherId})">Duyệt</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(${voucherId})">Từ chối</button>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function addPendingProductRow(product) {
-            const tbody = document.getElementById('productPendingBody');
-            if (!tbody) return;
-
-            const productId = product.productId ?? product.ProductID;
-            if (!productId) return;
-            if (document.getElementById(`product-row-${productId}`)) return;
-
-            const emptyRow = document.getElementById('product-empty-row');
-            if (emptyRow) emptyRow.remove();
-
-            tbody.insertAdjacentHTML('afterbegin', renderProductRow(product, 'New'));
-            updateCount('product-count', 1);
-            showToast('Có sản phẩm mới chờ duyệt', true);
-        }
-
-        function addPendingCategoryRow(category) {
-            const tbody = document.getElementById('categoryPendingBody');
-            if (!tbody) return;
-
-            const categoryId = category.categoryId ?? category.CategoryID;
-            if (categoryId === null || categoryId === undefined) return;
-            if (document.getElementById(`category-row-${categoryId}`)) return;
-
-            const emptyRow = document.getElementById('category-empty-row');
-            if (emptyRow) emptyRow.remove();
-
-            tbody.insertAdjacentHTML('afterbegin', renderCategoryRow(category, 'New'));
-            updateCount('category-count', 1);
-            showToast('Có danh mục mới chờ duyệt', true);
-        }
-
-        function addPendingVoucherRow(voucher) {
-            const tbody = document.getElementById('voucherPendingBody');
-            if (!tbody) return;
-
-            const voucherId = voucher.voucherId ?? voucher.VoucherId;
-            if (voucherId === null || voucherId === undefined) return;
-            if (document.getElementById(`voucher-row-${voucherId}`)) return;
-
-            const emptyRow = document.getElementById('voucher-empty-row');
-            if (emptyRow) emptyRow.remove();
-
-            tbody.insertAdjacentHTML('afterbegin', renderVoucherRow(voucher, 'New'));
-            updateCount('voucher-count', 1);
-            showToast('Có voucher mới chờ duyệt', true);
-        }
-
-        async function postApproval(url, payload) {
-            const token = getAntiForgeryToken();
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'RequestVerificationToken': token,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams(payload)
-            });
-
-            const contentType = response.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                throw new Error('Phản hồi máy chủ không hợp lệ');
-            }
-
-            return await response.json();
-        }
-
-        window.approveProduct = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/ApproveProduct', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Duyệt sản phẩm thất bại', false);
-            }
-        };
-
-        window.rejectProduct = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/RejectProduct', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Từ chối sản phẩm thất bại', false);
-            }
-        };
-
-        window.approveCategory = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/ApproveCategory', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Duyệt danh mục thất bại', false);
-            }
-        };
-
-        window.rejectCategory = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/RejectCategory', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Từ chối danh mục thất bại', false);
-            }
-        };
-
-        window.approveVoucher = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/ApproveVoucher', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Duyệt voucher thất bại', false);
-            }
-        };
-
-        window.rejectVoucher = async function (id) {
-            try {
-                const result = await postApproval('/Admin/Approvals/RejectVoucher', { id });
-                showToast(result.message, result.success);
-            } catch (error) {
-                console.error(error);
-                showToast('Từ chối voucher thất bại', false);
-            }
-        };
-
-        pendingConnection.on("PendingProductCreated", function (product) {
-            console.log("PendingProductCreated:", product);
-            addPendingProductRow(product);
-        });
-
-        pendingConnection.on("PendingCategoryCreated", function (category) {
-            console.log("PendingCategoryCreated:", category);
-            addPendingCategoryRow(category);
-        });
-
-        pendingConnection.on("PendingVoucherCreated", function (voucher) {
-            console.log("PendingVoucherCreated:", voucher);
-            addPendingVoucherRow(voucher);
-        });
-
-        pendingConnection.on("ProductApproved", function (data) {
-            console.log("ProductApproved:", data);
-            removeRow(`product-row-${data.productId}`, 'product-count');
-            showToast(`Đã duyệt sản phẩm ${data.productId}`, true);
-        });
-
-        pendingConnection.on("ProductRejected", function (data) {
-            console.log("ProductRejected:", data);
-            removeRow(`product-row-${data.productId}`, 'product-count');
-            showToast(`Đã từ chối sản phẩm ${data.productId}`, false);
-        });
-
-        pendingConnection.on("CategoryApproved", function (data) {
-            console.log("CategoryApproved:", data);
-            removeRow(`category-row-${data.categoryId}`, 'category-count');
-            showToast(`Đã duyệt danh mục ${data.categoryId}`, true);
-        });
-
-        pendingConnection.on("CategoryRejected", function (data) {
-            console.log("CategoryRejected:", data);
-            removeRow(`category-row-${data.categoryId}`, 'category-count');
-            showToast(`Đã từ chối danh mục ${data.categoryId}`, false);
-        });
-
-        pendingConnection.on("VoucherApproved", function (data) {
-            console.log("VoucherApproved:", data);
-            removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
-            showToast(`Đã duyệt voucher ${data.voucherId}`, true);
-        });
-
-        pendingConnection.on("VoucherRejected", function (data) {
-            console.log("VoucherRejected:", data);
-            removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
-            showToast(`Đã từ chối voucher ${data.voucherId}`, false);
-        });
-
-        async function startSignalR() {
-            try {
-                await pendingConnection.start();
-                console.log("Connected to pending-approval-hub");
-            } catch (err) {
-                console.error("SignalR connection error:", err);
-                setTimeout(startSignalR, 3000);
-            }
-        }
-
-        startSignalR();
+        // Ensure Bootstrap tab behavior works when navigating with anchors
+        (function () {
+            var triggerTabList = [].slice.call(document.querySelectorAll('#approvalsTabs button'))
+            triggerTabList.forEach(function (triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl)
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault()
+                    tabTrigger.show()
+                })
+            })
+        })();
     </script>
 }
