@@ -50,7 +50,7 @@
                             }
                         </td>
                         <td class="text-end">
-                            <div class="action-buttons" style="display: @(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "none" : "block");">
+                            <div class="action-buttons" style="display:@(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "none" : "block")">
                                 <a class="btn btn-sm btn-outline-primary"
                                    asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@c.CategoryID">
                                     <i class="bi bi-pencil-square me-1"></i>Sửa
@@ -63,9 +63,9 @@
                                     </button>
                                 }
                             </div>
-                            
+
                             <span class="small status-text @(string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "text-danger" : "text-muted")"
-                                  style="display: @(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "inline" : "none");">
+                                  style="display:@(string.Equals(c.Status, "Pending", StringComparison.OrdinalIgnoreCase) || string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "inline" : "none")">
                                 @(string.Equals(c.Status, "Rejected", StringComparison.OrdinalIgnoreCase) ? "Bị từ chối" : "Chờ duyệt")
                             </span>
                         </td>

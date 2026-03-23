@@ -32,8 +32,7 @@
                         </a>
                     </div>
 
-                    <!-- Search & Filter -->
-                    <form method="get" class="mb-4">
+                    <form method="get" class="mb-4" id="voucherSearchForm">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <input type="text" name="keyword" class="form-control"
@@ -70,7 +69,6 @@
                         </div>
                     </form>
 
-                    <!-- Table -->
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
@@ -100,19 +98,23 @@
                                 {
                                     foreach (var v in Model.Items)
                                     {
-                                        <tr>
+                                        <tr id="voucher-row-@v.VoucherId">
                                             <td><strong>@v.VoucherId</strong></td>
                                             <td>@v.VoucherName</td>
                                             <td><code>@v.Code</code></td>
                                             <td>@(v.DiscountPercentage?.ToString("0.#") ?? "-")%</td>
-                                            <td>@(v.MaxReducing.HasValue ? v.MaxReducing.Value.ToString("N0") : "-")</td>
+                                            <td>@(v.MaxReducing.HasValue? v.MaxReducing.Value.ToString("N0") : "-")</td>
                                             <td>@v.Quantity</td>
                                             <td>@v.ExpiryDate?.ToString("yyyy-MM-dd")</td>
                                             <td>
                                                 @if (v.IsActive == true)
-                                                { <span class="badge bg-success">Active</span> }
+                                                {
+                                                    <span class="badge bg-success status-badge">Active</span>
+                                                }
                                                 else
-                                                { <span class="badge bg-secondary">Inactive</span> }
+                                                {
+                                                    <span class="badge bg-secondary status-badge">Inactive</span>
+                                                }
                                             </td>
                                             <td class="text-end">
                                                 <div class="btn-group">
@@ -138,7 +140,6 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
                     @if (Model.TotalPages > 1)
                     {
                         <nav class="mt-4">
@@ -164,10 +165,87 @@
                                 </li>
                             </ul>
                         </nav>
-                        <p class="text-muted small text-center">Showing @((Model.PageNumber - 1) * Model.PageSize + 1) to @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) of @Model.TotalCount vouchers</p>
+                        <p class="text-muted small text-center">
+                            Showing @((Model.PageNumber - 1) * Model.PageSize + 1) to @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) of @Model.TotalCount vouchers
+                        </p>
                     }
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        const voucherConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/voucher-hub')
+            .withAutomaticReconnect()
+            .build();
+
+        function reloadVoucherPage() {
+            window.location.reload();
+        }
+
+        function updateVoucherRowStatus(voucherId, status) {
+            const row = document.getElementById('voucher-row-' + voucherId);
+            if (!row) {
+                reloadVoucherPage();
+                return;
+            }
+
+            const statusCell = row.cells[7];
+            if (!statusCell) {
+                reloadVoucherPage();
+                return;
+            }
+
+            let badge = statusCell.querySelector('.status-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'badge status-badge';
+                statusCell.innerHTML = '';
+                statusCell.appendChild(badge);
+            }
+
+            if (status === 'Active') {
+                badge.textContent = 'Active';
+                badge.className = 'badge bg-success status-badge';
+            } else {
+                badge.textContent = 'Inactive';
+                badge.className = 'badge bg-secondary status-badge';
+            }
+        }
+
+        voucherConnection.on("VoucherCreated", function (data) {
+            console.log("VoucherCreated:", data);
+            reloadVoucherPage();
+        });
+
+        voucherConnection.on("VoucherUpdated", function (data) {
+            console.log("VoucherUpdated:", data);
+            reloadVoucherPage();
+        });
+
+        voucherConnection.on("VoucherDeleted", function (data) {
+            console.log("VoucherDeleted:", data);
+            reloadVoucherPage();
+        });
+
+        voucherConnection.on("VoucherApprovalStatusChanged", function (data) {
+            console.log("VoucherApprovalStatusChanged:", data);
+
+            if (data.status === "Active") {
+                updateVoucherRowStatus(data.voucherId, "Active");
+            } else {
+                updateVoucherRowStatus(data.voucherId, "Inactive");
+            }
+
+            reloadVoucherPage();
+        });
+
+        voucherConnection.start()
+            .then(() => console.log('Connected to voucher-hub'))
+            .catch(err => console.error('SignalR voucher-hub error:', err));
+    </script>
+}

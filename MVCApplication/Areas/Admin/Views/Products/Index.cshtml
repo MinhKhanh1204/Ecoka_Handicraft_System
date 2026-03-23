@@ -445,26 +445,34 @@
                     }
                 });
 
-                // SignalR logic for Product Approval Status Update
-                if (typeof signalR !== 'undefined') {
-                    const productConnection = new signalR.HubConnectionBuilder()
-                        .withUrl("/product-hub")
-                        .build();
+                const approvalConnection = new signalR.HubConnectionBuilder()
+    .withUrl("/pending-approval-hub")
+    .withAutomaticReconnect()
+    .build();
 
-                    productConnection.on("ProductApprovalStatusChanged", function(data) {
-                        if (typeof showToast === 'function') {
-                            showToast('Product status updated', 'info');
-                        }
-                        // Reload the ajax container to show the latest product status
-                        var listUrl = '@Url.Action("Index", "Products", new { area = "Admin" })';
-                        var currentSearch = window.location.search;
-                        loadAjaxContent(listUrl + currentSearch);
-                    });
+approvalConnection.on("ProductApproved", function (data) {
+    if (typeof showToast === 'function') {
+        showToast('Product approved', 'success');
+    }
 
-                    productConnection.start().catch(function (err) {
-                        console.error("SignalR ProductHub error: " + err.toString());
-                    });
-                }
+    var listUrl = '@Url.Action("Index", "Products", new { area = "Admin" })';
+    var currentSearch = window.location.search;
+    loadAjaxContent(listUrl + currentSearch);
+});
+
+approvalConnection.on("ProductRejected", function (data) { 
+    if (typeof showToast === 'function') {
+        showToast('Product rejected', 'warning');
+    }
+
+    var listUrl = '@Url.Action("Index", "Products", new { area = "Admin" })';
+    var currentSearch = window.location.search;
+    loadAjaxContent(listUrl + currentSearch);
+});
+
+approvalConnection.start().catch(function (err) {
+    console.error("SignalR PendingApprovalHub error: " + err.toString());
+});
             });
         </script>
     }

@@ -1,14 +1,10 @@
-@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
+﻿@model MVCApplication.Areas.Admin.DTOs.ApprovalDto
 @using System.Globalization
 
 @{
     ViewData["Title"] = "Approvals";
     var viCulture = new CultureInfo("vi-VN");
 }
-
-<form id="antiForgeryForm" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
 
 <div class="pagetitle">
     <h1>Approvals</h1>
@@ -26,7 +22,7 @@
                             data-bs-target="#products"
                             type="button"
                             role="tab">
-                        Products (<span id="product-count">@Model.PendingProducts.TotalCount</span>)
+                        Products (<span id="product-count">@Model.PendingProducts.Items.Count</span>)
                     </button>
                 </li>
 
@@ -55,7 +51,6 @@
 
             <div class="tab-content">
 
-                <!-- PRODUCTS -->
                 <div class="tab-pane fade show active" id="products" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -114,7 +109,6 @@
                     </div>
                 </div>
 
-                <!-- CATEGORIES -->
                 <div class="tab-pane fade" id="categories" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -159,7 +153,6 @@
                     </div>
                 </div>
 
-                <!-- VOUCHERS -->
                 <div class="tab-pane fade" id="vouchers" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -218,7 +211,7 @@
 </section>
 
 <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert">
+    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body" id="toastMessage">Notification</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -226,130 +219,22 @@
     </div>
 </div>
 
+<form id="antiForgeryForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 
     <script>
-        const urls = {
-            approveProduct: '@Url.Action("ApproveProduct", "Approvals", new { area = "Admin" })',
-            rejectProduct: '@Url.Action("RejectProduct", "Approvals", new { area = "Admin" })',
-            approveCategory: '@Url.Action("ApproveCategory", "Approvals", new { area = "Admin" })',
-            rejectCategory: '@Url.Action("RejectCategory", "Approvals", new { area = "Admin" })',
-            approveVoucher: '@Url.Action("ApproveVoucher", "Approvals", new { area = "Admin" })',
-            rejectVoucher: '@Url.Action("RejectVoucher", "Approvals", new { area = "Admin" })'
-        };
+        const pendingConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/pending-approval-hub")
+            .withAutomaticReconnect()
+            .build();
 
         function getAntiForgeryToken() {
-            return document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]')?.value || '';
-        }
-
-        function showToast(message, isSuccess = true) {
-            const toastEl = document.getElementById('liveToast');
-            const msgEl = document.getElementById('toastMessage');
-
-            msgEl.innerText = message;
-            toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-primary');
-            toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
-
-            const toast = new bootstrap.Toast(toastEl);
-            toast.show();
-        }
-
-        function updateCount(id, delta) {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            const current = parseInt(el.innerText || '0', 10);
-            el.innerText = Math.max(0, current + delta);
-        }
-
-        function ensureEmptyRow(tbodyId, emptyRowId, colspan, text) {
-            const tbody = document.getElementById(tbodyId);
-            if (!tbody) return;
-
-            const realRows = Array.from(tbody.querySelectorAll('tr')).filter(x => x.id !== emptyRowId);
-            if (realRows.length === 0 && !document.getElementById(emptyRowId)) {
-                const row = document.createElement('tr');
-                row.id = emptyRowId;
-                row.innerHTML = `<td colspan="${colspan}" class="text-center text-muted">${text}</td>`;
-                tbody.appendChild(row);
-            }
-        }
-
-        function removeRow(rowId, countId) {
-            const row = document.getElementById(rowId);
-            if (row) {
-                row.remove();
-                updateCount(countId, -1);
-            }
-
-            ensureEmptyRow('productPendingBody', 'product-empty-row', 9, 'No pending products');
-            ensureEmptyRow('categoryPendingBody', 'category-empty-row', 6, 'No pending categories');
-            ensureEmptyRow('voucherPendingBody', 'voucher-empty-row', 10, 'No pending vouchers');
-        }
-
-        async function postAction(url, id, rowId, countId) {
-            try {
-                const token = getAntiForgeryToken();
-                const formData = new FormData();
-                formData.append('id', id);
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'RequestVerificationToken': token },
-                    body: formData
-                });
-
-                const rawText = await response.text();
-                let result = null;
-
-                try {
-                    result = JSON.parse(rawText);
-                } catch {
-                    console.error('Non-JSON response:', rawText);
-                    showToast('Server returned invalid response', false);
-                    return;
-                }
-
-                if (!response.ok) {
-                    showToast(result.message || 'Request failed', false);
-                    return;
-                }
-
-                if (result.success) {
-                    removeRow(rowId, countId);
-                    showToast(result.message || 'Success', true);
-                } else {
-                    showToast(result.message || 'Failed', false);
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Request failed', false);
-            }
-        }
-
-        function approveProduct(id) {
-            postAction(urls.approveProduct, id, `product-row-${id}`, 'product-count');
-        }
-
-        function rejectProduct(id) {
-            postAction(urls.rejectProduct, id, `product-row-${id}`, 'product-count');
-        }
-
-        function approveCategory(id) {
-            postAction(urls.approveCategory, id, `category-row-${id}`, 'category-count');
-        }
-
-        function rejectCategory(id) {
-            postAction(urls.rejectCategory, id, `category-row-${id}`, 'category-count');
-        }
-
-        function approveVoucher(id) {
-            postAction(urls.approveVoucher, id, `voucher-row-${id}`, 'voucher-count');
-        }
-
-        function rejectVoucher(id) {
-            postAction(urls.rejectVoucher, id, `voucher-row-${id}`, 'voucher-count');
+            const tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
+            return tokenInput ? tokenInput.value : '';
         }
 
         function escapeHtml(value) {
@@ -362,76 +247,135 @@
                 .replaceAll("'", '&#39;');
         }
 
-        function formatCurrency(value) {
-            if (value === null || value === undefined || value === '') return '';
+        function formatMoney(value) {
+            if (value === null || value === undefined || value === '') return '-';
             const number = Number(value);
             if (Number.isNaN(number)) return escapeHtml(value);
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-                maximumFractionDigits: 0
-            }).format(number);
+            return number.toLocaleString('vi-VN') + ' ₫';
+        }
+
+        function formatPercent(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            return `${value}%`;
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return escapeHtml(value);
+            return date.toISOString().slice(0, 10);
+        }
+
+        function updateCount(elementId, delta) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            const current = parseInt(el.textContent || '0', 10);
+            el.textContent = Math.max(0, current + delta);
+        }
+
+        function removeRow(rowId, countElementId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            row.remove();
+            updateCount(countElementId, -1);
+        }
+
+        function showToast(message, isSuccess = true) {
+            const toastEl = document.getElementById('liveToast');
+            const toastMsg = document.getElementById('toastMessage');
+
+            if (!toastEl || !toastMsg || typeof bootstrap === 'undefined') {
+                console.log((isSuccess ? 'SUCCESS: ' : 'ERROR: ') + message);
+                return;
+            }
+
+            toastMsg.textContent = message;
+            toastEl.classList.remove('text-bg-primary', 'text-bg-success', 'text-bg-danger');
+            toastEl.classList.add(isSuccess ? 'text-bg-success' : 'text-bg-danger');
+
+            const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+            toast.show();
         }
 
         function renderProductRow(product, rowNumber = 'New') {
-            const pid = product.productID || product.ProductID || '';
-            const img = product.mainImage || product.MainImage || '/images/no-image.png';
-            const productName = product.productName || product.ProductName || '';
-            const categoryName = product.categoryName || product.CategoryName || '';
-            const price = product.price ?? product.Price ?? '';
-            const stock = product.stockQuantity ?? product.StockQuantity ?? '';
-            const status = product.status || product.Status || 'Pending';
+            const productId = product.productId ?? product.ProductID ?? '';
+            const productName = product.productName ?? product.ProductName ?? '';
+            const categoryName = product.categoryName ?? product.CategoryName ?? '';
+            const price = product.price ?? product.Price ?? 0;
+            const stockQuantity = product.stockQuantity ?? product.StockQuantity ?? 0;
+            const status = product.status ?? product.Status ?? 'Pending';
+            const mainImage = product.mainImage ?? product.MainImage ?? '';
 
             return `
-                <tr id="product-row-${escapeHtml(pid)}">
+                <tr id="product-row-${escapeHtml(productId)}">
                     <td>${rowNumber}</td>
-                    <td>${escapeHtml(pid)}</td>
+                    <td>${escapeHtml(productId)}</td>
                     <td>
-                        <img src="${escapeHtml(img)}"
-                             width="55"
-                             height="55"
-                             style="object-fit:cover"
-                             class="rounded"
-                             alt="Product image"
-                             onerror="this.src='/images/no-image.png'" />
+                        ${mainImage
+                            ? `<img src="${escapeHtml(mainImage)}" alt="${escapeHtml(productName)}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" onerror="this.src='/images/no-image.png'" />`
+                            : `<img src="/images/no-image.png" alt="No image" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />`
+                        }
                     </td>
                     <td>${escapeHtml(productName)}</td>
                     <td>${escapeHtml(categoryName)}</td>
-                    <td>${formatCurrency(price)}</td>
-                    <td>${escapeHtml(stock)}</td>
+                    <td>${formatMoney(price)}</td>
+                    <td>${escapeHtml(stockQuantity)}</td>
                     <td>${escapeHtml(status)}</td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('${escapeHtml(pid)}')">Approve</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('${escapeHtml(pid)}')">Reject</button>
+                        <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('${escapeHtml(productId)}')">Approve</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('${escapeHtml(productId)}')">Reject</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderCategoryRow(category, rowNumber = 'New') {
+            const categoryId = category.categoryId ?? category.CategoryID ?? '';
+            const categoryName = category.categoryName ?? category.CategoryName ?? '';
+            const description = category.description ?? category.Description ?? '';
+            const status = category.status ?? category.Status ?? 'Pending';
+
+            return `
+                <tr id="category-row-${escapeHtml(categoryId)}">
+                    <td>${rowNumber}</td>
+                    <td>${escapeHtml(categoryId)}</td>
+                    <td>${escapeHtml(categoryName)}</td>
+                    <td>${escapeHtml(description)}</td>
+                    <td>${escapeHtml(status)}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(${categoryId})">Approve</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(${categoryId})">Reject</button>
                     </td>
                 </tr>
             `;
         }
 
         function renderVoucherRow(voucher, rowNumber = 'New') {
-            const id = voucher.voucherId ?? voucher.VoucherId ?? '';
-            const voucherName = voucher.voucherName || voucher.VoucherName || '';
-            const code = voucher.code || voucher.Code || '';
-            const discount = voucher.discountPercentage ?? voucher.DiscountPercentage;
+            const voucherId = voucher.voucherId ?? voucher.VoucherId ?? '';
+            const voucherName = voucher.voucherName ?? voucher.VoucherName ?? '';
+            const code = voucher.code ?? voucher.Code ?? '';
+            const discountPercentage = voucher.discountPercentage ?? voucher.DiscountPercentage;
             const maxReducing = voucher.maxReducing ?? voucher.MaxReducing;
-            const quantity = voucher.quantity ?? voucher.Quantity ?? '-';
-            const expiry = voucher.expiryDate ?? voucher.ExpiryDate ?? '-';
-            const isActive = voucher.isActive ?? voucher.IsActive;
+            const quantity = voucher.quantity ?? voucher.Quantity ?? '';
+            const expiryDate = voucher.expiryDate ?? voucher.ExpiryDate;
+            const isActive = voucher.isActive ?? voucher.IsActive ?? false;
 
             return `
-                <tr id="voucher-row-${escapeHtml(id)}">
+                <tr id="voucher-row-${escapeHtml(voucherId)}">
                     <td>${rowNumber}</td>
-                    <td>${escapeHtml(id)}</td>
+                    <td>${escapeHtml(voucherId)}</td>
                     <td>${escapeHtml(voucherName)}</td>
                     <td>${escapeHtml(code)}</td>
-                    <td>${discount !== null && discount !== undefined ? escapeHtml(discount + '%') : '-'}</td>
-                    <td>${maxReducing !== null && maxReducing !== undefined ? formatCurrency(maxReducing) : '-'}</td>
+                    <td>${formatPercent(discountPercentage)}</td>
+                    <td>${formatMoney(maxReducing)}</td>
                     <td>${escapeHtml(quantity)}</td>
-                    <td>${escapeHtml(expiry)}</td>
+                    <td>${formatDate(expiryDate)}</td>
                     <td>${isActive ? 'Yes' : 'No'}</td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(${id})">Approve</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(${id})">Reject</button>
+                        <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(${voucherId})">Approve</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(${voucherId})">Reject</button>
                     </td>
                 </tr>
             `;
@@ -439,71 +383,194 @@
 
         function addPendingProductRow(product) {
             const tbody = document.getElementById('productPendingBody');
-            const emptyRow = document.getElementById('product-empty-row');
             if (!tbody) return;
 
-            const pid = product.productID || product.ProductID;
-            if (!pid) return;
-            if (document.getElementById(`product-row-${pid}`)) return;
+            const productId = product.productId ?? product.ProductID;
+            if (!productId) return;
+            if (document.getElementById(`product-row-${productId}`)) return;
 
+            const emptyRow = document.getElementById('product-empty-row');
             if (emptyRow) emptyRow.remove();
+
             tbody.insertAdjacentHTML('afterbegin', renderProductRow(product, 'New'));
             updateCount('product-count', 1);
             showToast('New pending product', true);
         }
 
-        function addPendingVoucherRow(voucher) {
-            const tbody = document.getElementById('voucherPendingBody');
-            const emptyRow = document.getElementById('voucher-empty-row');
+        function addPendingCategoryRow(category) {
+            const tbody = document.getElementById('categoryPendingBody');
             if (!tbody) return;
 
-            const id = voucher.voucherId ?? voucher.VoucherId;
-            if (id === null || id === undefined) return;
-            if (document.getElementById(`voucher-row-${id}`)) return;
+            const categoryId = category.categoryId ?? category.CategoryID;
+            if (categoryId === null || categoryId === undefined) return;
+            if (document.getElementById(`category-row-${categoryId}`)) return;
 
+            const emptyRow = document.getElementById('category-empty-row');
             if (emptyRow) emptyRow.remove();
+
+            tbody.insertAdjacentHTML('afterbegin', renderCategoryRow(category, 'New'));
+            updateCount('category-count', 1);
+            showToast('New pending category', true);
+        }
+
+        function addPendingVoucherRow(voucher) {
+            const tbody = document.getElementById('voucherPendingBody');
+            if (!tbody) return;
+
+            const voucherId = voucher.voucherId ?? voucher.VoucherId;
+            if (voucherId === null || voucherId === undefined) return;
+            if (document.getElementById(`voucher-row-${voucherId}`)) return;
+
+            const emptyRow = document.getElementById('voucher-empty-row');
+            if (emptyRow) emptyRow.remove();
+
             tbody.insertAdjacentHTML('afterbegin', renderVoucherRow(voucher, 'New'));
             updateCount('voucher-count', 1);
             showToast('New pending voucher', true);
         }
 
-        const pendingConnection = new signalR.HubConnectionBuilder()
-            .withUrl('/pending-approval-hub')
-            .withAutomaticReconnect()
-            .build();
+        async function postApproval(url, payload) {
+            const token = getAntiForgeryToken();
 
-        pendingConnection.on('PendingProductCreated', function (product) {
-            console.log('PendingProductCreated:', product);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'RequestVerificationToken': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams(payload)
+            });
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                throw new Error('Invalid server response');
+            }
+
+            return await response.json();
+        }
+
+        window.approveProduct = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/ApproveProduct', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Approve product failed', false);
+            }
+        };
+
+        window.rejectProduct = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/RejectProduct', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Reject product failed', false);
+            }
+        };
+
+        window.approveCategory = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/ApproveCategory', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Approve category failed', false);
+            }
+        };
+
+        window.rejectCategory = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/RejectCategory', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Reject category failed', false);
+            }
+        };
+
+        window.approveVoucher = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/ApproveVoucher', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Approve voucher failed', false);
+            }
+        };
+
+        window.rejectVoucher = async function (id) {
+            try {
+                const result = await postApproval('/Admin/Approvals/RejectVoucher', { id });
+                showToast(result.message, result.success);
+            } catch (error) {
+                console.error(error);
+                showToast('Reject voucher failed', false);
+            }
+        };
+
+        pendingConnection.on("PendingProductCreated", function (product) {
+            console.log("PendingProductCreated:", product);
             addPendingProductRow(product);
         });
 
-        pendingConnection.on('PendingVoucherCreated', function (voucher) {
-            console.log('PendingVoucherCreated:', voucher);
+        pendingConnection.on("PendingCategoryCreated", function (category) {
+            console.log("PendingCategoryCreated:", category);
+            addPendingCategoryRow(category);
+        });
+
+        pendingConnection.on("PendingVoucherCreated", function (voucher) {
+            console.log("PendingVoucherCreated:", voucher);
             addPendingVoucherRow(voucher);
         });
 
-        pendingConnection.on('ProductApproved', function (data) {
+        pendingConnection.on("ProductApproved", function (data) {
+            console.log("ProductApproved:", data);
             removeRow(`product-row-${data.productId}`, 'product-count');
-            showToast(`Product ${data.productId} has been approved by another admin`, true);
+            showToast(`Product ${data.productId} approved`, true);
         });
 
-        pendingConnection.on('ProductRejected', function (data) {
+        pendingConnection.on("ProductRejected", function (data) {
+            console.log("ProductRejected:", data);
             removeRow(`product-row-${data.productId}`, 'product-count');
-            showToast(`Product ${data.productId} has been rejected by another admin`, false);
+            showToast(`Product ${data.productId} rejected`, false);
         });
 
-        pendingConnection.on('VoucherApproved', function (data) {
+        pendingConnection.on("CategoryApproved", function (data) {
+            console.log("CategoryApproved:", data);
+            removeRow(`category-row-${data.categoryId}`, 'category-count');
+            showToast(`Category ${data.categoryId} approved`, true);
+        });
+
+        pendingConnection.on("CategoryRejected", function (data) {
+            console.log("CategoryRejected:", data);
+            removeRow(`category-row-${data.categoryId}`, 'category-count');
+            showToast(`Category ${data.categoryId} rejected`, false);
+        });
+
+        pendingConnection.on("VoucherApproved", function (data) {
+            console.log("VoucherApproved:", data);
             removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
-            showToast(`Voucher ${data.voucherId} has been approved by another admin`, true);
+            showToast(`Voucher ${data.voucherId} approved`, true);
         });
 
-        pendingConnection.on('VoucherRejected', function (data) {
+        pendingConnection.on("VoucherRejected", function (data) {
+            console.log("VoucherRejected:", data);
             removeRow(`voucher-row-${data.voucherId}`, 'voucher-count');
-            showToast(`Voucher ${data.voucherId} has been rejected by another admin`, false);
+            showToast(`Voucher ${data.voucherId} rejected`, false);
         });
 
-        pendingConnection.start()
-            .then(() => console.log('SignalR connected for PendingApprovalHub'))
-            .catch(err => console.error('SignalR connection error (PendingApprovalHub):', err));
+        async function startSignalR() {
+            try {
+                await pendingConnection.start();
+                console.log("Connected to pending-approval-hub");
+            } catch (err) {
+                console.error("SignalR connection error:", err);
+                setTimeout(startSignalR, 3000);
+            }
+        }
+
+        startSignalR();
     </script>
 }
