@@ -12,12 +12,18 @@ namespace MVCApplication.Areas.Admin.Controllers
     {
         private readonly IProductAdminService _productService;
         private readonly ICategoryService _categoryService;
-        private readonly IHubContext<PendingApprovalHub> _hubContext;
-        public ProductsController(IProductAdminService productService, ICategoryService categoryService, IHubContext<PendingApprovalHub> hubContext)
+        private readonly IHubContext<PendingApprovalHub> _pendingHub;
+        private readonly IHubContext<ProductHub> _productHub;
+        public ProductsController(
+            IProductAdminService productService,
+            ICategoryService categoryService,
+            IHubContext<PendingApprovalHub> pendingHub,
+            IHubContext<ProductHub> productHub)
         {
             _productService = productService;
             _categoryService = categoryService;
-            _hubContext = hubContext;
+            _pendingHub = pendingHub;
+            _productHub = productHub;
         }
 
         [HttpGet]
@@ -29,7 +35,8 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             var pagedResult = await _productService.GetPagedAsync(keyword, status, pageNumber, pageSize);
 
-            return View(pagedResult);
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            return isAjax ? PartialView("Index", pagedResult) : View(pagedResult);
         }
 
         [HttpGet]
@@ -38,7 +45,8 @@ namespace MVCApplication.Areas.Admin.Controllers
             var product = await _productService.GetByIdAsync(id);
             if (product == null) return NotFound();
 
-            return View(product);
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            return isAjax ? PartialView("Details", product) : View(product);
         }
 
         [HttpGet]
@@ -46,18 +54,20 @@ namespace MVCApplication.Areas.Admin.Controllers
         {
             var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
             ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName");
-            return View(new CreateProductDto());
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            return isAjax ? PartialView("Create", new CreateProductDto()) : View(new CreateProductDto());
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateProductDto dto)
         {
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var categories = (await _categoryService.GetAllAsync()).Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
 
             if (!ModelState.IsValid)
             {
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
-                return View(dto);
+                return isAjax ? PartialView("Create", dto) : View(dto);
             }
 
             var ok = await _productService.CreateAsync(dto);
@@ -65,9 +75,14 @@ namespace MVCApplication.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Failed to create product.");
                 ViewBag.Categories = new SelectList(categories, "CategoryID", "CategoryName", dto.CategoryID);
-                return View(dto);
+                return isAjax ? PartialView("Create", dto) : View(dto);
             }
-            await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
+            await _pendingHub.Clients.All.SendAsync("PendingProductCreated", dto);
+            if (isAjax)
+            {
+                return Json(new { success = true, message = "Product created successfully" });
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -111,14 +126,14 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             ViewBag.ProductID = id;
             ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
-            if (dto.Status == "Pending")
-                await _hubContext.Clients.All.SendAsync("PendingProductCreated", dto);
-            return View(dto);
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            return isAjax ? PartialView("Edit", dto) : View(dto);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(string id, UpdateProductDto dto)
         {
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             var allCategories = await _categoryService.GetAllAsync();
             var activeCategories = allCategories.Where(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -133,7 +148,11 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
-                return View(dto);
+                await _productHub.Clients.All.SendAsync("ProductUpdated", new
+                {
+                    productId = id
+                });
+                return isAjax ? PartialView("Edit", dto) : View(dto);
             }
 
             try
@@ -150,7 +169,7 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                     ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                     ViewBag.ProductID = id;
-                    return View(dto);
+                    return isAjax ? PartialView("Edit", dto) : View(dto);
                 }
             }
             catch (Exception ex)
@@ -166,7 +185,12 @@ namespace MVCApplication.Areas.Admin.Controllers
 
                 ViewBag.Categories = new SelectList(activeCategories, "CategoryID", "CategoryName", dto.CategoryID);
                 ViewBag.ProductID = id;
-                return View(dto);
+                return isAjax ? PartialView("Edit", dto) : View(dto);
+            }
+
+            if (isAjax)
+            {
+                return Json(new { success = true, message = "Product updated successfully" });
             }
 
             return RedirectToAction(nameof(Index));
@@ -175,7 +199,12 @@ namespace MVCApplication.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
+            var isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
             await _productService.DeleteAsync(id);
+            if (isAjax)
+            {
+                return Json(new { success = true, message = "Product deleted successfully" });
+            }
             return RedirectToAction(nameof(Index));
         }
     }

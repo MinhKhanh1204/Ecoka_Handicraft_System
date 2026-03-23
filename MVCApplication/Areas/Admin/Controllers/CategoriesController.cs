@@ -10,14 +10,17 @@ namespace MVCApplication.Areas.Admin.Controllers
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _service;
-        private readonly IHubContext<CategoryHub> _hubContext;
+        private readonly IHubContext<PendingApprovalHub> _pendingHub;
+        private readonly IHubContext<CategoryHub> _categoryHub;
 
         public CategoriesController(
             ICategoryService service,
-            IHubContext<CategoryHub> hubContext)
+            IHubContext<PendingApprovalHub> pendingHub,
+            IHubContext<CategoryHub> categoryHub)
         {
             _service = service;
-            _hubContext = hubContext;
+            _pendingHub = pendingHub;
+            _categoryHub = categoryHub;
         }
 
         [HttpGet]
@@ -53,13 +56,11 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return View(dto);
-
-            // nếu cần thì đảm bảo mặc định pending ở đây hoặc trong service
-            // dto.Status = "Pending";
 
             var created = await _service.CreateAsync(dto);
             if (created == null)
@@ -68,7 +69,13 @@ namespace MVCApplication.Areas.Admin.Controllers
                 return View(dto);
             }
 
-            await _hubContext.Clients.All.SendAsync("PendingCategoryCreated", dto);
+            await _pendingHub.Clients.All.SendAsync("PendingCategoryCreated", new
+            {
+                categoryId = created.CategoryID,
+                categoryName = created.CategoryName,
+                description = created.Description,
+                status = created.Status
+            });
 
             return RedirectToAction(nameof(Index));
         }
@@ -87,11 +94,11 @@ namespace MVCApplication.Areas.Admin.Controllers
             };
 
             ViewBag.CategoryId = id;
-
             return View(dto);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CategoryUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -101,19 +108,28 @@ namespace MVCApplication.Areas.Admin.Controllers
             }
 
             var ok = await _service.UpdateAsync(id, dto);
-            if (!ok) return NotFound();
 
+            if (!ok) return NotFound();
+            await _categoryHub.Clients.All.SendAsync("CategoryUpdated", new
+            {
+                categoryId = id
+            });
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.DeleteAsync(id);
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return Json(new { success = result, message = result ? "Xóa thành công" : "Xóa thất bại" });
+                return Json(new
+                {
+                    success = result,
+                    message = result ? "Xóa thành công" : "Xóa thất bại"
+                });
             }
 
             return RedirectToAction(nameof(Index));

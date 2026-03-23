@@ -11,12 +11,17 @@ namespace MVCApplication.Areas.Admin.Controllers
     {
         private readonly IVoucherAdminService _voucherAdminService;
         private const int PageSize = 10;
-        private readonly IHubContext<PendingApprovalHub> _hubContext;
+        private readonly IHubContext<PendingApprovalHub> _pendingHub;
+        private readonly IHubContext<VoucherHub> _voucherHub;
 
-        public VoucherController(IVoucherAdminService voucherAdminService, IHubContext<PendingApprovalHub> hubContext)
+        public VoucherController(
+            IVoucherAdminService voucherAdminService,
+            IHubContext<PendingApprovalHub> pendingHub,
+            IHubContext<VoucherHub> voucherHub)
         {
             _voucherAdminService = voucherAdminService;
-            _hubContext = hubContext;
+            _pendingHub = pendingHub;
+            _voucherHub = voucherHub;
         }
 
         /// <summary>
@@ -66,37 +71,36 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             if (!result.Success)
             {
-                // Show the specific server error message (e.g. "Duplicate voucher code", "Discount > 50%", etc.)
                 ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create voucher. Please try again.");
                 return View(dto);
             }
-            await _hubContext.Clients.All.SendAsync("PendingVoucherCreated", dto);
+
+            // Tìm l?i voucher v?a t?o ?? g?i ?? d? li?u realtime
+            var paged = await _voucherAdminService.GetPagedAsync(dto.VoucherName, null, "id_desc", 1, 10);
+            var createdVoucher = paged.Items.FirstOrDefault(v =>
+                string.Equals(v.VoucherName, dto.VoucherName, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(v.Code, dto.Code, StringComparison.OrdinalIgnoreCase));
+
+            if (createdVoucher != null && createdVoucher.IsActive != true)
+            {
+                await _pendingHub.Clients.All.SendAsync("PendingVoucherCreated", new
+                {
+                    voucherId = createdVoucher.VoucherId,
+                    voucherName = createdVoucher.VoucherName,
+                    code = createdVoucher.Code,
+                    discountPercentage = createdVoucher.DiscountPercentage,
+                    maxReducing = createdVoucher.MaxReducing,
+                    quantity = createdVoucher.Quantity,
+                    expiryDate = createdVoucher.ExpiryDate,
+                    isActive = createdVoucher.IsActive
+                });
+            }
 
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = createdByAdmin
                 ? "Voucher created successfully."
                 : "Voucher created successfully and is pending approval.";
-            return RedirectToAction(nameof(Index));
-        }
 
-        /// <summary>
-        /// Approve voucher - Admin only
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Approve(int id)
-        {
-            var result = await _voucherAdminService.ApproveAsync(id);
-            if (!result.Success)
-            {
-                TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = result.ErrorMessage ?? "Failed to approve voucher.";
-            }
-            else
-            {
-                TempData["ToastType"] = "success";
-                TempData["ToastMessage"] = "Voucher approved successfully.";
-            }
             return RedirectToAction(nameof(Index));
         }
 
@@ -151,6 +155,10 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = "Voucher updated successfully.";
+            await _voucherHub.Clients.All.SendAsync("VoucherUpdated", new
+            {
+                voucherId = id
+            });
             return RedirectToAction(nameof(Index));
         }
 

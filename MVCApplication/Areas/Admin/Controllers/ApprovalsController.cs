@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
 using MVCApplication.Areas.Admin.Services;
+using MVCApplication.Hubs;
 using MVCApplication.Models.DTOs;
 using MVCApplication.Services;
-using Microsoft.AspNetCore.SignalR;
-using MVCApplication.Hubs;
 
 namespace MVCApplication.Areas.Admin.Controllers
 {
@@ -15,26 +15,29 @@ namespace MVCApplication.Areas.Admin.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IVoucherService _voucherService;
         private readonly IVoucherAdminService _voucherAdminService;
-        private readonly IHubContext<PendingApprovalHub> _hubContext;
-        private readonly IHubContext<CategoryHub> _categoryHubContext;
-        private readonly IHubContext<ProductHub> _productHubContext;
+        private readonly IHubContext<PendingApprovalHub> _pendingHub;
+        private readonly IHubContext<ProductHub> _productHub;
+        private readonly IHubContext<CategoryHub> _categoryHub;
+        private readonly IHubContext<VoucherHub> _voucherHub;
 
         public ApprovalsController(
             IProductAdminService productService,
             ICategoryService categoryService,
             IVoucherService voucherService,
             IVoucherAdminService voucherAdminService,
-            IHubContext<PendingApprovalHub> hubContext,
-            IHubContext<CategoryHub> categoryHubContext,
-            IHubContext<ProductHub> productHubContext)
+            IHubContext<PendingApprovalHub> pendingHub,
+            IHubContext<ProductHub> productHub,
+            IHubContext<CategoryHub> categoryHub,
+            IHubContext<VoucherHub> voucherHub)
         {
             _productService = productService;
             _categoryService = categoryService;
             _voucherService = voucherService;
             _voucherAdminService = voucherAdminService;
-            _hubContext = hubContext;
-            _categoryHubContext = categoryHubContext;
-            _productHubContext = productHubContext;
+            _pendingHub = pendingHub;
+            _productHub = productHub;
+            _categoryHub = categoryHub;
+            _voucherHub = voucherHub;
         }
 
         [HttpGet]
@@ -60,20 +63,29 @@ namespace MVCApplication.Areas.Admin.Controllers
             return View(vm);
         }
 
-        // ================= PRODUCT =================
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveProduct(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
+            {
                 return Json(new { success = false, message = "Invalid product id" });
+            }
 
             var ok = await _productService.ApproveAsync(id);
 
             if (ok)
             {
-                await _productHubContext.Clients.All.SendAsync("ProductApprovalStatusChanged", new { productId = id, status = "Active" });
+                await _pendingHub.Clients.All.SendAsync("ProductApproved", new
+                {
+                    productId = id
+                });
+
+                await _productHub.Clients.All.SendAsync("ProductApprovalStatusChanged", new
+                {
+                    productId = id,
+                    status = "Active"
+                });
             }
 
             return Json(new
@@ -89,13 +101,24 @@ namespace MVCApplication.Areas.Admin.Controllers
         public async Task<IActionResult> RejectProduct(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
+            {
                 return Json(new { success = false, message = "Invalid product id" });
+            }
 
             var ok = await _productService.RejectAsync(id);
 
             if (ok)
             {
-                await _productHubContext.Clients.All.SendAsync("ProductApprovalStatusChanged", new { productId = id, status = "Rejected" });
+                await _pendingHub.Clients.All.SendAsync("ProductRejected", new
+                {
+                    productId = id
+                });
+
+                await _productHub.Clients.All.SendAsync("ProductApprovalStatusChanged", new
+                {
+                    productId = id,
+                    status = "Rejected"
+                });
             }
 
             return Json(new
@@ -106,18 +129,24 @@ namespace MVCApplication.Areas.Admin.Controllers
             });
         }
 
-        // ================= CATEGORY =================
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveCategory(int id)
         {
-            // Use the dedicated ApproveAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.ApproveAsync(id);
 
             if (ok)
             {
-                await _categoryHubContext.Clients.All.SendAsync("CategoryApprovalStatusChanged", new { categoryId = id, status = "Active" });
+                await _pendingHub.Clients.All.SendAsync("CategoryApproved", new
+                {
+                    categoryId = id
+                });
+
+                await _categoryHub.Clients.All.SendAsync("CategoryApprovalStatusChanged", new
+                {
+                    categoryId = id,
+                    status = "Active"
+                });
             }
 
             return Json(new
@@ -132,12 +161,20 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectCategory(int id)
         {
-            // Use the dedicated RejectAsync so we don't send a partial CategoryUpdateDto
             var ok = await _categoryService.RejectAsync(id);
 
             if (ok)
             {
-                await _categoryHubContext.Clients.All.SendAsync("CategoryApprovalStatusChanged", new { categoryId = id, status = "Rejected" });
+                await _pendingHub.Clients.All.SendAsync("CategoryRejected", new
+                {
+                    categoryId = id
+                });
+
+                await _categoryHub.Clients.All.SendAsync("CategoryApprovalStatusChanged", new
+                {
+                    categoryId = id,
+                    status = "Rejected"
+                });
             }
 
             return Json(new
@@ -148,9 +185,6 @@ namespace MVCApplication.Areas.Admin.Controllers
             });
         }
 
-        // ================= VOUCHER =================
-        // Chỉ dùng khi service của bạn đã có update trạng thái voucher
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveVoucher(int id)
@@ -159,7 +193,16 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             if (result.Success)
             {
-                await _hubContext.Clients.All.SendAsync("VoucherApproved", new { voucherId = id });
+                await _pendingHub.Clients.All.SendAsync("VoucherApproved", new
+                {
+                    voucherId = id
+                });
+
+                await _voucherHub.Clients.All.SendAsync("VoucherApprovalStatusChanged", new
+                {
+                    voucherId = id,
+                    status = "Active"
+                });
             }
 
             return Json(new
@@ -176,7 +219,6 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectVoucher(int id)
         {
-            // Get voucher to check if it exists, then mark inactive via Update
             var voucher = await _voucherAdminService.GetByIdAsync(id);
             if (voucher == null)
             {
@@ -200,7 +242,16 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             if (result.Success)
             {
-                await _hubContext.Clients.All.SendAsync("VoucherRejected", new { voucherId = id });
+                await _pendingHub.Clients.All.SendAsync("VoucherRejected", new
+                {
+                    voucherId = id
+                });
+
+                await _voucherHub.Clients.All.SendAsync("VoucherApprovalStatusChanged", new
+                {
+                    voucherId = id,
+                    status = "Rejected"
+                });
             }
 
             return Json(new
