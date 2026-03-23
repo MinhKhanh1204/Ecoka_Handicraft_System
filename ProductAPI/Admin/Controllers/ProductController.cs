@@ -8,7 +8,7 @@ namespace ProductAPI.Admin.Controllers
 {
     [Route("api/admin/products")]
     [ApiController]
-    //[Authorize(Roles = "Admin,Staff")]
+    //[Authorize(Roles = "Admin,Employee")]
     public class ProductAdminController : ControllerBase
     {
         private readonly IProductAdminService _service;

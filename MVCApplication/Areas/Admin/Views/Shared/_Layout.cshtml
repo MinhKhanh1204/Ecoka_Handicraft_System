@@ -116,7 +116,7 @@
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "active" : "")"
                    asp-area="Admin" asp-controller="Customers" asp-action="Index">
                     <i class="bi bi-person-badge-fill"></i>
-                    <span>Customers Management</span>
+                    <span>Quản lý khách hàng</span>
                 </a>
             </li>
 
@@ -124,14 +124,14 @@
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")"
                    asp-area="Admin" asp-controller="Orders" asp-action="Index">
                     <i class="bi bi-bag-fill"></i>
-                    <span>Orders Management</span>
+                    <span>Quản lý đơn hàng</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")"
                    asp-area="Admin" asp-controller="Products" asp-action="Index">
                     <i class="bi bi-bag-fill"></i>
-                    <span>Product Management</span>
+                    <span>Quản lý sản phẩm</span>
                 </a>
             </li>
 
@@ -141,7 +141,7 @@
                     <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Staffs" ? "active" : "")"
                        asp-area="Admin" asp-controller="Staffs" asp-action="Index">
                         <i class="bi bi-people-fill"></i>
-                        <span>Employee Management</span>
+                        <span>Quản lý nhân viên</span>
                     </a>
                 </li>
 
@@ -149,7 +149,7 @@
                     <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Approval" ? "active" : "")"
                        asp-area="Admin" asp-controller="Approvals" asp-action="Index">
                         <i class="bi bi-bag-fill"></i>
-                        <span>Approval Management</span>
+                        <span>Quản lý duyệt sản phẩm</span>
                     </a>
                 </li>
             }
@@ -158,7 +158,7 @@
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")"
                    asp-area="Admin" asp-controller="Categories" asp-action="Index">
                     <i class="bi bi-tags-fill"></i>
-                    <span>Categories Management</span>
+                    <span>Quản lý danh mục</span>
                 </a>
             </li>
 
@@ -166,16 +166,16 @@
                 <a class="nav-link collapsed @(ViewContext.RouteData.Values["controller"]?.ToString() == "Voucher" ? "active" : "")"
                    asp-area="Admin" asp-controller="Voucher" asp-action="Index">
                     <i class="bi bi-ticket-fill"></i>
-                    <span>Voucher Management</span>
+                    <span>Quản lý voucher</span>
                 </a>
             </li>
 
-            <li class="nav-heading">Pages</li>
+            <li class="nav-heading">Trang</li>
 
             <li class="nav-item">
                 @* <a class="nav-link collapsed" href="/Admin/Staffs/Details/@staffId"> *@
                     <i class="bi bi-person-circle"></i>
-                    <span>Profile</span>
+                    <span>Hồ sơ cá nhân</span>
                 </a>
             </li><!-- End Profile Page Nav -->
 

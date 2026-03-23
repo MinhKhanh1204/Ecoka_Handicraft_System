@@ -3,15 +3,30 @@
 <div class="row mb-3">
 
     <div class="col-md-6">
-        <strong>Order ID:</strong> @Model.OrderID <br />
-        <strong>Customer:</strong> @(Model.CustomerID ?? "-") <br />
-        <strong>Order Date:</strong> @(Model.OrderDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")
+        <strong>Mã đơn hàng:</strong> @Model.OrderID <br />
+        <strong>Khách hàng:</strong> @(Model.CustomerID ?? "-") <br />
+        <strong>Ngày đặt:</strong> @(Model.OrderDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")
     </div>
 
     <div class="col-md-6">
-        <strong>Payment Method:</strong> @(Model.PaymentMethod ?? "-") <br />
-        <strong>Payment Status:</strong> @(Model.PaymentStatus ?? "-") <br />
-        <strong>Shipping Status:</strong> @(Model.ShippingStatus ?? "-")
+        <strong>Phương thức thanh toán:</strong> @(Model.PaymentMethod ?? "-") <br />
+        <strong>Trạng thái thanh toán:</strong>
+        @(Model.PaymentStatus switch
+        {
+            "Pending" => "Chưa thanh toán",
+            "Paid" => "Đã thanh toán",
+            "Refunded" => "Hoàn tiền",
+            _ => "-"
+        }) <br />
+        <strong>Trạng thái vận chuyển:</strong>
+        @(Model.ShippingStatus switch
+        {
+            "Pending" => "Chờ xử lý",
+            "Shipping" => "Đang giao",
+            "Completed" => "Hoàn thành",
+            "Cancelled" => "Đã hủy",
+            _ => "-"
+        })
     </div>
 
 </div>
@@ -20,10 +35,10 @@
     <table class="table table-bordered">
         <thead class="table-light">
             <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th class="text-end">Price</th>
-                <th class="text-end">Subtotal</th>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
             </tr>
         </thead>
         <tbody>
@@ -43,7 +58,7 @@
             else
             {
                 <tr>
-                    <td colspan="4" class="text-center">No items</td>
+                    <td colspan="4" class="text-center">Không có sản phẩm</td>
                 </tr>
             }
 

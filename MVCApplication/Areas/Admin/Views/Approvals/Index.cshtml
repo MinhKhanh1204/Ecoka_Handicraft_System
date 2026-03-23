@@ -2,12 +2,12 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Approvals";
+    ViewData["Title"] = "Duyệt nội dung";
     var viCulture = new CultureInfo("vi-VN");
 }
 
 <div class="pagetitle">
-    <h1>Approvals</h1>
+    <h1>Duyệt nội dung</h1>
 </div>
 
 <section class="section">
@@ -15,194 +15,171 @@
         <div class="card-body pt-3">
 
             <ul class="nav nav-tabs mb-3" id="approvalTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active"
-                            id="products-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#products"
-                            type="button"
-                            role="tab">
-                        Products (<span id="product-count">@Model.PendingProducts.Items.Count</span>)
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#products">
+                        Sản phẩm (<span id="product-count">@Model.PendingProducts.Items.Count</span>)
                     </button>
                 </li>
 
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="categories-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#categories"
-                            type="button"
-                            role="tab">
-                        Categories (<span id="category-count">@Model.PendingCategories.Count</span>)
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#categories">
+                        Danh mục (<span id="category-count">@Model.PendingCategories.Count</span>)
                     </button>
                 </li>
 
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="vouchers-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#vouchers"
-                            type="button"
-                            role="tab">
-                        Vouchers (<span id="voucher-count">@Model.PendingVouchers.Count</span>)
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#vouchers">
+                        Voucher (<span id="voucher-count">@Model.PendingVouchers.Count</span>)
                     </button>
                 </li>
             </ul>
 
             <div class="tab-content">
 
-                <div class="tab-pane fade show active" id="products" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product ID</th>
-                                    <th>Image</th>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                <!-- PRODUCTS -->
+                <div class="tab-pane fade show active" id="products">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã SP</th>
+                                <th>Ảnh</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Giá</th>
+                                <th>Tồn kho</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productPendingBody">
+                            @if (!Model.PendingProducts.Items.Any())
+                            {
+                                <tr id="product-empty-row">
+                                    <td colspan="9" class="text-center text-muted">Không có sản phẩm chờ duyệt</td>
                                 </tr>
-                            </thead>
-                            <tbody id="productPendingBody">
-                                @if (!Model.PendingProducts.Items.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var p in Model.PendingProducts.Items)
                                 {
-                                    <tr id="product-empty-row">
-                                        <td colspan="9" class="text-center text-muted">No pending products</td>
+                                    index++;
+                                    <tr id="product-row-@p.ProductID">
+                                        <td>@index</td>
+                                        <td>@p.ProductID</td>
+                                        <td>
+                                            <img src="@(string.IsNullOrWhiteSpace(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
+                                                 width="55" height="55" class="rounded" style="object-fit:cover" />
+                                        </td>
+                                        <td>@p.ProductName</td>
+                                        <td>@p.CategoryName</td>
+                                        <td>@p.Price.ToString("C0", viCulture)</td>
+                                        <td>@p.StockQuantity</td>
+                                        <td>@p.Status</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-success" onclick="approveProduct('@p.ProductID')">Duyệt</button>
+                                            <button class="btn btn-sm btn-danger" onclick="rejectProduct('@p.ProductID')">Từ chối</button>
+                                        </td>
                                     </tr>
                                 }
-                                else
-                                {
-                                    var index = 0;
-                                    foreach (var p in Model.PendingProducts.Items)
-                                    {
-                                        index++;
-                                        <tr id="product-row-@p.ProductID">
-                                            <td>@index</td>
-                                            <td>@p.ProductID</td>
-                                            <td>
-                                                <img src="@(string.IsNullOrWhiteSpace(p.MainImage) ? "/images/no-image.png" : p.MainImage)"
-                                                     width="55"
-                                                     height="55"
-                                                     class="rounded"
-                                                     style="object-fit:cover"
-                                                     alt="Product image"
-                                                     onerror="this.src='/images/no-image.png'" />
-                                            </td>
-                                            <td>@p.ProductName</td>
-                                            <td>@p.CategoryName</td>
-                                            <td>@p.Price.ToString("C0", viCulture)</td>
-                                            <td>@p.StockQuantity</td>
-                                            <td>@p.Status</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveProduct('@p.ProductID')">Approve</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectProduct('@p.ProductID')">Reject</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="tab-pane fade" id="categories" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Category ID</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                <!-- CATEGORIES -->
+                <div class="tab-pane fade" id="categories">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã danh mục</th>
+                                <th>Tên</th>
+                                <th>Mô tả</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryPendingBody">
+                            @if (!Model.PendingCategories.Any())
+                            {
+                                <tr id="category-empty-row">
+                                    <td colspan="6" class="text-center text-muted">Không có danh mục chờ duyệt</td>
                                 </tr>
-                            </thead>
-                            <tbody id="categoryPendingBody">
-                                @if (!Model.PendingCategories.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var c in Model.PendingCategories)
                                 {
-                                    <tr id="category-empty-row">
-                                        <td colspan="6" class="text-center text-muted">No pending categories</td>
+                                    index++;
+                                    <tr id="category-row-@c.CategoryID">
+                                        <td>@index</td>
+                                        <td>@c.CategoryID</td>
+                                        <td>@c.CategoryName</td>
+                                        <td>@c.Description</td>
+                                        <td>@c.Status</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-success" onclick="approveCategory(@c.CategoryID)">Duyệt</button>
+                                            <button class="btn btn-sm btn-danger" onclick="rejectCategory(@c.CategoryID)">Từ chối</button>
+                                        </td>
                                     </tr>
                                 }
-                                else
-                                {
-                                    var index = 0;
-                                    foreach (var c in Model.PendingCategories)
-                                    {
-                                        index++;
-                                        <tr id="category-row-@c.CategoryID">
-                                            <td>@index</td>
-                                            <td>@c.CategoryID</td>
-                                            <td>@c.CategoryName</td>
-                                            <td>@c.Description</td>
-                                            <td>@c.Status</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveCategory(@c.CategoryID)">Approve</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectCategory(@c.CategoryID)">Reject</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="tab-pane fade" id="vouchers" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Voucher ID</th>
-                                    <th>Name</th>
-                                    <th>Code</th>
-                                    <th>Discount</th>
-                                    <th>Max Reducing</th>
-                                    <th>Qty</th>
-                                    <th>Expiry</th>
-                                    <th>Active</th>
-                                    <th class="text-end">Actions</th>
+                <!-- VOUCHERS -->
+                <div class="tab-pane fade" id="vouchers">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã voucher</th>
+                                <th>Tên</th>
+                                <th>Mã code</th>
+                                <th>Giảm (%)</th>
+                                <th>Giảm tối đa</th>
+                                <th>Số lượng</th>
+                                <th>Hạn</th>
+                                <th>Kích hoạt</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="voucherPendingBody">
+                            @if (!Model.PendingVouchers.Any())
+                            {
+                                <tr id="voucher-empty-row">
+                                    <td colspan="10" class="text-center text-muted">Không có voucher chờ duyệt</td>
                                 </tr>
-                            </thead>
-                            <tbody id="voucherPendingBody">
-                                @if (!Model.PendingVouchers.Any())
+                            }
+                            else
+                            {
+                                var index = 0;
+                                foreach (var v in Model.PendingVouchers)
                                 {
-                                    <tr id="voucher-empty-row">
-                                        <td colspan="10" class="text-center text-muted">No pending vouchers</td>
+                                    index++;
+                                    <tr id="voucher-row-@v.VoucherId">
+                                        <td>@index</td>
+                                        <td>@v.VoucherId</td>
+                                        <td>@v.VoucherName</td>
+                                        <td>@v.Code</td>
+                                        <td>@(v.DiscountPercentage?.ToString("0.##") + "%" ?? "-")</td>
+                                        <td>@(v.MaxReducing?.ToString("C0", viCulture) ?? "-")</td>
+                                        <td>@v.Quantity</td>
+                                        <td>@(v.ExpiryDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                        <td>@(v?.IsActive == true ? "Có" : "Không")</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-success" onclick="approveVoucher(@v.VoucherId)">Duyệt</button>
+                                            <button class="btn btn-sm btn-danger" onclick="rejectVoucher(@v.VoucherId)">Từ chối</button>
+                                        </td>
                                     </tr>
                                 }
-                                else
-                                {
-                                    var index = 0;
-                                    foreach (var v in Model.PendingVouchers)
-                                    {
-                                        index++;
-                                        <tr id="voucher-row-@v.VoucherId">
-                                            <td>@index</td>
-                                            <td>@v.VoucherId</td>
-                                            <td>@v.VoucherName</td>
-                                            <td>@v.Code</td>
-                                            <td>@(v.DiscountPercentage.HasValue? v.DiscountPercentage.Value.ToString("0.##") + "%" : "-")</td>
-                                            <td>@(v.MaxReducing.HasValue? v.MaxReducing.Value.ToString("C0", viCulture) : "-")</td>
-                                            <td>@v.Quantity</td>
-                                            <td>@(v.ExpiryDate.HasValue? v.ExpiryDate.Value.ToString("yyyy-MM-dd") : "-")</td>
-                                            <td>@(v?.IsActive == true ? "Yes" : "No")</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-sm btn-success" onclick="approveVoucher(@v.VoucherId)">Approve</button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="rejectVoucher(@v.VoucherId)">Reject</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
                 </div>
 
             </div>
@@ -210,11 +187,12 @@
     </div>
 </section>
 
+<!-- Toast -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast" class="toast text-bg-primary border-0">
         <div class="d-flex">
-            <div class="toast-body" id="toastMessage">Notification</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            <div class="toast-body" id="toastMessage">Thông báo</div>
+            <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
