@@ -85,5 +85,43 @@ namespace AccountAPI.Services.Implements
 
             await client.SendMailAsync(message);
         }
+
+        /// <summary>
+        /// Sent when the forgot-password email was not found in the database.
+        /// Invites the user to register with a direct link to the registration page.
+        /// </summary>
+        public async Task SendUnregisteredEmailAsync(string toEmail, string registerUrl)
+        {
+            var subject = "Email Chua Dang Ki - Ecoka Handicraft";
+            var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2>Xin chao,</h2>
+    <p>Email nay chua duoc dang ki tai he thong <strong>Ecoka Handicraft</strong>.</p>
+    <p>Neu ban muon tao tai khoan de mua sam san pham thu cong, vui long dang ki qua lien ket ben duoi:</p>
+    <p><a href='{registerUrl}' style='display:inline-block;background:#667eea;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;'>Dang Ki Tai Khoan</a></p>
+    <p>Neu ban khong yeu cau dang ki, vui long bo qua email nay.</p>
+    <br/>
+    <p>Ecoka Handicraft System</p>
+</body>
+</html>";
+
+            using var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.Port)
+            {
+                EnableSsl = true,
+                Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.SenderPassword)
+            };
+
+            var message = new MailMessage
+            {
+                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+            message.To.Add(toEmail);
+
+            await client.SendMailAsync(message);
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace AccountAPI.Services
         Task RegisterCustomerAsync(RegisterCustomerRequestDto request);
         Task ChangePasswordAsync(string accountId, ChangePasswordDto request);
 
-        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+        Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto request);
 
         Task ResetPasswordAsync(ResetPasswordRequestDto request);
 
