@@ -16,12 +16,12 @@ namespace MVCApplication.Areas.Admin.Controllers
 
         // GET: /Admin/Staffs
         [HttpGet]
-        public async Task<IActionResult> Index(string? keyword, string? role, bool? status, int page = 1)
+        public async Task<IActionResult> Index(string? keyword, bool? status, int page = 1)
         {
-            var result = await _staffService.GetStaffsAsync(keyword, role, status, page, 10);
+            // Only fetch personnel with "Employee" role, hide "Admin"
+            var result = await _staffService.GetStaffsAsync(keyword, "Employee", status, page, 10);
 
             ViewBag.Keyword = keyword;
-            ViewBag.Role = role;
             ViewBag.Status = status;
             ViewBag.CurrentPage = result.Page;
             ViewBag.TotalPages = (int)Math.Ceiling(result.TotalItems / 10.0);
