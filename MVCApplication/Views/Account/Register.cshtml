@@ -11,99 +11,263 @@
     </ol>
 </div>
 <!-- Single Page Header End -->
-<!-- Start -->
-<div class="container-fluid contact py-5">
-    <div class="container py-5">
-        <div class="p-5 bg-light rounded">
-            <div class="row g-4">
-                <div class="col-lg-7">
-                    <form asp-action="Register" asp-controller="Account"
-                          method="post" enctype="multipart/form-data">
+<style>
+    .register-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 40px 0;
+    }
 
-                        <!-- Username -->
-                        <input asp-for="Username"
-                               class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Tên đăng nhập*" required/>
-                        <span asp-validation-for="Username" class="text-danger"></span>
+    .register-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+        background: #fff;
+        max-width: 1100px;
+        width: 100%;
+    }
 
-                        <!-- Email -->
-                        <input asp-for="Email"
-                               class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Email*" required />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+    .register-info-section {
+        background: linear-gradient(135deg, #81c408 0%, #619406 100%);
+        color: #fff;
+        padding: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 
-                        <!-- Password -->
-                        <input asp-for="Password"
-                               type="password"
-                               class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Mật khẩu*" required />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+    .register-form-section {
+        padding: 60px;
+    }
 
-                        <!-- Avatar -->
-                        <div class="form-label">Ảnh đại diện</div>
-                        <input asp-for="Avatar"
-                               type="file"
-                               class="w-100 form-control border-0 py-3 mb-3 bg-white" />
+    .form-control-modern {
+        border-radius: 12px;
+        padding: 12px 20px 12px 45px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
 
-                        <!-- Full Name -->
-                        <input asp-for="FullName"
-                               class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Họ và tên*" required />
-                        <span asp-validation-for="FullName" class="text-danger"></span>
+        .form-control-modern:focus {
+            box-shadow: 0 0 0 0.25rem rgba(129, 196, 8, 0.15);
+            border-color: #81c408;
+            background-color: #fff;
+        }
 
-                        <!-- Date of Birth -->
-                        <div class="form-label">Ngày sinh</div>
-                        <input asp-for="DateOfBirth"
-                               type="date"
-                               class="w-100 form-control border-0 py-3 mb-3" />
+    .input-group-custom {
+        position: relative;
+        margin-bottom: 20px;
+    }
 
-                        <!-- Gender -->
-                        <select asp-for="Gender"
-                                class="w-100 form-control border-0 py-3 mb-3 bg-white">
-                            <option value="Male">Nam</option>
-                            <option value="Female">Nữ</option>
-                            <option value="Other">Khác</option>
-                        </select>
+        .input-group-custom i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
 
-                        <!-- Phone -->
-                        <input asp-for="Phone"
-                               class="w-100 form-control border-0 py-3 mb-3"
-                               placeholder="Số điện thoại" />
+        .input-group-custom:focus-within i {
+            color: #81c408;
+        }
 
-                        <!-- Address -->
-                        <input asp-for="Address"
-                               class="w-100 form-control border-0 py-3 mb-4"
-                               placeholder="Địa chỉ" />
+    .btn-register {
+        background: #81c408;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: #fff;
+    }
 
-                        <!-- Submit -->
-                        <button class="w-100 btn form-control border-secondary py-3 bg-white text-primary"
-                                type="submit">
-                            Đăng ký
-                        </button>
-                    </form>
+        .btn-register:hover {
+            background: #619406;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(129, 196, 8, 0.3);
+            color: #fff;
+        }
+
+    .btn-login-outline {
+        border: 2px solid #81c408;
+        color: #81c408;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+    }
+
+        .btn-login-outline:hover {
+            background: #81c408;
+            color: #fff;
+        }
+
+    .brand-logo {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+
+    .form-label-custom {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .select-modern {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+    }
+</style>
+
+<div class="register-container py-5">
+    <div class="container">
+        <div class="register-card mx-auto">
+            <div class="row g-0">
+                <div class="col-lg-5 d-none d-lg-flex register-info-section">
+                    <div class="brand-logo">Ecoka</div>
+                    <h2 class="display-6 fw-bold mb-4">Tham gia cùng Ecoka ngay!</h2>
+                    <p class="fs-5 opacity-75 mb-5">Đăng ký tài khoản để bắt đầu hành trình mua sắm các sản phẩm thủ công bền vững và thân thiện với môi trường.</p>
+
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="btn-square bg-white bg-opacity-25 rounded-circle me-3">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <span>Nhận ngay mã giảm giá cho đơn hàng đầu tiên</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="btn-square bg-white bg-opacity-25 rounded-circle me-3">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <span>Lưu lại lịch sử mua sắm và sản phẩm yêu thích</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-square bg-white bg-opacity-25 rounded-circle me-3">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <span>Góp phần bảo vệ môi trường cùng cộng đồng Ecoka</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-5">
-                    <div class="d-flex p-4 rounded mb-4 bg-white">
-                        <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Địa chỉ</h4>
-                            <p class="mb-2">600 Nguyễn Văn Cừ nối dài , Cần Thơ</p>
-                        </div>
+                <div class="col-lg-7 register-form-section">
+                    <div class="text-center mb-5 d-lg-none">
+                        <h1 class="text-primary fw-bold">Ecoka</h1>
+                        <h3 class="fw-bold">Đăng ký</h3>
                     </div>
-                    <div class="d-flex p-4 rounded mb-4 bg-white">
-                        <i class="fas fa-envelope fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Email liên hệ</h4>
-                            <p class="mb-2">ecoka@gmail.com</p>
-                        </div>
+                    <div class="d-none d-lg-block mb-4">
+                        <h3 class="fw-bold">Tạo tài khoản mới</h3>
+                        <p class="text-muted">Vui lòng điền đầy đủ các thông tin bên dưới</p>
                     </div>
-                    <div class="d-flex p-4 rounded bg-white">
-                        <i class="fa fa-phone-alt fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Điện thoại</h4>
-                            <p class="mb-2">0979997799</p>
+
+                    <form asp-action="Register" asp-controller="Account" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Tên đăng nhập*</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-user"></i>
+                                    <input asp-for="Username" class="form-control form-control-modern" placeholder="Username" required />
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Email liên hệ*</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-envelope"></i>
+                                    <input asp-for="Email" type="email" class="form-control form-control-modern" placeholder="Email của bạn" required />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Mật khẩu*</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-lock"></i>
+                                    <input asp-for="Password" type="password" class="form-control form-control-modern" placeholder="Mật khẩu" required />
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Số điện thoại</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-phone"></i>
+                                    <input asp-for="Phone" class="form-control form-control-modern" placeholder="Số điện thoại" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-custom">Họ và tên*</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-id-card"></i>
+                                <input asp-for="FullName" class="form-control form-control-modern" placeholder="Nhập họ và tên đầy đủ" required />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Ngày sinh</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <input asp-for="DateOfBirth" type="date" class="form-control form-control-modern" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Giới tính</label>
+                                <div class="input-group-custom">
+                                    <i class="fas fa-venus-mars"></i>
+                                    <select asp-for="Gender" class="form-control form-control-modern select-modern">
+                                        <option value="Male">Nam</option>
+                                        <option value="Female">Nữ</option>
+                                        <option value="Other">Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-custom">Địa chỉ nhận hàng</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <input asp-for="Address" class="form-control form-control-modern" placeholder="Nhập địa chỉ của bạn" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Ảnh đại diện</label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-image"></i>
+                                <input asp-for="Avatar" type="file" class="form-control form-control-modern" />
+                            </div>
+                        </div>
+
+                        <button class="w-100 btn btn-register mb-4" type="submit">Hoàn tất đăng ký</button>
+
+                        <div class="text-center mt-2">
+                            <p class="text-muted small mb-3">Đã có tài khoản?</p>
+                            <a href="/Account/Login" class="btn btn-login-outline w-100">Đăng nhập ngay</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

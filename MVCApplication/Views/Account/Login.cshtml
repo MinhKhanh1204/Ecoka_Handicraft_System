@@ -12,57 +12,252 @@
 </div>
 <!-- Single Page Header End -->
 
-<!-- Start -->
-<div class="container-fluid contact py-5">
-    <div class="container py-5">
-        <div class="p-5 bg-light rounded">
-            <div class="row g-4">
-                <div class="col-lg-7">
-                    <form asp-action="Login" method="post">
-                        <div asp-validation-summary="All" style="color:red"></div>
-                        <input asp-for="Email" type="email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Email của bạn">
-                        <span asp-validation-for="Email" style="color:red"></span>
-                        <input asp-for="Password" type="password" class="w-100 form-control border-0 py-3 mb-2" placeholder="Nhập mật khẩu">
-                        <span asp-validation-for="Password" style="color:red"></span>
-                        <div class="text-end mb-4">
-                            <a asp-action="ForgotPassword" class="text-primary">Quên mật khẩu?</a>
+<style>
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .login-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+        background: #fff;
+        max-width: 1000px;
+        width: 100%;
+    }
+
+    .login-info-section {
+        background: linear-gradient(135deg, #81c408 0%, #619406 100%);
+        color: #fff;
+        padding: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .login-form-section {
+        padding: 60px;
+    }
+
+    .form-control-modern {
+        border-radius: 12px;
+        padding: 12px 20px 12px 45px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+
+        .form-control-modern:focus {
+            box-shadow: 0 0 0 0.25rem rgba(129, 196, 8, 0.15);
+            border-color: #81c408;
+            background-color: #fff;
+        }
+
+    .input-group-custom {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+
+        .input-group-custom:focus-within i {
+            color: #81c408;
+        }
+
+    .btn-login {
+        background: #81c408;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: #fff;
+    }
+
+        .btn-login:hover {
+            background: #619406;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(129, 196, 8, 0.3);
+            color: #fff;
+        }
+
+    .btn-register-outline {
+        border: 2px solid #81c408;
+        color: #81c408;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-register-outline:hover {
+            background: #81c408;
+            color: #fff;
+        }
+
+    .social-btns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .btn-social {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .btn-google {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        color: #495057;
+    }
+
+        .btn-google:hover {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+    .btn-facebook {
+        background-color: #1877f2;
+        color: #fff;
+        border: none;
+    }
+
+        .btn-facebook:hover {
+            background-color: #166fe5;
+            box-shadow: 0 4px 10px rgba(24, 119, 242, 0.3);
+            color: #fff;
+        }
+
+    .btn-social i {
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 25px 0;
+        color: #adb5bd;
+    }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: .5em;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: .5em;
+        }
+
+    .brand-logo {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="login-container py-5">
+    <div class="container">
+        <div class="login-card mx-auto">
+            <div class="row g-0">
+                <div class="col-lg-6 d-none d-lg-flex login-info-section">
+                    <div class="brand-logo">Ecoka</div>
+                    <h2 class="display-6 fw-bold mb-4">Chào mừng bạn quay trở lại!</h2>
+                    <p class="fs-5 opacity-75 mb-5">Đăng nhập để tiếp tục khám phá những sản phẩm thủ công thân thiện với môi trường của chúng tôi.</p>
+
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-3 fs-4"></i>
+                            <span>Nhiều ưu đãi hấp dẫn cho thành viên</span>
                         </div>
-                        <button class="w-100 btn form-control border-secondary py-3 bg-white text-primary " type="submit">Đăng nhập</button>
-                        <a class="w-100 btn form-control py-3 bg-primary text-white" style="margin-top: 10px" href="/Account/Register">Đăng ký thành viên</a>
-                        <div style="text-align: center; margin-top: 10px">
-                        <a asp-controller="Account" asp-action="LoginGoogle" class="btn btn-danger">
-                            Đăng nhập với Google
-                        </a>
- 
-                        <a asp-controller="Account" asp-action="LoginFacebook" class="btn btn-secondary">
-                            Đăng nhập với Facebook
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-check-circle me-3 fs-4"></i>
+                            <span>Theo dõi đơn hàng dễ dàng</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-3 fs-4"></i>
+                            <span>Thanh toán bảo mật và nhanh chóng</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 login-form-section">
+                    <div class="text-center mb-5 d-lg-none">
+                        <h1 class="text-primary fw-bold">Ecoka</h1>
+                        <h3 class="fw-bold">Đăng nhập</h3>
+                    </div>
+                    <div class="d-none d-lg-block mb-5">
+                        <h3 class="fw-bold">Đăng nhập</h3>
+                        <p class="text-muted">Vui lòng nhập thông tin tài khoản của bạn</p>
+                    </div>
+
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3 small"></div>
+
+                        <div class="input-group-custom">
+                            <i class="fas fa-envelope"></i>
+                            <input asp-for="Email" type="email" class="form-control form-control-modern" placeholder="Email của bạn">
+                        </div>
+
+                        <div class="input-group-custom">
+                            <i class="fas fa-lock"></i>
+                            <input asp-for="Password" type="password" class="form-control form-control-modern" placeholder="Mật khẩu">
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label text-muted small" for="rememberMe">Ghi nhớ tôi</label>
+                            </div>
+                            <a asp-action="ForgotPassword" class="text-primary small text-decoration-none fw-bold">Quên mật khẩu?</a>
+                        </div>
+
+                        <button class="w-100 btn btn-login mb-4" type="submit">Đăng nhập</button>
+
+                        <div class="divider">Hoặc tiếp tục với</div>
+
+                        <div class="social-btns mb-4">
+                            <a asp-controller="Account" asp-action="LoginGoogle" class="btn btn-social btn-google">
+                                <i class="fab fa-google text-danger"></i> Google
+                            </a>
+                            <a asp-controller="Account" asp-action="LoginFacebook" class="btn btn-social btn-facebook">
+                                <i class="fab fa-facebook-f"></i> Facebook
                             </a>
                         </div>
 
+                        <div class="text-center mt-5">
+                            <p class="text-muted small mb-3">Chưa có tài khoản?</p>
+                            <a href="/Account/Register" class="btn btn-register-outline w-100 hvr-sweep-to-right">Đăng ký thành viên</a>
+                        </div>
                     </form>
-                </div>
-                <div class="col-lg-5">
-                    <div class="d-flex p-4 rounded mb-4 bg-white">
-                        <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Địa chỉ</h4>
-                            <p class="mb-2">600 Nguyễn Văn Cừ nối dài , Cần Thơ</p>
-                        </div>
-                    </div>
-                    <div class="d-flex p-4 rounded mb-4 bg-white">
-                        <i class="fas fa-envelope fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Email liên hệ</h4>
-                            <p class="mb-2">ecoka@gmail.com</p>
-                        </div>
-                    </div>
-                    <div class="d-flex p-4 rounded bg-white">
-                        <i class="fa fa-phone-alt fa-2x text-primary me-4"></i>
-                        <div>
-                            <h4>Điện thoại</h4>
-                            <p class="mb-2">0979997799</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
