@@ -170,10 +170,10 @@
 
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Shopping Cart</h1>
+    <h1 class="text-center text-white display-6">Giỏ hàng</h1>
     <ol class="breadcrumb justify-content-center mb-0">
-        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
-        <li class="breadcrumb-item active text-white">Cart</li>
+        <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
+        <li class="breadcrumb-item active text-white">Giỏ hàng</li>
     </ol>
 </div>
 <!-- Single Page Header End -->
@@ -189,9 +189,9 @@
                         <i class="fa fa-shopping-basket fa-4x text-muted opacity-50"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold text-dark mb-3">Your cart is currently empty</h3>
-                <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
-                <a href="/Shop" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">START SHOPPING</a>
+                <h3 class="fw-bold text-dark mb-3">Giỏ hàng của bạn đang trống</h3>
+                <p class="text-muted mb-4">Có vẻ như bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
+                <a href="/Shop" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">BẮT ĐẦU MUA SẮM</a>
             </div>
         }
         else
@@ -201,10 +201,10 @@
                 <div class="col-xl-8">
                     <div class="cart-card">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4 class="section-title mb-0">Products in Cart</h4>
+                            <h4 class="section-title mb-0">Sản phẩm trong giỏ hàng</h4>
                             <div class="form-check d-flex align-items-center">
                                 <input type="checkbox" id="selectAll" class="form-check-input custom-checkbox me-2">
-                                <label class="form-check-label text-muted small text-uppercase fw-bold" for="selectAll">Select All</label>
+                                <label class="form-check-label text-muted small text-uppercase fw-bold" for="selectAll">Chọn tất cả</label>
                             </div>
                         </div>
 
@@ -213,11 +213,11 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 40px;"></th>
-                                        <th>Product</th>
-                                        <th>Price</th>
-                                        <th class="text-center">Quantity</th>
-                                        <th class="text-end">Total</th>
-                                        <th class="text-end">Action</th>
+                                        <th>Sản phẩm</th>
+                                        <th>Giá</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th class="text-end">Tổng cộng</th>
+                                        <th class="text-end">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -236,7 +236,7 @@
                                                     <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/default-product.png" : item.ImageUrl)" class="product-img-cart me-3" alt="@item.ProductName" onerror="this.src='/img/single-item.jpg'">
                                                     <div>
                                                         <h6 class="mb-0 fw-bold">@item.ProductName</h6>
-                                                        <span class="text-muted small">Stock: @item.StockQuantity</span>
+                                                        <span class="text-muted small">Kho: @item.StockQuantity</span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -257,7 +257,7 @@
                                                     <button class="btn btn-link btn-update-cart text-primary p-0 fw-bold" 
                                                             type="button"
                                                             onclick="performUpdate(@item.CartItemId, @item.StockQuantity, @item.Price)">
-                                                        <i class="fa fa-sync-alt me-1"></i>Update
+                                                        <i class="fa fa-sync-alt me-1"></i>Cập nhật
                                                     </button>
                                                 </div>
                                             </td>
@@ -265,7 +265,7 @@
                                                 <span class="text-primary fw-bold fs-5 row-total_@item.CartItemId">@itemTotal.ToString("N0") ₫</span>
                                             </td>
                                             <td class="text-end">
-                                                <button class="btn-delete-item" type="button" onclick="deleteCartItem(@item.CartItemId)" title="Remove item">
+                                                <button class="btn-delete-item" type="button" onclick="deleteCartItem(@item.CartItemId)" title="Xóa sản phẩm">
                                                     <i class="fa fa-trash-alt"></i>
                                                 </button>
                                             </td>
@@ -280,23 +280,23 @@
                 <!-- Summary Sidebar -->
                 <div class="col-xl-4">
                     <div class="cart-card sticky-top" style="top: 2rem; z-index: 10;">
-                        <h4 class="section-title">Order Summary</h4>
+                        <h4 class="section-title">Tóm tắt đơn hàng</h4>
                         
                         <div class="summary-card mt-4">
                             <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
-                                <span class="text-muted">Selected Items</span>
+                                <span class="text-muted">Sản phẩm đã chọn</span>
                                 <span class="fw-bold" id="lblSelectedCount">0</span>
                             </div>
                             
                             <div class="d-flex justify-content-between mb-4">
-                                <span class="h5 fw-bold mb-0">Grand Total</span>
+                                <span class="h5 fw-bold mb-0">Tổng cộng</span>
                                 <div class="text-end">
                                     <span class="h4 fw-bold text-primary mb-0 d-block" id="lblFinalTotal">0 ₫</span>
                                 </div>
                             </div>
 
                             <button class="btn btn-checkout w-100 text-uppercase" type="button" onclick="checkoutSelected()">
-                                PROCEED TO CHECKOUT <i class="fas fa-arrow-right ms-2"></i>
+                                TIẾN HÀNH THANH TOÁN <i class="fas fa-arrow-right ms-2"></i>
                             </button>
                         </div>
                     </div>

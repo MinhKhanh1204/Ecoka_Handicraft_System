@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - Ecoka Handicraft System</title>
@@ -47,14 +47,14 @@
 
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto">
-                        <a asp-controller="Home" asp-action="Index" class="nav-item nav-link">Home</a>
-                        <a asp-controller="Shop" asp-action="Index" class="nav-item nav-link">Shop</a>
-                        <a asp-controller="Contact" asp-action="Index" class="nav-item nav-link">Contact</a>
-                        <a asp-controller="Voucher" asp-action="Index" class="nav-item nav-link">Voucher</a>
+                        <a asp-controller="Home" asp-action="Index" class="nav-item nav-link">Trang chủ</a>
+                        <a asp-controller="Shop" asp-action="Index" class="nav-item nav-link">Cửa hàng</a>
+                        <a asp-controller="Contact" asp-action="Index" class="nav-item nav-link">Liên hệ</a>
+                        <a asp-controller="Voucher" asp-action="Index" class="nav-item nav-link">Khuyến mãi</a>
                     </div>
 
                     <div class="d-flex m-3 me-0">
-                        <a asp-controller="Cart" asp-action="View" class="position-relative me-4 my-auto" title="View Cart">
+                        <a asp-controller="Cart" asp-action="View" class="position-relative me-4 my-auto" title="Xem giỏ hàng">
                             <i class="fa fa-shopping-bag fa-2x"></i>
                         </a>
 
@@ -73,18 +73,14 @@
                                 @if (User.Identity.IsAuthenticated)
                                 {
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Hello, @User.Identity.Name</a>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Chào, @User.Identity.Name</a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Orders" asp-action="Index">My Orders</a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">Change Password</a>
+                                        <a class="dropdown-item" asp-controller="customer" asp-action="Orders">Đơn hàng của tôi</a>
                                     </li>
 
                                     <li>
-                                        <a class="dropdown-item" asp-controller="customer" asp-action="Orders">My Orders</a>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">Đổi mật khẩu</a>
                                     </li>
 
                                     <li>
@@ -92,11 +88,11 @@
                                     </li>
 
                                     <li>
-                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
                                     </li>
                                 }else{
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Login">Login</a>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                                     </li>
                                 }
                             </ul>
@@ -117,7 +113,7 @@
     <!-- Footer -->
     <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
         <div class="container text-center py-3">
-            <p class="mb-0">&copy; @DateTime.Now.Year - Ecoka Handicraft System. All rights reserved.</p>
+            <p class="mb-0">&copy; @DateTime.Now.Year - Ecoka Handicraft System. Bảo lưu mọi quyền.</p>
         </div>
     </div>
 
