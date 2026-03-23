@@ -11,107 +11,231 @@
 	</ol>
 </div>
 <!-- Single Page Header End -->
-<!-- Fruits Shop Start-->
-<div class="container-fluid fruite py-5">
-	<div class="container py-5">
-		<h1 class="mb-4">Ecoka Handicraft</h1>
-		<div class="row g-4">
-			<div class="col-lg-12">
-				<div class="row g-4">
-					<div class="col-xl-3">
-						<div class="input-group w-100 mx-auto d-flex">
-							<input type="hidden" id="categoryId" value="0" />
-							<input type="search" id="txtSearch" oninput="loadProducts()" class="form-control p-3" placeholder="Từ khóa tìm kiếm" aria-describedby="search-icon-1">
-							<span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
-						</div>
-					</div>
-					<div class="col-6"></div>
-					<div class="col-xl-3">
-@* 						<div class="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
-							<label for="fruits">Default Sorting:</label>
-							<select id="fruits" onchange="setSort(this.value)" name="fruitlist" class="border-0 form-select-sm bg-light me-3" form="fruitform">
-								<option value="volvo">Nothing</option>
-								<option value="saab">Price asc</option>
-								<option value="opel">Price desc</option>
-							</select>
-						</div> *@
-					</div>
-				</div>
-				<div class="row g-4">
-					<div class="col-lg-3">
-						<div class="row g-4">
-							<div class="col-lg-12">
-								<div class="mb-3">
-									<h4>Danh mục</h4>
-									<ul class="list-unstyled fruite-categorie">
-										@foreach (var cate in Model.Categories)
-										{
-											<li>
-												<div class="d-flex justify-content-between fruite-name">
-													<a id="cate-@cate.CategoryID" href="javascript:void(0)" onclick="setCategory(@cate.CategoryID)" class="@(cate.CategoryID == Model.CategoryID ? "active" : "")">
-														<i class="fas fa-hand-paper me-2"></i>@cate.CategoryName
-													</a>
-												</div>
-											</li>
-										}
-									</ul>
-								</div>
-							</div>
-@* 							<div class="col-lg-12">
-								<div class="mb-3">
-									<h4 class="mb-2">Price</h4>
-									<input type="range" oninput="setPrice(this.value)" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value">
-									<output id="amount" name="amount" min-value="0" max-value="500" for="rangeInput">0</output>
-								</div>
-							</div> *@
-							
-						
-						</div>
-					</div>
-					<div class="col-lg-9" id="product-list">
-						@await Html.PartialAsync("_ProductListPartial", Model.Products)
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<style>
+    .shop-container {
+        min-height: 80vh;
+        background-color: #f8f9fa;
+        padding: 50px 0;
+    }
+
+    .section-title-premium {
+        font-weight: 800;
+        color: #333;
+        position: relative;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .section-title-premium::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: #81c408;
+        border-radius: 2px;
+    }
+
+    /* Sidebar Styling */
+    .filter-sidebar {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    .filter-group-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .filter-group-title i {
+        color: #81c408;
+        margin-right: 12px;
+    }
+
+    .category-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .category-item {
+        margin-bottom: 8px;
+    }
+
+    .category-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        border-radius: 12px;
+        color: #495057;
+        text-decoration: none !important;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .category-link i {
+        width: 20px;
+        margin-right: 10px;
+        font-size: 0.9rem;
+        color: #adb5bd;
+        transition: color 0.3s ease;
+    }
+
+    .category-link:hover {
+        background-color: #f1f8e9;
+        color: #619406;
+        transform: translateX(5px);
+    }
+
+    .category-link:hover i {
+        color: #81c408;
+    }
+
+    .category-link.active {
+        background: linear-gradient(135deg, #81c408 0%, #619406 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(129, 196, 8, 0.3);
+    }
+
+    .category-link.active i {
+        color: #fff;
+    }
+
+    /* Search Bar Styling */
+    .search-wrapper-modern {
+        position: relative;
+        margin-bottom: 40px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input-modern {
+        border: none;
+        padding: 12px 20px;
+        width: 100%;
+        font-size: 1rem;
+        background: transparent;
+        color: #333;
+    }
+
+    .search-input-modern:focus {
+        outline: none;
+    }
+
+    .search-btn-modern {
+        background: #81c408;
+        color: #fff;
+        border: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .search-btn-modern:hover {
+        background: #619406;
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="shop-container">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="filter-sidebar">
+                    <div class="filter-group mb-4">
+                        <div class="filter-group-title">
+                            <i class="fas fa-th-large"></i> Danh mục sản phẩm
+                        </div>
+                        <ul class="category-list">
+                            <li>
+                                <a href="javascript:void(0)" onclick="setCategory(0)" class="category-link @(Model.CategoryID == 0 ? "active" : "")" id="cate-0">
+                                    <i class="fas fa-shopping-basket"></i> Tất cả sản phẩm
+                                </a>
+                            </li>
+                            @foreach (var cate in Model.Categories)
+                            {
+                                if (cate.CategoryName.Trim().ToLower() == "tất cả") continue;
+                                <li>
+                                    <a id="cate-@cate.CategoryID" href="javascript:void(0)" onclick="setCategory(@cate.CategoryID)" class="category-link @(cate.CategoryID == Model.CategoryID ? "active" : "")">
+                                        <i class="fas fa-hand-paper"></i> @cate.CategoryName
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="search-wrapper-modern mb-5">
+                    <input type="hidden" id="categoryId" value="@Model.CategoryID" />
+                    <input type="search" id="txtSearch" oninput="loadProducts()" class="search-input-modern" placeholder="Tìm kiếm sản phẩm thủ công..." aria-label="Search">
+                    <button class="search-btn-modern">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="section-title-premium mb-0">Ecoka Handicraft</h2>
+                    <div class="text-muted small">
+                        Hiển thị các sản phẩm tinh xảo nhất
+                    </div>
+                </div>
+
+                <div id="product-list">
+                    @await Html.PartialAsync("_ProductListPartial", Model.Products)
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<!-- Fruits Shop End-->
+
 @section Scripts {
-	<script>
+    <script>
+        function setCategory(id) {
+            $("#categoryId").val(id);
+            $(".category-link").removeClass("active");
+            $("#cate-" + id).addClass("active");
+            loadProducts(1);
+        }
 
-		function setCategory(id) {
-			$("#categoryId").val(id);
-			// remove active cũ
-			$(".fruite-categorie li a").removeClass("active");
+        function loadProducts(page = 1) {
+            var keyword = $("#txtSearch").val();
+            var categoryId = $("#categoryId").val();
 
-			// add active mới
-			$("#cate-" + id).addClass("active");
-			loadProducts(1);
-		}
+            $.ajax({
+                url: "/Shop/GetProducts",
+                type: "GET",
+                data: {
+                    page: page,
+                    categoryId: categoryId,
+                    txtSearch: keyword
+                },
+                success: function (data) {
+                    $("#product-list").html(data);
+                }
+            });
+        }
 
-		function loadProducts(page = 1) {
-
-			var keyword = $("#txtSearch").val();
-			var categoryId = $("#categoryId").val();
-
-			$.ajax({
-				url: "/Shop/GetProducts",
-				type: "GET",
-				data: {
-					page: page,
-					categoryId: categoryId,
-					txtSearch: keyword
-				},
-				success: function (data) {
-					$("#product-list").html(data);
-				}
-			});
-		}
-
-		$(document).ready(function () {
-			loadProducts(1);
-		});
-
-	</script>
+        $(document).ready(function () {
+            // Initial load if needed, though partial is already called server-side
+        });
+    </script>
 }

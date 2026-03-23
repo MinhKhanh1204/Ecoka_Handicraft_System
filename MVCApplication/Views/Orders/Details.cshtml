@@ -1,84 +1,127 @@
 @model MVCApplication.Models.DTOs.Order
 
 @{
-    ViewData["Title"] = "Chi tiết tiết đơn hàng";
+    Layout = null; // Since it's often in a modal
 }
 
-<h1>Chi tiết đơn hàng</h1>
+<div class="order-details-premium p-1">
+    <!-- Header Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <h6 class="text-uppercase text-muted fw-bold small mb-2">Thông tin đơn hàng</h6>
+            <h4 class="fw-bold mb-1">Mã đơn: #@Model.OrderID</h4>
+            <p class="text-muted small">Ngày đặt: @Model.OrderDate?.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="mb-2">
+                <span class="badge @(Model.PaymentStatus == "Paid" ? "bg-success" : "bg-warning text-dark") rounded-pill px-3 py-2">
+                    <i class="fas fa-credit-card me-1"></i> @Model.PaymentStatus
+                </span>
+            </div>
+            <div>
+                <span class="badge @(Model.ShippingStatus == "Pending" ? "bg-warning text-dark" : "bg-dark") rounded-pill px-3 py-2">
+                    <i class="fas fa-truck me-1"></i> @Model.ShippingStatus
+                </span>
+            </div>
+        </div>
+    </div>
 
-<div>
-    <h4>Đơn hàng</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerID)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerID)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StaffID)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StaffID)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.VoucherID)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.VoucherID)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.OrderDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.OrderDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalAmount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TotalAmount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PaymentMethod)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PaymentMethod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PaymentStatus)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PaymentStatus)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ShippingStatus)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ShippingStatus)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ShippingAddress)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ShippingAddress)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Note)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Note)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.OrderID">Chỉnh sửa</a> |
-    <a asp-action="Index">Quay lại danh sách</a>
+    <!-- Info Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 50px; height: 50px; color: #81c408;">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Địa chỉ giao hàng</h6>
+                    <p class="text-muted small mb-0">@Model.ShippingAddress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 50px; height: 50px; color: #81c408;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Phương thức thanh toán</h6>
+                    <p class="text-muted small mb-0">@Model.PaymentMethod</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light rounded-4 h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 50px; height: 50px; color: #81c408;">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Ghi chú</h6>
+                    <p class="text-muted small mb-0">@(string.IsNullOrEmpty(Model.Note) ? "Không có ghi chú" : Model.Note)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <h6 class="text-uppercase text-muted fw-bold small mb-3">Sản phẩm đã chọn</h6>
+    <div class="table-responsive mb-4">
+        <table class="table align-middle border-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="border-0 rounded-start-3 ps-3">Sản phẩm</th>
+                    <th class="border-0 text-center">Số lượng</th>
+                    <th class="border-0 text-end pe-3 rounded-end-3">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.OrderItems != null && Model.OrderItems.Any())
+                {
+                    foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td class="ps-3 py-3 border-bottom border-light">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-3 border overflow-hidden me-3 shadow-sm" style="width: 60px; height: 60px;">
+                                        <img src="@(string.IsNullOrEmpty(item.ProductImage) ? "/img/no-image.png" : item.ProductImage)" 
+                                             class="w-100 h-100 object-fit-cover" 
+                                             alt="@item.ProductName">
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">@item.ProductName</div>
+                                        <div class="text-muted small">ID: @item.ProductID</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center py-3 border-bottom border-light fw-bold">
+                                x @item.Quantity
+                            </td>
+                            <td class="text-end pe-3 py-3 border-bottom border-light fw-bold">
+                                @((item.Quantity * item.UnitPrice)?.ToString("N0")) <small>VND</small>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted">Không tìm thấy thông tin sản phẩm.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Summary -->
+    <div class="bg-dark text-white rounded-4 p-4 shadow-lg">
+        <div class="row align-items-center">
+            <div class="col-8">
+                <h5 class="mb-0 fw-bold">Tổng số tiền thanh toán</h5>
+                <p class="text-white-50 small mb-0">Đã bao gồm phí vận chuyển và thuế (nếu có)</p>
+            </div>
+            <div class="col-4 text-end">
+                <h3 class="mb-0 fw-bold text-primary">@Model.TotalAmount?.ToString("N0") <span class="fs-6">VND</span></h3>
+            </div>
+        </div>
+    </div>
 </div>

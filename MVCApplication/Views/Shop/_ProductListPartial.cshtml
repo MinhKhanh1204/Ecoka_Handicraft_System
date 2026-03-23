@@ -1,71 +1,198 @@
 @using MVCApplication.CustomFormatter
 @model PagedResult<ProductDto>
-<div class="row g-4 justify-content-center">
-	@foreach (var item in Model.Items)
-	{
-		<div class="col-md-6 col-lg-6 col-xl-4">
-			<div class="border border-secondary rounded position-relative fruite-item">
-				<div class="fruite-img">
-					<img src="@item.MainImage" class="img-fluid w-100 rounded-top" alt="">
-				</div>
-				<div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">@item.CategoryName</div>
-                <div class="p-4 rounded-bottom text-center">
-                    <a href="/Shop/Detail/@item.ProductID" class="text-decoration-none">
-                        <h4 class="mb-2">@item.ProductName</h4>
+<style>
+    .product-card-premium {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid rgba(0,0,0,0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .product-card-premium:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: #81c408;
+    }
+
+    .product-img-wrapper {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+    }
+
+    .product-img-wrapper img {
+        transition: transform 0.6s ease;
+        object-fit: cover;
+    }
+
+    .product-card-premium:hover .product-img-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .category-badge-pill {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(129, 196, 8, 0.9);
+        backdrop-filter: blur(5px);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        z-index: 10;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .product-info-premium {
+        padding: 25px;
+        text-align: center;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .product-name-link {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #333;
+        margin-bottom: 12px;
+        display: block;
+        transition: color 0.3s ease;
+    }
+
+    .product-name-link:hover {
+        color: #81c408;
+    }
+
+    .price-container {
+        margin-top: auto;
+    }
+
+    .price-original {
+        color: #adb5bd;
+        text-decoration: line-through;
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .price-final {
+        color: #333;
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    /* Modern Pagination */
+    .pagination-modern {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 50px;
+    }
+
+    .pagination-link {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #fff;
+        color: #495057;
+        text-decoration: none !important;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+    }
+
+    .pagination-link:hover:not(.disabled) {
+        border-color: #81c408;
+        color: #81c408;
+        background: #f1f8e9;
+        transform: translateY(-2px);
+    }
+
+    .pagination-link.active {
+        background: #81c408;
+        color: #fff;
+        border-color: #81c408;
+        box-shadow: 0 4px 12px rgba(129, 196, 8, 0.3);
+    }
+
+    .pagination-link.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="row g-4">
+    @foreach (var item in Model.Items)
+    {
+        <div class="col-md-6 col-lg-6 col-xl-4">
+            <div class="product-card-premium">
+                <div class="product-img-wrapper">
+                    <img src="@item.MainImage" class="img-fluid w-100" alt="@item.ProductName">
+                    <div class="category-badge-pill">@item.CategoryName</div>
+                </div>
+                
+                <div class="product-info-premium">
+                    <a href="/Shop/Detail/@item.ProductID" class="product-name-link text-decoration-none">
+                        @item.ProductName
                     </a>
 
-                    <div class="d-flex flex-column align-items-center">
-                        <del class="text-muted mb-1">
-                            @if (item.OriginalPrice != item.FinalPrice)
-                            {
-                                @item.OriginalPrice.ToString("N0")
-                            }
-                        </del>
-
-                        <p class="text-dark fs-5 fw-bold mb-0">
-                            @item.FinalPrice.ToString("N0") VND
-                        </p>
+                    <div class="price-container">
+                        @if (item.OriginalPrice != item.FinalPrice)
+                        {
+                            <span class="price-original">@item.OriginalPrice.ToString("N0") ₫</span>
+                        }
+                        <span class="price-final">@item.FinalPrice.ToString("N0") <small>₫</small></span>
                     </div>
                 </div>
-			</div>
-		</div>
-	}
+            </div>
+        </div>
+    }
+    
     <div class="col-12">
-        <div class="pagination d-flex justify-content-center mt-5">
-
+        <div class="pagination-modern">
             <!-- Previous -->
             @if (Model.HasPreviousPage)
             {
-                <a href="javascript:void(0)" onclick="loadProducts(@(Model.PageNumber - 1))" class="rounded">&laquo;</a>
+                <a href="javascript:void(0)" onclick="loadProducts(@(Model.PageNumber - 1))" class="pagination-link">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
             }
             else
             {
-                <a class="rounded disabled">&laquo;</a>
+                <a class="pagination-link disabled"><i class="fas fa-chevron-left"></i></a>
             }
 
             <!-- Page numbers -->
             @for (int i = 1; i <= Model.TotalPages; i++)
             {
-                if (i == Model.PageNumber)
-                {
-                    <a class="active rounded">@i</a>
-                }
-                else
-                {
-                    <a href="javascript:void(0)" onclick="loadProducts(@i)" class="rounded">@i</a>
-                }
+                <a href="javascript:void(0)" onclick="loadProducts(@i)" class="pagination-link @(i == Model.PageNumber ? "active" : "")">
+                    @i
+                </a>
             }
 
             <!-- Next -->
             @if (Model.HasNextPage)
             {
-                <a href="javascript:void(0)" onclick="loadProducts(@(Model.PageNumber + 1))" class="rounded">&raquo;</a>
+                <a href="javascript:void(0)" onclick="loadProducts(@(Model.PageNumber + 1))" class="pagination-link">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
             }
             else
             {
-                <a class="rounded disabled">&raquo;</a>
+                <a class="pagination-link disabled"><i class="fas fa-chevron-right"></i></a>
             }
-
         </div>
     </div>
-</div>
+</div>

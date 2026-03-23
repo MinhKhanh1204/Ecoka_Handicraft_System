@@ -4,166 +4,406 @@
 }
 @model ProductDetailResponseDto
 
-<!-- Single Page Header start -->
-<div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Chi tiết sản phẩm</h1>
-    <ol class="breadcrumb justify-content-center mb-0">
-        <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="/Shop">Cửa hàng</a></li>
-        <li class="breadcrumb-item active text-white">Chi tiết sản phẩm</li>
-    </ol>
-</div>
-<!-- Single Page Header End -->
-<!-- Single Product Start -->
-<div class="container-fluid py-5 mt-5">
-    <div class="container py-5">
-        <div class="row g-4 mb-5">
-            <div class="col-lg-12 col-xl-12">
-                <div class="row g-4">
+@section Styles {
+    <style>
+        :root {
+            --primary-green: #81c408;
+            --dark-green: #6ea807;
+            --soft-bg: #f8f9fa;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+        }
 
-                    <!-- IMAGE -->
-                    <div class="col-lg-6">
-                        <div class="border rounded">
-                            <img src="@Model.MainImage" class="img-fluid rounded" />
+        .product-detail-premium {
+            background-color: #fff;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Hero Header Matching */
+        .page-header {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/sliders/banner.png');
+            background-size: cover;
+            background-position: center;
+            padding: 90px 0 60px !important;
+            margin-bottom: 60px;
+        }
+        .page-header h1 {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        /* Product Gallery Resizing */
+        .gallery-container {
+            position: sticky;
+            top: 120px;
+            padding: 0 40px; /* More padding to make it smaller */
+        }
+        .main-img-wrapper {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            background: #fff;
+            max-width: 480px; /* Limit size */
+            margin: 0 auto;
+            transition: transform 0.4s ease;
+        }
+        .main-img-wrapper:hover {
+            transform: scale(1.02);
+        }
+        .main-img-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Product Info */
+        .product-info-premium {
+            padding-left: 30px;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(129, 196, 8, 0.1);
+            color: var(--primary-green);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .product-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+        .rating-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .rating-summary i {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+        .rating-summary i.text-warning {
+            color: #fbbf24 !important;
+        }
+
+        /* Price Section */
+        .price-section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .current-price {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+        .old-price {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            margin-left: 15px;
+        }
+
+        /* Buy Box */
+        .buy-box-premium {
+            background: var(--soft-bg);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        .qty-selector {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            padding: 5px;
+            width: fit-content;
+        }
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+        .qty-btn:hover {
+            background: #f8f9fa;
+            color: var(--primary-green);
+        }
+        .qty-input {
+            width: 60px;
+            border: none;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            background: transparent;
+        }
+        .btn-add-cart-premium {
+            flex: 1;
+            background: var(--primary-green);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0 30px;
+            height: 52px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(129, 196, 8, 0.2);
+        }
+        .btn-add-cart-premium:hover {
+            background: var(--dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(129, 196, 8, 0.3);
+            color: #fff;
+        }
+
+        /* Tabs */
+        .tabs-premium {
+            border: none;
+            gap: 40px;
+            margin-bottom: 40px !important;
+        }
+        .tabs-premium .nav-link {
+            border: none;
+            background: none;
+            padding: 0 0 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            position: relative;
+            font-size: 1.1rem;
+        }
+        .tabs-premium .nav-link.active {
+            color: var(--text-main);
+        }
+        .tabs-premium .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary-green);
+            border-radius: 3px;
+        }
+
+        /* feedback list */
+        .feedback-item {
+            padding: 30px;
+            border-radius: 20px;
+            background: #fff;
+            border: 1px solid #f1f3f5;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .feedback-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .feedback-avatar {
+            width: 50px;
+            height: 50px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary-green);
+            font-size: 1.2rem;
+        }
+        
+        .feedback-form-premium {
+            background: var(--soft-bg);
+            padding: 40px;
+            border-radius: 24px;
+            margin-top: 60px;
+        }
+
+        @@media (max-width: 991px) {
+            .product-info-premium { padding-left: 0; margin-top: 40px; }
+            .product-title { font-size: 2rem; }
+        }
+    </style>
+}
+
+<div class="product-detail-premium">
+    <!-- Header -->
+    <div class="container-fluid page-header">
+        <div class="container text-center">
+            <h1 class="display-6 mb-3">Thông tin sản phẩm</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="/Shop">Cửa hàng</a></li>
+                    <li class="breadcrumb-item active text-white">@Model.ProductName</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row g-5">
+            <!-- Left: Gallery -->
+            <div class="col-lg-6">
+                <div class="gallery-container">
+                    <div class="main-img-wrapper">
+                        <img src="@Model.MainImage" alt="@Model.ProductName" class="img-fluid" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Info -->
+            <div class="col-lg-6">
+                <div class="product-info-premium">
+                    <span class="category-badge">@Model.Category.CategoryName</span>
+                    <h1 class="product-title">@Model.ProductName</h1>
+                    
+                    <div class="rating-summary" id="avg-rating">
+                        <div class="stars d-flex gap-1">
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <span class="text-muted small" id="review-count">(0 đánh giá)</span>
+                    </div>
+
+                    <div class="price-section">
+                        <div class="d-flex align-items-center">
+                            <span class="current-price">@Model.FinalPrice.ToString("N0")<small class="fs-6 ms-1">VND</small></span>
+                            @if (Model.Price != Model.FinalPrice)
+                            {
+                                <span class="old-price">@Model.Price.ToString("N0")</span>
+                            }
+                        </div>
+                        <div class="mt-2">
+                             <span class="badge @(Model.StockQuantity > 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") border border-success-subtle px-3">
+                                <i class="fas fa-box-open me-1"></i>
+                                Còn <span id="stockLabel">@Model.StockQuantity</span> sản phẩm
+                            </span>
                         </div>
                     </div>
 
-                    <!-- INFO -->
-                    <div class="col-lg-6">
-                        <h4 class="fw-bold mb-3">@Model.ProductName</h4>
-                        <p class="mb-3">Danh mục: @Model.Category.CategoryName</p>
-                        <del>
-                            @if (Model.Price != Model.FinalPrice)
-                            {
-                                @Model.Price.ToString("N0")
-                            }
-                        </del>
-                        <h5 class="fw-bold mb-3">
-                            @Model.FinalPrice.ToString("N0") VND
-                        </h5>
+                    <p class="text-muted lh-lg mb-4">
+                        @Model.Description
+                    </p>
 
-                        <!-- Nút Cart -->
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <!-- Quantity Spinner -->
-                            <div class="input-group" style="width: 140px;">
-                                <button class="btn btn-outline-secondary" type="button" id="btnQtyMinus">−</button>
-                                <input type="text" id="inputQty"
-                                       class="form-control text-center"
-                                       value="1"
-                                       style="width: 50px;" />
-                                <button class="btn btn-outline-secondary" type="button" id="btnQtyPlus">+</button>
+                    <div class="buy-box-premium">
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <div class="qty-selector">
+                                <button class="qty-btn" type="button" id="btnQtyMinus"><i class="fas fa-minus small"></i></button>
+                                <input type="text" id="inputQty" class="qty-input" value="1" readonly />
+                                <button class="qty-btn" type="button" id="btnQtyPlus"><i class="fas fa-plus small"></i></button>
                             </div>
-
+                            
                             <button id="btnAddToCart"
                                     data-productid="@Model.ProductId"
                                     data-stock="@Model.StockQuantity"
-                                    class="btn btn-primary">
-                                <i class="fa fa-cart-plus me-1"></i> Thêm vào giỏ hàng
+                                    class="btn-add-cart-premium">
+                                <i class="fas fa-shopping-basket"></i> Thêm vào giỏ hàng
                             </button>
                         </div>
-                        <small class="text-muted">Còn <span id="stockLabel">@Model.StockQuantity</span> sản phẩm trong kho</small>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Average Rating -->
-                        <div class="d-flex mb-4" id="avg-rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <span class="ms-2 text-muted" id="review-count"></span>
+            <!-- Bottom: Tabs & Reviews -->
+            <div class="col-lg-12 pt-5">
+                <nav>
+                    <div class="nav nav-tabs tabs-premium" id="productTab" role="tablist">
+                        <button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#nav-about" type="button" role="tab">Mô tả chi tiết</button>
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#nav-reviews" type="button" role="tab">Đánh giá khách hàng <span id="tab-review-count">(0)</span></button>
+                    </div>
+                </nav>
+
+                <div class="tab-content pt-4" id="nav-tabContent">
+                    <!-- Description -->
+                    <div class="tab-pane fade show active" id="nav-about" role="tabpanel">
+                        <div class="lh-lg text-muted">
+                            @Model.Description
                         </div>
-
-                        <p class="mb-4">@Model.Description</p>
                     </div>
 
-                    <!-- TABS -->
-                    <div class="col-lg-12">
-                        <nav>
-                            <div class="nav nav-tabs mb-3">
-                                <button class="nav-link active"
-                                        data-bs-toggle="tab"
-                                        data-bs-target="#nav-about">
-                                    Mô tả
-                                </button>
-
-                                <button class="nav-link"
-                                        data-bs-toggle="tab"
-                                        data-bs-target="#nav-reviews">
-                                    Đánh giá <span id="tab-review-count"></span>
-                                </button>
+                    <!-- Reviews -->
+                    <div class="tab-pane fade" id="nav-reviews" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-5">
+                            <h4 class="fw-bold mb-0">Cảm nhận từ khách hàng</h4>
+                            <div class="d-flex gap-2">
+                                <select id="filterRating" class="form-select form-select-sm border-0 bg-light px-3" style="border-radius: 10px; width: 160px;">
+                                    <option value="">Tất cả sao</option>
+                                    <option value="5">Excellent (5★)</option>
+                                    <option value="4">Great (4+★)</option>
+                                    <option value="3">Good (3+★)</option>
+                                </select>
+                                <button class="btn btn-dark btn-sm px-4" style="border-radius: 10px;" onclick="filterFeedbacks()">Lọc</button>
                             </div>
-                        </nav>
+                        </div>
 
-                        <div class="tab-content mb-5">
-                            <!-- DESCRIPTION -->
-                            <div class="tab-pane fade show active" id="nav-about">
-                                <p>@Model.Description</p>
+                        <div id="feedback-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-grow text-success" role="status"></div>
                             </div>
-                            <!-- REVIEWS -->
-                            <div class="tab-pane fade" id="nav-reviews">
-                                <!-- FILTER -->
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <select id="filterRating" class="form-select">
-                                            <option value="">Tất cả đánh giá</option>
-                                            <option value="5">5 sao</option>
-                                            <option value="4">4+ sao</option>
-                                            <option value="3">3+ sao</option>
-                                        </select>
+                        </div>
+
+                        <!-- Feedback Form -->
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <div class="feedback-form-premium">
+                                <h4 class="fw-bold mb-4">Chia sẻ trải nghiệm của bạn</h4>
+                                <div class="row g-4">
+                                    <div class="col-12">
+                                        <div id="star-rating" class="d-flex gap-2 mb-3" style="cursor:pointer; font-size: 24px;">
+                                            <i class="far fa-star text-muted" data-value="1"></i>
+                                            <i class="far fa-star text-muted" data-value="2"></i>
+                                            <i class="far fa-star text-muted" data-value="3"></i>
+                                            <i class="far fa-star text-muted" data-value="4"></i>
+                                            <i class="far fa-star text-muted" data-value="5"></i>
+                                        </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <button class="btn btn-success"
-                                                onclick="filterFeedbacks()">
-                                            Lọc
-                                        </button>
+                                    <div class="col-12">
+                                        <textarea id="feedbackComment" class="form-control border-0 p-4" rows="5" placeholder="Bạn cảm thấy sản phẩm này thế nào? Chia sẻ cùng Ecoka nhé..." style="border-radius: 20px;"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small text-muted mb-2">Đính kèm hình ảnh thực tế</label>
+                                        <input type="file" id="feedbackImages" class="form-control" multiple accept="image/*" onchange="previewImages()" style="border-radius: 12px;">
+                                        <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button id="btnSubmitFeedback" class="btn btn-dark btn-lg px-5 py-3" style="border-radius: 16px; font-weight: 700;">Gửi đánh giá <i class="fas fa-paper-plane ms-2"></i></button>
                                     </div>
                                 </div>
-                                <!-- LIST -->
-                                <div id="feedback-list">
-                                    <div class="text-center py-3">
-                                        <div class="spinner-border text-dark"></div>
-                                    </div>
-                                </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="alert bg-light border-0 text-center p-5 mt-5" style="border-radius: 24px;">
+                                <i class="fas fa-lock text-muted mb-3 d-block fs-1"></i>
+                                <p class="text-muted mb-4">Vui lòng đăng nhập để có thể để lại đánh giá về sản phẩm.</p>
+                                <a href="/Account/Login" class="btn btn-primary px-5 py-2 fw-bold" style="border-radius: 12px;">Đăng nhập ngay</a>
+                            </div>
+                        }
                     </div>
-
-                    <!-- FORM: chỉ hiện khi đã đăng nhập -->
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                    <div class="col-lg-12">
-                        <h4 class="mb-4 fw-bold">Để lại đánh giá</h4>
-<textarea id="feedbackComment"
-          class="form-control mb-3"
-          rows="4"
-          placeholder="Bình luận của bạn">
-</textarea>
-                        <div id="star-rating" style="cursor:pointer; font-size:18px;">
-                            <i class="fa fa-star" data-value="1"></i>
-                            <i class="fa fa-star" data-value="2"></i>
-                            <i class="fa fa-star" data-value="3"></i>
-                            <i class="fa fa-star" data-value="4"></i>
-                            <i class="fa fa-star" data-value="5"></i>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <label for="feedbackImages" class="form-label fw-bold">Đính kèm ảnh (Tùy chọn)</label>
-                            <input type="file" id="feedbackImages" class="form-control" multiple accept="image/*" onchange="previewImages()">
-                            <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
-                        </div>
-
-                        <button id="btnSubmitFeedback"
-                                class="btn btn-primary mt-3">
-                            Đăng bình luận
-                        </button>
-                    </div>
-                    }
-                    else
-                    {
-                    <div class="col-lg-12">
-                        <p class="text-muted">Vui lòng <a href="/Account/Login">đăng nhập</a> để để lại đánh giá.</p>
-                    </div>
-                    }
                 </div>
             </div>
         </div>
@@ -275,40 +515,45 @@
         function renderFeedbacks(feedbacks) {
             if (!feedbacks.length) {
                 document.getElementById('feedback-list').innerHTML =
-                    '<p class="text-muted">Chưa có đánh giá nào.</p>';
+                    '<div class="text-center py-5 opacity-50"><i class="fas fa-comment-slash fs-1 d-block mb-3"></i> Chưa có đánh giá nào cho sản phẩm này.</div>';
                 return;
             }
             let html = '';
             feedbacks.forEach(fb => {
-                const date = new Date(fb.createdAt)
-                    .toLocaleDateString('en-US');
+                const date = new Date(fb.createdAt).toLocaleDateString('vi-VN', { year:'numeric', month:'long', day:'numeric'});
                 let stars = '';
                 for (let i = 1; i <= 5; i++) {
-                    stars += `<i class="fa fa-star ${i <= fb.rating ? 'text-warning' : ''}"></i>`;
+                    stars += `<i class="fa fa-star ${i <= fb.rating ? 'text-warning' : 'text-muted opacity-25'}" style="font-size: 0.8rem;"></i>`;
                 }
                 let imagesHtml = '';
                 if (fb.imageUrls && fb.imageUrls.length > 0) {
-                    imagesHtml = '<div class="d-flex flex-wrap gap-2 mt-2">';
+                    imagesHtml = '<div class="d-flex flex-wrap gap-2 mt-3">';
                     fb.imageUrls.forEach(url => {
-                        imagesHtml += `<img src="${url}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;" onclick="window.open('${url}', '_blank')">`;
+                        imagesHtml += `<img src="${url}" class="rounded shadow-sm" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="window.open('${url}', '_blank')">`;
                     });
                     imagesHtml += '</div>';
                 }
 
                 html += `
-                <div class="border-bottom mb-3 pb-3">
-                    <div class="d-flex justify-content-between">
-                        <strong>${fb.username || fb.customerID}</strong>
-                        <div>${stars}</div>
+                <div class="feedback-item">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="feedback-avatar text-uppercase">${(fb.username || fb.customerID || '?').substring(0,1)}</div>
+                            <div>
+                                <h6 class="fw-bold mb-0">${fb.username || fb.customerID}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">${date}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">${stars}</div>
                     </div>
-                    <p class="mb-1">${fb.comment || ''}</p>
+                    <p class="mb-0 text-muted lh-base">${fb.comment || ''}</p>
                     ${imagesHtml}
-                    <div class="mt-2">
+                    <div class="mt-3 text-end">
                         ${fb.customerID == currentUserId ? `
-                            <button class="btn btn-sm btn-warning me-2"
-                                onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Sửa</button>
-                            <button class="btn btn-sm btn-danger"
-                                onclick="deleteFeedback(${fb.feedbackID})">Xóa</button>
+                            <button class="btn btn-link text-warning p-0 me-3 text-decoration-none small fw-bold"
+                                onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)"><i class="fas fa-edit me-1"></i>Sửa</button>
+                            <button class="btn btn-link text-danger p-0 text-decoration-none small fw-bold"
+                                onclick="deleteFeedback(${fb.feedbackID})"><i class="fas fa-trash-alt me-1"></i>Xóa</button>
                         ` : ''}
                     </div>
                 </div>`;
@@ -358,10 +603,15 @@
             editingId = id;
             selectedRating = rating;
             document.getElementById('feedbackComment').value = comment;
-            document.querySelectorAll('#star-rating .fa-star')
+            document.querySelectorAll('#star-rating i')
                 .forEach((s, idx) => {
-                    s.classList.toggle('text-warning',
-                        idx < rating);
+                    if (idx < rating) {
+                        s.classList.remove('far', 'text-muted');
+                        s.classList.add('fas', 'text-warning');
+                    } else {
+                        s.classList.remove('fas', 'text-warning');
+                        s.classList.add('far', 'text-muted');
+                    }
                 });
             window.scrollTo({
                 top: document.body.scrollHeight,
@@ -369,15 +619,20 @@
             });
         }
 
-        document.querySelectorAll('#star-rating .fa-star')
+        document.querySelectorAll('#star-rating i')
             .forEach(star => {
                 star.addEventListener('click', function () {
                     selectedRating =
                         parseInt(this.dataset.value);
-                    document.querySelectorAll('#star-rating .fa-star')
+                    document.querySelectorAll('#star-rating i')
                         .forEach((s, idx) => {
-                            s.classList.toggle('text-warning',
-                                idx < selectedRating);
+                            if (idx < selectedRating) {
+                                s.classList.remove('far', 'text-muted');
+                                s.classList.add('fas', 'text-warning');
+                            } else {
+                                s.classList.remove('fas', 'text-warning');
+                                s.classList.add('far', 'text-muted');
+                            }
                         });
                 });
             });
@@ -478,8 +733,11 @@
                     document.getElementById('feedbackImages').value = '';
                     document.getElementById('imagePreview').innerHTML = '';
                     selectedRating = 0;
-                    document.querySelectorAll('#star-rating .fa-star')
-                        .forEach(s => s.classList.remove('text-warning'));
+                    document.querySelectorAll('#star-rating i')
+                        .forEach(s => {
+                            s.classList.remove('fas', 'text-warning');
+                            s.classList.add('far', 'text-muted');
+                        });
                     loadFeedbacks();
                     toastr.success('Phản hồi của bạn đã được đăng thành công!');
                 } catch (e) {
