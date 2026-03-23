@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace FeedbackAPI.Services.Implements
 {
@@ -21,6 +21,7 @@ namespace FeedbackAPI.Services.Implements
                 // Try several likely endpoints; adjust to your real account API routes if needed
                 var candidates = new[]
                 {
+                    $"admin/customers/{Uri.EscapeDataString(customerId)}",
                     $"auth/profile/{Uri.EscapeDataString(customerId)}",
                     $"auth/accounts/{Uri.EscapeDataString(customerId)}",
                     $"accounts/{Uri.EscapeDataString(customerId)}",
@@ -44,13 +45,22 @@ namespace FeedbackAPI.Services.Implements
 
                             if (root.ValueKind == JsonValueKind.Object)
                             {
-                                if (root.TryGetProperty("username", out var usernameProp) && usernameProp.ValueKind == JsonValueKind.String)
-                                    return usernameProp.GetString();
+                                if (root.TryGetProperty("username", out var u1) && u1.ValueKind == JsonValueKind.String)
+                                    return u1.GetString();
+                                
+                                if (root.TryGetProperty("Username", out var u1_2) && u1_2.ValueKind == JsonValueKind.String)
+                                    return u1_2.GetString();
 
-                                if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object)
+                                JsonElement data = default;
+                                bool hasData = root.TryGetProperty("data", out data) || root.TryGetProperty("Data", out data);
+
+                                if (hasData && data.ValueKind == JsonValueKind.Object)
                                 {
                                     if (data.TryGetProperty("username", out var u2) && u2.ValueKind == JsonValueKind.String)
                                         return u2.GetString();
+                                    
+                                    if (data.TryGetProperty("Username", out var u2_2) && u2_2.ValueKind == JsonValueKind.String)
+                                        return u2_2.GetString();
                                 }
                             }
                             else if (root.ValueKind == JsonValueKind.String)
