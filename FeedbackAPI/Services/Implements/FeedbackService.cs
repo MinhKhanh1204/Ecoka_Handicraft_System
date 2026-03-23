@@ -79,14 +79,14 @@ namespace FeedbackAPI.Services.Implements
 
             if (existed)
             {
-                throw new Exception("You have already reviewed this product.");
+                throw new Exception("Quý khách đã để lại đánh giá cho sản phẩm này rồi ạ! 😊");
             }
 
             // Check if purchased
             var hasPurchased = await _orderService.HasPurchasedAsync(dto.ProductID);
             if (!hasPurchased)
             {
-                throw new Exception("You must purchase this product before leaving a review.");
+                throw new Exception("Quý khách cần mua sản phẩm này mới có thể để lại đánh giá nhé! 😊");
             }
 
             var entity = _mapper.Map<Feedback>(dto);

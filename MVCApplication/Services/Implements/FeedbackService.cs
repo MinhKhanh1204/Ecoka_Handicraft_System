@@ -83,7 +83,10 @@ namespace MVCApplication.Services.Implements
             }
 
             var response = await _http.PostAsync("/feedbacks", content);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                await HandleError(response);
+            }
             return await response.Content.ReadFromJsonAsync<Feedback>()
                    ?? throw new InvalidOperationException("Feedback creation returned null response");
         }
@@ -114,7 +117,10 @@ namespace MVCApplication.Services.Implements
             var response = await _http.PutAsync($"/feedbacks/{feedbackId}", content);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return null;
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                await HandleError(response);
+            }
             return await response.Content.ReadFromJsonAsync<Feedback>();
         }
 
@@ -123,5 +129,24 @@ namespace MVCApplication.Services.Implements
             var response = await _http.DeleteAsync($"/feedbacks/{feedbackId}");
             return response.IsSuccessStatusCode;
         }
+
+        private async Task HandleError(HttpResponseMessage response)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var errorObj = System.Text.Json.JsonSerializer.Deserialize<ApiError>(errorContent, options);
+                if (errorObj != null && !string.IsNullOrEmpty(errorObj.Message))
+                {
+                    throw new Exception(errorObj.Message);
+                }
+            }
+            catch (Exception ex) when (ex is not Exception) { /* skip */ }
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        private class ApiError { public string? Message { get; set; } }
     }
 }
