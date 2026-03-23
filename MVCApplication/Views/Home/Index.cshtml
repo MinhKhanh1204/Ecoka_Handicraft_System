@@ -1,8 +1,8 @@
-﻿@model List<MVCApplication.Models.DTOs.ProductDto>
+@model List<MVCApplication.Models.DTOs.ProductDto>
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 <style>
     .hero-header {
@@ -206,12 +206,12 @@
 
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon rounded-circle p-3 bg-dark bg-opacity-50" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
+                        <span class="visually-hidden">Trước</span>
                     </button>
-
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselId" data-bs-slide="next">
-                        <span class="carousel-control-next-icon rounded-circle p-3 bg-dark bg-opacity-50" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+ 
+                     <button class="carousel-control-next" type="button" data-bs-target="#carouselId" data-bs-slide="next">
+                         <span class="carousel-control-next-icon rounded-circle p-3 bg-dark bg-opacity-50" aria-hidden="true"></span>
+                         <span class="visually-hidden">Tiếp</span>
                     </button>
                 </div>
             </div>
@@ -229,8 +229,8 @@
                         <i class="fas fa-car-side fa-3x text-white"></i>
                     </div>
                     <div class="featurs-content text-center">
-                        <h5>Free Shipping</h5>
-                        <p class="mb-0">Free on order over $300</p>
+                        <h5>Miễn phí vận chuyển</h5>
+                        <p class="mb-0">Dành cho đơn hàng trên 3.000.000đ</p>
                     </div>
                 </div>
             </div>
@@ -240,8 +240,8 @@
                         <i class="fas fa-user-shield fa-3x text-white"></i>
                     </div>
                     <div class="featurs-content text-center">
-                        <h5>Security Payment</h5>
-                        <p class="mb-0">100% security payment</p>
+                        <h5>Thanh toán bảo mật</h5>
+                        <p class="mb-0">An toàn tuyệt đối 100%</p>
                     </div>
                 </div>
             </div>
@@ -251,8 +251,8 @@
                         <i class="fas fa-exchange-alt fa-3x text-white"></i>
                     </div>
                     <div class="featurs-content text-center">
-                        <h5>30 Day Return</h5>
-                        <p class="mb-0">30 day money guarantee</p>
+                        <h5>Đổi trả 30 ngày</h5>
+                        <p class="mb-0">Đảm bảo hoàn tiền trong 30 ngày</p>
                     </div>
                 </div>
             </div>
@@ -262,8 +262,8 @@
                         <i class="fa fa-phone-alt fa-3x text-white"></i>
                     </div>
                     <div class="featurs-content text-center">
-                        <h5>24/7 Support</h5>
-                        <p class="mb-0">Support every time fast</p>
+                        <h5>Hỗ trợ 24/7</h5>
+                        <p class="mb-0">Luôn sẵn sàng hỗ trợ bạn</p>
                     </div>
                 </div>
             </div>
@@ -275,7 +275,7 @@
 <div class="container-fluid vesitable py-5">
     <div class="container py-5">
         <div class="text-center mx-auto mb-5" style="max-width: 800px;">
-            <h5 class="text-primary text-uppercase">Featured Products</h5>
+            <h5 class="text-primary text-uppercase">Danh mục nổi bật</h5>
             <h1 class="mb-3">Sản phẩm khuyến mại</h1>
             <p class="text-muted mb-0">
                 Khám phá các sản phẩm nổi bật đang được quan tâm nhất.
@@ -300,7 +300,7 @@
 
                             <div class="text-white bg-primary px-3 py-1 rounded position-absolute"
                                  style="top: 10px; left: 10px;">
-                                @(string.IsNullOrWhiteSpace(p.CategoryName) ? "Product" : p.CategoryName)
+                                @(string.IsNullOrWhiteSpace(p.CategoryName) ? "Sản phẩm" : p.CategoryName)
                             </div>
 
                             @if (discountPct > 0)
@@ -405,28 +405,28 @@
                 <div class="col-md-6 col-lg-6 col-xl-3">
                     <div class="counter bg-white rounded p-5">
                         <i class="fa fa-users text-secondary"></i>
-                        <h4>satisfied customers</h4>
+                        <h4>Khách hàng hài lòng</h4>
                         <h1>1963</h1>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-6 col-xl-3">
                     <div class="counter bg-white rounded p-5">
                         <i class="fa fa-users text-secondary"></i>
-                        <h4>quality of service</h4>
+                        <h4>Chất lượng dịch vụ</h4>
                         <h1>99%</h1>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-6 col-xl-3">
                     <div class="counter bg-white rounded p-5">
                         <i class="fa fa-users text-secondary"></i>
-                        <h4>quality certificates</h4>
+                        <h4>Chứng chỉ chất lượng</h4>
                         <h1>33</h1>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-6 col-xl-3">
                     <div class="counter bg-white rounded p-5">
                         <i class="fa fa-users text-secondary"></i>
-                        <h4>Available Products</h4>
+                        <h4>Sản phẩm có sẵn</h4>
                         <h1>789</h1>
                     </div>
                 </div>
@@ -439,7 +439,7 @@
 <div class="container-fluid testimonial py-5">
     <div class="container py-5">
         <div class="testimonial-header text-center">
-            <h4 class="text-primary">Customer Feedback</h4>
+            <h4 class="text-primary">Ý kiến khách hàng</h4>
             <h1 class="display-5 mb-5 text-dark">Khách hàng nói gì?</h1>
         </div>
 

@@ -6,11 +6,11 @@
 
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Shop Detail</h1>
+    <h1 class="text-center text-white display-6">Chi tiết sản phẩm</h1>
     <ol class="breadcrumb justify-content-center mb-0">
-        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
-        <li class="breadcrumb-item"><a href="/Shop">Shop</a></li>
-        <li class="breadcrumb-item active text-white">Shop Detail</li>
+        <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="/Shop">Cửa hàng</a></li>
+        <li class="breadcrumb-item active text-white">Chi tiết sản phẩm</li>
     </ol>
 </div>
 <!-- Single Page Header End -->
@@ -31,7 +31,7 @@
                     <!-- INFO -->
                     <div class="col-lg-6">
                         <h4 class="fw-bold mb-3">@Model.ProductName</h4>
-                        <p class="mb-3">Category: @Model.Category.CategoryName</p>
+                        <p class="mb-3">Danh mục: @Model.Category.CategoryName</p>
                         <del>
                             @if (Model.Price != Model.FinalPrice)
                             {
@@ -58,7 +58,7 @@
                                     data-productid="@Model.ProductId"
                                     data-stock="@Model.StockQuantity"
                                     class="btn btn-primary">
-                                <i class="fa fa-cart-plus me-1"></i> Add to Cart
+                                <i class="fa fa-cart-plus me-1"></i> Thêm vào giỏ hàng
                             </button>
                         </div>
                         <small class="text-muted">Còn <span id="stockLabel">@Model.StockQuantity</span> sản phẩm trong kho</small>
@@ -83,13 +83,13 @@
                                 <button class="nav-link active"
                                         data-bs-toggle="tab"
                                         data-bs-target="#nav-about">
-                                    Description
+                                    Mô tả
                                 </button>
 
                                 <button class="nav-link"
                                         data-bs-toggle="tab"
                                         data-bs-target="#nav-reviews">
-                                    Reviews <span id="tab-review-count"></span>
+                                    Đánh giá <span id="tab-review-count"></span>
                                 </button>
                             </div>
                         </nav>
@@ -105,16 +105,16 @@
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <select id="filterRating" class="form-select">
-                                            <option value="">All Ratings</option>
-                                            <option value="5">5 stars</option>
-                                            <option value="4">4+ stars</option>
-                                            <option value="3">3+ stars</option>
+                                            <option value="">Tất cả đánh giá</option>
+                                            <option value="5">5 sao</option>
+                                            <option value="4">4+ sao</option>
+                                            <option value="3">3+ sao</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
                                         <button class="btn btn-success"
                                                 onclick="filterFeedbacks()">
-                                            Filter
+                                            Lọc
                                         </button>
                                     </div>
                                 </div>
@@ -132,11 +132,11 @@
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
                     <div class="col-lg-12">
-                        <h4 class="mb-4 fw-bold">Leave a Reply</h4>
+                        <h4 class="mb-4 fw-bold">Để lại đánh giá</h4>
 <textarea id="feedbackComment"
           class="form-control mb-3"
           rows="4"
-          placeholder="Your review">
+          placeholder="Bình luận của bạn">
 </textarea>
                         <div id="star-rating" style="cursor:pointer; font-size:18px;">
                             <i class="fa fa-star" data-value="1"></i>
@@ -147,21 +147,21 @@
                         </div>
                         
                         <div class="mt-3">
-                            <label for="feedbackImages" class="form-label fw-bold">Attach Photos (Optional)</label>
+                            <label for="feedbackImages" class="form-label fw-bold">Đính kèm ảnh (Tùy chọn)</label>
                             <input type="file" id="feedbackImages" class="form-control" multiple accept="image/*" onchange="previewImages()">
                             <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
 
                         <button id="btnSubmitFeedback"
                                 class="btn btn-primary mt-3">
-                            Post Comment
+                            Đăng bình luận
                         </button>
                     </div>
                     }
                     else
                     {
                     <div class="col-lg-12">
-                        <p class="text-muted">Please <a href="/Account/Login">login</a> to leave a review.</p>
+                        <p class="text-muted">Vui lòng <a href="/Account/Login">đăng nhập</a> để để lại đánh giá.</p>
                     </div>
                     }
                 </div>
@@ -237,7 +237,7 @@
                     toastr.success(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
                     
                     // Reset trạng thái nút thay vì chuyển trang
-                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
+                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Thêm vào giỏ hàng');
                     
                     // Reset ô input về 1 (tuỳ chọn)
                     $('#inputQty').val(1);
@@ -248,7 +248,7 @@
                     } else {
                         toastr.error('Thêm vào giỏ hàng thất bại!\n' + (xhr.responseText || ''));
                     }
-                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Add to Cart');
+                    btn.prop('disabled', false).html('<i class="fa fa-cart-plus me-1"></i> Thêm vào giỏ hàng');
                 }
             });
         });
@@ -268,14 +268,14 @@
             }
             catch {
                 document.getElementById('feedback-list').innerHTML =
-                    '<p class="text-danger">Failed to load reviews.</p>';
+                    '<p class="text-danger">Không thể tải đánh giá.</p>';
             }
         }
 
         function renderFeedbacks(feedbacks) {
             if (!feedbacks.length) {
                 document.getElementById('feedback-list').innerHTML =
-                    '<p class="text-muted">No reviews yet.</p>';
+                    '<p class="text-muted">Chưa có đánh giá nào.</p>';
                 return;
             }
             let html = '';
@@ -306,9 +306,9 @@
                     <div class="mt-2">
                         ${fb.customerID == currentUserId ? `
                             <button class="btn btn-sm btn-warning me-2"
-                                onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Edit</button>
+                                onclick="editFeedback(${fb.feedbackID}, ${fb.rating}, \`${fb.comment || ''}\`)">Sửa</button>
                             <button class="btn btn-sm btn-danger"
-                                onclick="deleteFeedback(${fb.feedbackID})">Delete</button>
+                                onclick="deleteFeedback(${fb.feedbackID})">Xóa</button>
                         ` : ''}
                     </div>
                 </div>`;
@@ -326,7 +326,7 @@
                         idx < Math.round(avg));
                 });
             document.getElementById('review-count')
-                .textContent = `(${feedbacks.length} reviews)`;
+                .textContent = `(${feedbacks.length} đánh giá)`;
             document.getElementById('tab-review-count')
                 .textContent = `(${feedbacks.length})`;
         }
@@ -338,16 +338,16 @@
         }
 
         async function deleteFeedback(id) {
-            if (!confirm("Delete this review?")) return;
+            if (!confirm("Xóa đánh giá này?")) return;
             try {
                 const res = await fetch(`/Feedback/Delete/${id}`, {
                     method: 'DELETE'
                 });
                 if(res.ok) {
-                    toastr.success("Review deleted successfully.");
+                    toastr.success("Xóa đánh giá thành công.");
                     loadFeedbacks();
                 } else {
-                    toastr.error("Failed to delete review.");
+                    toastr.error("Xóa đánh giá thất bại.");
                 }
             } catch (e) {
                 toastr.error("Err: " + e.message);
@@ -446,7 +446,7 @@
                 for (let i = 0; i < files.length; i++) {
                     if (files[i].size > maxSize) {
                         toastr.warning(`Ảnh "${files[i].name}" quá lớn (${(files[i].size / 1024 / 1024).toFixed(2)}MB). Vui lòng chọn ảnh dưới 10MB.`);
-                        btn.prop('disabled', false).text('Post Comment');
+                        btn.prop('disabled', false).text('Đăng bình luận');
                         return;
                     }
                     formData.append('Images', files[i]);
@@ -485,7 +485,7 @@
                 } catch (e) {
                     toastr.error('Lỗi: ' + e.message);
                 } finally {
-                    btn.prop('disabled', false).text('Post Comment');
+                    btn.prop('disabled', false).text('Đăng bình luận');
                 }
             });
 

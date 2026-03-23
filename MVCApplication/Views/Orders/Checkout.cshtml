@@ -135,11 +135,11 @@
 
 <!-- Single Page Header start -->
 <div class="container-fluid page-header py-5">
-    <h1 class="text-center text-white display-6">Checkout</h1>
+    <h1 class="text-center text-white display-6">Thanh toán</h1>
     <ol class="breadcrumb justify-content-center mb-0">
-        <li class="breadcrumb-item"><a href="/Home">Home</a></li>
-        <li class="breadcrumb-item"><a href="/Cart/View">Cart</a></li>
-        <li class="breadcrumb-item active text-white">Checkout</li>
+        <li class="breadcrumb-item"><a href="/Home">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="/Cart/View">Giỏ hàng</a></li>
+        <li class="breadcrumb-item active text-white">Thanh toán</li>
     </ol>
 </div>
 <!-- Single Page Header End -->
@@ -157,23 +157,23 @@
                 <!-- Left Column: Billing -->
                 <div class="col-lg-7">
                     <div class="checkout-card">
-                        <h4 class="section-title"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Shipping Details</h4>
+                        <h4 class="section-title"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Thông tin nhận hàng</h4>
                         
                         <div class="form-item mb-4">
-                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Full Shipping Address<sup>*</sup></label>
-                            <input type="text" name="ShippingAddress" class="form-control" placeholder="Building, Street Name, Ward, District, City" required>
+                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Địa chỉ nhận hàng đầy đủ<sup>*</sup></label>
+                            <input type="text" name="ShippingAddress" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh thành" required>
                         </div>
                         
                         <div class="form-item">
-                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Order Notes (Optional)</label>
-                            <textarea name="Note" class="form-control" spellcheck="false" rows="5" placeholder="Special instructions for delivery..."></textarea>
+                            <label class="form-label text-muted small text-uppercase fw-bold mb-2">Ghi chú đơn hàng (Tùy chọn)</label>
+                            <textarea name="Note" class="form-control" spellcheck="false" rows="5" placeholder="Lưu ý đặc biệt cho người giao hàng..."></textarea>
                         </div>
 
                         <div class="voucher-section mt-5">
-                            <h5 class="mb-3 fw-bold"><i class="fas fa-ticket-alt me-2 text-primary"></i>Have a Voucher?</h5>
+                            <h5 class="mb-3 fw-bold"><i class="fas fa-ticket-alt me-2 text-primary"></i>Bạn có mã giảm giá không?</h5>
                             <div class="input-group">
-                                <input type="text" id="txtVoucherCode" class="form-control border-0 bg-white" placeholder="Enter coupon code" style="border-radius: 10px 0 0 10px !important;">
-                                <button type="button" class="btn btn-primary px-4" onclick="applyVoucher()" style="border-radius: 0 10px 10px 0 !important;">Apply</button>
+                                <input type="text" id="txtVoucherCode" class="form-control border-0 bg-white" placeholder="Nhập mã ưu đãi" style="border-radius: 10px 0 0 10px !important;">
+                                <button type="button" class="btn btn-primary px-4" onclick="applyVoucher()" style="border-radius: 0 10px 10px 0 !important;">Áp dụng</button>
                             </div>
                             <p id="lblVoucherMessage" class="mt-2 mb-0 small"></p>
                         </div>
@@ -183,14 +183,14 @@
                 <!-- Right Column: Summary & Payment -->
                 <div class="col-lg-5">
                     <div class="checkout-card mb-4">
-                        <h4 class="section-title"><i class="fas fa-shopping-basket me-2 text-primary"></i>Order Summary</h4>
+                        <h4 class="section-title"><i class="fas fa-shopping-basket me-2 text-primary"></i>Tóm tắt đơn hàng</h4>
                         
                         <div class="table-responsive">
                             <table class="table order-summary-table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>Item</th>
-                                        <th class="text-end">Total</th>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Tổng cộng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -202,7 +202,7 @@
                                                     <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/img/default-product.png" : item.ImageUrl)" class="product-img me-3" alt="@item.ProductName">
                                                     <div>
                                                         <h6 class="mb-0 fw-bold">@item.ProductName</h6>
-                                                        <span class="text-muted small">Qty: @item.Quantity</span>
+                                                        <span class="text-muted small">SL: @item.Quantity</span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -215,22 +215,22 @@
 
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Subtotal</span>
+                                <span class="text-muted">Tạm tính</span>
                                 <span class="fw-bold">@Model.Subtotal.ToString("N0") ₫</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Voucher Discount</span>
+                                <span class="text-muted">Giảm giá voucher</span>
                                 <span class="text-danger fw-bold" id="lblDiscount">- 0 ₫</span>
                             </div>
                             <div class="d-flex justify-content-between mt-3 pt-3 border-top">
-                                <span class="h5 fw-bold mb-0">Total</span>
+                                <span class="h5 fw-bold mb-0">Tổng tiền</span>
                                 <span class="grand-total" id="lblFinalTotal">@Model.Subtotal.ToString("N0") ₫</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="checkout-card">
-                        <h4 class="section-title"><i class="fas fa-credit-card me-2 text-primary"></i>Payment Method</h4>
+                        <h4 class="section-title"><i class="fas fa-credit-card me-2 text-primary"></i>Phương thức thanh toán</h4>
                         
                         <div class="row g-3">
                             <div class="col-12">
@@ -239,8 +239,8 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-money-bill-wave me-3"></i>
                                         <div>
-                                            <h6 class="mb-0 fw-bold">Cash on Delivery</h6>
-                                            <small class="text-muted">Pay when you receive the items</small>
+                                            <h6 class="mb-0 fw-bold">Thanh toán khi nhận hàng (COD)</h6>
+                                            <small class="text-muted">Trả tiền mặt khi nhận hàng</small>
                                         </div>
                                     </div>
                                 </div>
@@ -251,8 +251,8 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-wallet me-3"></i>
                                         <div>
-                                            <h6 class="mb-0 fw-bold">MoMo E-Wallet</h6>
-                                            <small class="text-muted">Pay via MoMo Sandbox</small>
+                                            <h6 class="mb-0 fw-bold">Ví điện tử MoMo</h6>
+                                            <small class="text-muted">Thanh toán qua cổng MoMo</small>
                                         </div>
                                     </div>
                                 </div>
@@ -264,7 +264,7 @@
                                         <i class="fas fa-university me-3"></i>
                                         <div>
                                             <h6 class="mb-0 fw-bold">VNPay Online</h6>
-                                            <small class="text-muted">Credit Cards / Bank Transfer</small>
+                                            <small class="text-muted">Thẻ ATM / Thẻ quốc tế / QR Code</small>
                                         </div>
                                     </div>
                                 </div>
@@ -272,7 +272,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-place-order w-100 mt-4">
-                            PLACE ORDER NOW <i class="fas fa-arrow-right ms-2"></i>
+                            ĐẶT HÀNG NGAY <i class="fas fa-arrow-right ms-2"></i>
                         </button>
                     </div>
                 </div>

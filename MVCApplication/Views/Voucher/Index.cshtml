@@ -1,11 +1,11 @@
 @model IEnumerable<MVCApplication.Models.DTOs.VoucherDto>
 
 @{
-    ViewData["Title"] = "Voucher List";
+    ViewData["Title"] = "Danh sách Voucher";
 }
 
 <div class="container mt-4">
-    <h1 class="text-center mb-4">Available Vouchers</h1>
+    <h1 class="text-center mb-4">Voucher hiện có</h1>
     <div class="row">
         @foreach (var item in Model)
         {
@@ -18,18 +18,18 @@
                         <p class="card-text text-muted">@item.VoucherName</p>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="badge bg-success p-2">
-                                @(item.DiscountPercentage > 0 ? $"{item.DiscountPercentage}% Off" : "Special Discount")
+                                @(item.DiscountPercentage > 0 ? $"Giảm {item.DiscountPercentage}%" : "Giảm giá đặc biệt")
                             </span>
                             @if (item.MaxReducing.HasValue)
                             {
-                                <small class="text-muted">Max: @string.Format("{0:C0}", item.MaxReducing)</small>
+                                <small class="text-muted">Tối đa: @string.Format("{0:N0} ₫", item.MaxReducing)</small>
                             }
                         </div>
                         <p class="card-text small text-dark">@item.Description</p>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3">
                         <div class="d-grid">
-                            <a asp-action="Details" asp-route-id="@item.VoucherId" class="btn btn-outline-primary">View Details</a>
+                            <a asp-action="Details" asp-route-id="@item.VoucherId" class="btn btn-outline-primary">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>
