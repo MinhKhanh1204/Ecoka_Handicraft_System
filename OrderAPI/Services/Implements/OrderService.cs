@@ -164,6 +164,29 @@ namespace OrderAPI.Services.Implements
                             _logger.LogError(ex, "Error calling ProductAPI for stock update. Product: {ProductId}", item.ProductID);
                         }
                     }
+
+                    // Decrement Voucher Quantity
+                    if (dto.VoucherID.HasValue && dto.VoucherID.Value > 0)
+                    {
+                        try
+                        {
+                            string? voucherApiBase = _configuration["VoucherApiUrl"];
+                            if (!string.IsNullOrEmpty(voucherApiBase))
+                            {
+                                string updateVoucherUrl = $"{voucherApiBase.TrimEnd('/')}/{dto.VoucherID.Value}/usage";
+                                var response = await client.PutAsync(updateVoucherUrl, null);
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    _logger.LogWarning("Failed to increment usage for Voucher {VoucherId}. Status: {Status}", 
+                                        dto.VoucherID.Value, response.StatusCode);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error calling VoucherAPI for usage update. Voucher: {VoucherId}", dto.VoucherID.Value);
+                        }
+                    }
                 }
             }
 

@@ -28,5 +28,10 @@ namespace VoucherAPI.Services
             var voucher = await _voucherRepository.GetByIdAsync(id);
             return _mapper.Map<VoucherDto>(voucher);
         }
+
+        public async Task<bool> IncrementUsageAsync(int id)
+        {
+            return await _voucherRepository.IncrementUsageAsync(id);
+        }
     }
 }

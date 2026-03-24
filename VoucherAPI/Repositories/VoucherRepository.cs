@@ -23,5 +23,21 @@ namespace VoucherAPI.Repositories
         {
             return await _context.Vouchers.FindAsync(id);
         }
+
+        public async Task<bool> IncrementUsageAsync(int id)
+        {
+            var voucher = await _context.Vouchers.FindAsync(id);
+            if (voucher == null) return false;
+
+            voucher.UsageCount = (voucher.UsageCount ?? 0) + 1;
+            
+            if (voucher.Quantity.HasValue && voucher.Quantity.Value > 0)
+            {
+                voucher.Quantity -= 1;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

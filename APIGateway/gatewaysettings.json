@@ -82,7 +82,7 @@
                 }
             ],
             "UpstreamPathTemplate": "/vouchers/{everything}",
-            "UpstreamHttpMethod": [ "GET" ]
+            "UpstreamHttpMethod": [ "GET", "PUT" ]
         },
         {
             "DownstreamPathTemplate": "/api/admin/vouchers/{everything}",

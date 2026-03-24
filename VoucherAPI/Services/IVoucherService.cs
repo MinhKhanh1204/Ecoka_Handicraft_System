@@ -8,5 +8,6 @@ namespace VoucherAPI.Services
     {
         Task<IEnumerable<VoucherDto>> GetAllVouchersAsync();
         Task<VoucherDto?> GetVoucherByIdAsync(int id);
+        Task<bool> IncrementUsageAsync(int id);
     }
 }

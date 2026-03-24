@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VoucherAPI.Services;
 using VoucherAPI.DTOs;
 using VoucherAPI.CustomFormatter;
@@ -45,6 +45,21 @@ namespace VoucherAPI.Controllers
                 voucher,
                 "Get voucher successfully"
             ));
+        }
+
+        // PUT: api/vouchers/5/usage
+        [HttpPut("{id}/usage")]
+        public async Task<IActionResult> IncrementUsage(int id)
+        {
+            var result = await _voucherService.IncrementUsageAsync(id);
+            if (!result)
+            {
+                return NotFound(
+                    ApiResponse<bool>.Fail("Voucher not found", StatusCodes.Status404NotFound)
+                );
+            }
+
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Voucher usage incremented and quantity decreased"));
         }
     }
 }
