@@ -46,14 +46,12 @@ namespace MVCApplication.Areas.Admin.DTOs
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
         public decimal Price { get; set; }
 
-        [Range(0, 50, ErrorMessage = "Discount phải từ 0 đến <= 50")]
+        [Range(0, 100, ErrorMessage = "Discount phải từ 0 đến 100")]
         public decimal Discount { get; set; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0")]
         public int StockQuantity { get; set; }
 
-        [MinLength(4, ErrorMessage = "Phải có đúng 4 ảnh")]
-        [MaxLength(4, ErrorMessage = "Chỉ được phép tối đa 4 ảnh")]
         public List<CreateProductImageDto> Images { get; set; } = new();
     }
 
@@ -78,16 +76,14 @@ namespace MVCApplication.Areas.Admin.DTOs
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
         public decimal Price { get; set; }
 
-        [Range(0, 50, ErrorMessage = "Discount phải từ 0 đến <= 50")] public decimal Discount { get; set; }
+        [Range(0, 100, ErrorMessage = "Discount phải từ 0 đến 100")]
+        public decimal Discount { get; set; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0")]
         public int StockQuantity { get; set; }
-
         [Required]
         public string Status { get; set; } = null!;
 
-        [MinLength(4, ErrorMessage = "Phải có đúng 4 ảnh")]
-        [MaxLength(4, ErrorMessage = "Chỉ được phép tối đa 4 ảnh")]
         public List<UpdateProductImageDto> Images { get; set; } = new();
     }
 

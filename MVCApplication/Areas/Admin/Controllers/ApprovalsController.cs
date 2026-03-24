@@ -161,8 +161,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                 await _pendingHub.Clients.All.SendAsync("CategoryApproved", new
                 {
                     categoryId = id
-                });
-                await _categoryHub.Clients.All.SendAsync("CategoryApprovalStatusChanged", new
+                }); await _categoryHub.Clients.All.SendAsync("CategoryApprovalStatusChanged", new
                 {
                     categoryId = id,
                     status = "Active"
@@ -251,8 +250,7 @@ namespace MVCApplication.Areas.Admin.Controllers
                 await _pendingHub.Clients.All.SendAsync("VoucherRejected", new
                 {
                     voucherId = id
-                });
-                await _voucherHub.Clients.All.SendAsync("VoucherApprovalStatusChanged", new
+                }); await _voucherHub.Clients.All.SendAsync("VoucherApprovalStatusChanged", new
                 {
                     voucherId = id,
                     status = "Rejected"
