@@ -45,6 +45,7 @@ namespace OrderAPI.Models
         Pending,
         Approved,
         Cancelled,
-        Returned
+        Returned,
+        Delivered
     }
 }

@@ -216,7 +216,7 @@ namespace OrderAPI.Repositories.Implements
 
             // Mark as paid and delivered/approved
             order.PaymentStatus = PaymentStatus.Paid.ToString();
-            order.ShippingStatus = ShippingStatus.Approved.ToString();
+            order.ShippingStatus = ShippingStatus.Delivered.ToString();
             order.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

@@ -60,6 +60,15 @@
 
 @section Styles {
     <style>
+        .form-label {
+            font-size: 0.9rem;
+        }
+
+        .order-search-card small {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.78rem;
+        }
         .orders-page-premium {
             background-color: #f8f9fa;
             min-height: 80vh;
@@ -197,19 +206,39 @@
         }
 
         <!-- SEARCH BAR -->
+        <!-- SEARCH BAR -->
         <div class="order-search-card">
             <form asp-action="Search" id="searchForm" method="get">
-                <div class="row g-3 align-items-center">
+                <div class="row g-3 align-items-end">
                     <div class="col-lg-3">
-                        <input type="text" name="orderId" class="form-control order-search-input" placeholder="Mã đơn hàng (#123...)" />
+                        <label class="form-label fw-semibold small text-muted mb-1">Mã đơn hàng</label>
+                        <input type="text"
+                               name="orderId"
+                               class="form-control order-search-input"
+                               placeholder="Nhập mã đơn hàng, ví dụ: ORD202603140008" />
+                        <small class="text-muted">Tìm theo mã đơn hàng cụ thể</small>
                     </div>
+
                     <div class="col-lg-2">
-                        <input type="date" name="from" class="form-control order-search-input" />
+                        <label class="form-label fw-semibold small text-muted mb-1">Từ ngày</label>
+                        <input type="date"
+                               name="from"
+                               id="fromDate"
+                               class="form-control order-search-input" />
+                        <small class="text-muted">Ngày bắt đầu tìm kiếm</small>
                     </div>
+
                     <div class="col-lg-2">
-                        <input type="date" name="to" class="form-control order-search-input" />
+                        <label class="form-label fw-semibold small text-muted mb-1">Đến ngày</label>
+                        <input type="date"
+                               name="to"
+                               id="toDate"
+                               class="form-control order-search-input" />
+                        <small class="text-muted">Ngày kết thúc tìm kiếm</small>
                     </div>
+
                     <div class="col-lg-3">
+                        <label class="form-label fw-semibold small text-muted mb-1">Trạng thái thanh toán</label>
                         <select name="paymentStatus" class="form-select order-search-input">
                             <option value="">Tất cả thanh toán</option>
                             <option value="Paid">Đã thanh toán</option>
@@ -217,9 +246,13 @@
                             <option value="Failed">Thất bại</option>
                             <option value="Refunded">Đã hoàn tiền</option>
                         </select>
+                        <small class="text-muted">Lọc theo trạng thái thanh toán</small>
                     </div>
+
                     <div class="col-lg-2">
-                        <button class="btn btn-dark w-100 rounded-3 py-2 fw-bold shadow-sm">Tìm kiếm</button>
+                        <button type="submit" class="btn btn-dark w-100 rounded-3 py-2 fw-bold shadow-sm">
+                            Tìm kiếm
+                        </button>
                     </div>
                 </div>
             </form>
@@ -398,21 +431,64 @@
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const text = await response.text();
-            if (!response.ok) { alert(`Lỗi: ${text}`); return false; }
+            if (!response.ok) {
+                alert(`Lỗi: ${text}`);
+                return false;
+            }
+
             const json = JSON.parse(text);
-            if (!json.success) { alert(json.message); return false; }
+            if (!json.success) {
+                alert(json.message);
+                return false;
+            }
+
             alert(json.message);
             location.reload();
             return true;
-        } catch (err) { alert("Có lỗi xảy ra: " + err.message); return false; }
+        } catch (err) {
+            alert("Có lỗi xảy ra: " + err.message);
+            return false;
+        }
     }
 
-    document.getElementById("searchForm").addEventListener("submit", async function(e) {
+    const searchForm = document.getElementById("searchForm");
+    const fromDateInput = document.getElementById("fromDate");
+    const toDateInput = document.getElementById("toDate");
+
+    // Khi chọn từ ngày thì giới hạn min cho đến ngày
+    fromDateInput.addEventListener("change", function () {
+        toDateInput.min = this.value || "";
+    });
+
+    // Khi chọn đến ngày thì giới hạn max cho từ ngày
+    toDateInput.addEventListener("change", function () {
+        fromDateInput.max = this.value || "";
+    });
+
+    searchForm.addEventListener("submit", async function(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
+
+        const fromDate = fromDateInput.value;
+        const toDate = toDateInput.value;
+
+        if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+            alert("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
+            fromDateInput.focus();
+            return;
+        }
+
+        const formData = new FormData(searchForm);
         const query = new URLSearchParams(formData).toString();
-        const response = await fetch(`/customer/orders/search?${query}`);
-        if (!response.ok) { alert("Tìm kiếm thất bại"); return; }
+
+        const response = await fetch(`/customer/orders/search?${query}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+            alert("Tìm kiếm thất bại");
+            return;
+        }
+
         const html = await response.text();
         const doc = new DOMParser().parseFromString(html, "text/html");
         document.querySelector("#ordersContainer").innerHTML = doc.querySelector("#ordersContainer").innerHTML;
