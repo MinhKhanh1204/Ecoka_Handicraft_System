@@ -14,7 +14,7 @@ namespace MVCApplication.Models
         public string? Avatar { get; set; }
 
         // Customer
-        [Required(ErrorMessage = "FullName is required")]
+        [Required(ErrorMessage = "Họ và tên không được để trống")]
         public string FullName { get; set; } = null!;
 
         public DateTime? DateOfBirth { get; set; }
