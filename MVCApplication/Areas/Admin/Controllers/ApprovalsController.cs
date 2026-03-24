@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MVCApplication.Areas.Admin.DTOs;
@@ -65,13 +65,29 @@ namespace MVCApplication.Areas.Admin.Controllers
             return View(vm);
         }
 
+        private static bool IsAjaxRequest(HttpRequest request) =>
+            string.Equals(request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
+        private IActionResult ApprovalPostResult(bool success, string message, object? jsonPayload = null)
+        {
+            if (IsAjaxRequest(Request))
+            {
+                return Json(jsonPayload ?? new { success, message });
+            }
+
+            TempData["ToastType"] = success ? "success" : "error";
+            TempData["ToastMessage"] = message;
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveProduct(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                return Json(new { success = false, message = "Invalid product id" });
+                return ApprovalPostResult(false, "Mã sản phẩm không hợp lệ.",
+                    new { success = false, message = "Invalid product id", id });
             }
 
             var ok = await _productService.ApproveAsync(id);
@@ -90,7 +106,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = ok ? "Đã duyệt sản phẩm." : "Duyệt sản phẩm thất bại.";
+            return ApprovalPostResult(ok, msg, new
             {
                 success = ok,
                 message = ok ? "Product approved successfully" : "Failed to approve product",
@@ -104,7 +121,8 @@ namespace MVCApplication.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                return Json(new { success = false, message = "Invalid product id" });
+                return ApprovalPostResult(false, "Mã sản phẩm không hợp lệ.",
+                    new { success = false, message = "Invalid product id", id });
             }
 
             var ok = await _productService.RejectAsync(id);
@@ -123,7 +141,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = ok ? "Đã từ chối sản phẩm." : "Từ chối sản phẩm thất bại.";
+            return ApprovalPostResult(ok, msg, new
             {
                 success = ok,
                 message = ok ? "Product rejected successfully" : "Failed to reject product",
@@ -143,7 +162,6 @@ namespace MVCApplication.Areas.Admin.Controllers
                 {
                     categoryId = id
                 });
-
                 await _categoryHub.Clients.All.SendAsync("CategoryApprovalStatusChanged", new
                 {
                     categoryId = id,
@@ -151,7 +169,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = ok ? "Đã duyệt danh mục." : "Duyệt danh mục thất bại.";
+            return ApprovalPostResult(ok, msg, new
             {
                 success = ok,
                 message = ok ? "Category approved successfully" : "Failed to approve category",
@@ -179,7 +198,8 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = ok ? "Đã từ chối danh mục." : "Từ chối danh mục thất bại.";
+            return ApprovalPostResult(ok, msg, new
             {
                 success = ok,
                 message = ok ? "Category rejected successfully" : "Failed to reject category",
@@ -207,7 +227,10 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = result.Success
+                ? "Đã duyệt voucher."
+                : (result.ErrorMessage ?? "Duyệt voucher thất bại.");
+            return ApprovalPostResult(result.Success, msg, new
             {
                 success = result.Success,
                 message = result.Success
@@ -221,26 +244,7 @@ namespace MVCApplication.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectVoucher(int id)
         {
-            var voucher = await _voucherAdminService.GetByIdAsync(id);
-            if (voucher == null)
-            {
-                return Json(new { success = false, message = "Voucher not found", id });
-            }
-
-            var dto = new UpdateVoucherDto
-            {
-                VoucherName = voucher.VoucherName ?? "",
-                Description = voucher.Description,
-                DiscountPercentage = voucher.DiscountPercentage ?? 0,
-                MaxReducing = voucher.MaxReducing,
-                Quantity = voucher.Quantity ?? 0,
-                ExpiryDate = voucher.ExpiryDate ?? DateOnly.FromDateTime(DateTime.Today),
-                MinOrderValue = voucher.MinOrderValue,
-                MaxUsagePerUser = voucher.MaxUsagePerUser,
-                IsActive = false
-            };
-
-            var result = await _voucherAdminService.UpdateAsync(id, dto);
+            var result = await _voucherAdminService.DeleteAsync(id);
 
             if (result.Success)
             {
@@ -248,7 +252,6 @@ namespace MVCApplication.Areas.Admin.Controllers
                 {
                     voucherId = id
                 });
-
                 await _voucherHub.Clients.All.SendAsync("VoucherApprovalStatusChanged", new
                 {
                     voucherId = id,
@@ -256,7 +259,10 @@ namespace MVCApplication.Areas.Admin.Controllers
                 });
             }
 
-            return Json(new
+            var msg = result.Success
+                ? "Đã từ chối voucher."
+                : (result.ErrorMessage ?? "Từ chối voucher thất bại.");
+            return ApprovalPostResult(result.Success, msg, new
             {
                 success = result.Success,
                 message = result.Success

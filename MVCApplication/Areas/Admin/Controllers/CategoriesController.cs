@@ -59,7 +59,6 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -101,7 +100,6 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CategoryUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -121,7 +119,6 @@ namespace MVCApplication.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.DeleteAsync(id);

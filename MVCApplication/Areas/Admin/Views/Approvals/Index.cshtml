@@ -1,4 +1,4 @@
-@using MVCApplication.Areas.Admin.DTOs
+﻿@using MVCApplication.Areas.Admin.DTOs
 @using MVCApplication.Models.DTOs
 @using MVCApplication.CustomFormatter
 @{
@@ -144,7 +144,7 @@
                                             <td class="text-truncate" style="max-width:420px;">@c.Description</td>
                                             <td>
                                                 <span class="badge @(string.Equals(c.Status, "Active", System.StringComparison.OrdinalIgnoreCase) ? "bg-success" :
-                                                                                                                          string.Equals(c.Status, "Deleted", System.StringComparison.OrdinalIgnoreCase) ? "bg-danger" : "bg-secondary")">
+                                                      string.Equals(c.Status, "Deleted", System.StringComparison.OrdinalIgnoreCase) ? "bg-danger" : "bg-secondary")">
                                             @c.Status
                                         </span>
                                     </td>
@@ -231,17 +231,143 @@
 </section>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script>
-        // Ensure Bootstrap tab behavior works when navigating with anchors
-        (function () {
-            var triggerTabList = [].slice.call(document.querySelectorAll('#approvalsTabs button'))
-            triggerTabList.forEach(function (triggerEl) {
-                var tabTrigger = new bootstrap.Tab(triggerEl)
-                triggerEl.addEventListener('click', function (event) {
-                    event.preventDefault()
-                    tabTrigger.show()
-                })
-            })
-        })();
+                // Ensure Bootstrap tab behavior works when navigating with anchors
+                (function () {
+                    var triggerTabList = [].slice.call(document.querySelectorAll('#approvalsTabs button'))
+                    triggerTabList.forEach(function (triggerEl) {
+                        var tabTrigger = new bootstrap.Tab(triggerEl)
+                        triggerEl.addEventListener('click', function (event) {
+                            event.preventDefault()
+                            tabTrigger.show()
+                        })
+                    })
+                })();
+
+                (function () {
+        if (window.approvalsSignalRInitialized) return;
+                    window.approvalsSignalRInitialized = true;
+
+                    const approvalConnection = new signalR.HubConnectionBuilder()
+                        .withUrl('/pending-approval-hub', {
+                            accessTokenFactory: () => {
+                                const cookie = document.cookie.split('; ')
+                                    .find(row => row.startsWith('AccessToken='));
+                                return cookie ? cookie.split('=')[1] : '';
+                            }
+                        })
+                        .withAutomaticReconnect()
+                        .build();
+
+                    function refreshApprovalsPage() {
+                        const activeTab = document.querySelector('#approvalsTabs .nav-link.active')?.id;
+                        const params = new URLSearchParams(window.location.search);
+                        params.set('__r', Date.now());
+
+                        fetch('@Url.Action("Index", "Approvals", new { area = "Admin" })?' + params.toString(), {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+
+                            // Update tab counts
+                            const newProductsTab = doc.querySelector('#products-tab');
+                            const newCategoriesTab = doc.querySelector('#categories-tab');
+                            const newVouchersTab = doc.querySelector('#vouchers-tab');
+
+                            if (newProductsTab && document.getElementById('products-tab')) {
+                                document.getElementById('products-tab').innerHTML = newProductsTab.innerHTML;
+                            }
+                            if (newCategoriesTab && document.getElementById('categories-tab')) {
+                                document.getElementById('categories-tab').innerHTML = newCategoriesTab.innerHTML;
+                            }
+                            if (newVouchersTab && document.getElementById('vouchers-tab')) {
+                                document.getElementById('vouchers-tab').innerHTML = newVouchersTab.innerHTML;
+                            }
+
+                            // Update table bodies
+                            const newProductsBody = doc.querySelector('#products tbody');
+                            const newCategoriesBody = doc.querySelector('#categories tbody');
+                            const newVouchersBody = doc.querySelector('#vouchers tbody');
+
+                            if (newProductsBody && document.querySelector('#products tbody')) {
+                                document.querySelector('#products tbody').outerHTML = newProductsBody.outerHTML;
+                            }
+                            if (newCategoriesBody && document.querySelector('#categories tbody')) {
+                                document.querySelector('#categories tbody').outerHTML = newCategoriesBody.outerHTML;
+                            }
+        if (newVouchersBody && document.querySelector('#vouchers tbody')) {
+                                document.querySelector('#vouchers tbody').outerHTML = newVouchersBody.outerHTML;
+                            }
+
+                            // Re-bind tab events
+                            var triggerTabList = [].slice.call(document.querySelectorAll('#approvalsTabs button'));
+                            triggerTabList.forEach(function (triggerEl) {
+                                var tabTrigger = new bootstrap.Tab(triggerEl);
+                                triggerEl.addEventListener('click', function (event) {
+                                    event.preventDefault();
+                                    tabTrigger.show();
+                                });
+                            });
+
+                            if (typeof showToast === 'function') {
+                                showToast('Dữ liệu đã được cập nhật', 'success');
+                            }
+                        })
+                        .catch(err => console.error('Error refreshing approvals:', err));
+                    }
+
+                    approvalConnection.on("ProductApproved", function (data) {
+                        if (typeof showToast === 'function') showToast('Sản phẩm đã được duyệt', 'success');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("ProductRejected", function (data) {
+                        if (typeof showToast === 'function') showToast('Sản phẩm đã bị từ chối', 'warning');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("CategoryApproved", function (data) {
+                        if (typeof showToast === 'function') showToast('Danh mục đã được duyệt', 'success');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("CategoryRejected", function (data) {
+                        if (typeof showToast === 'function') showToast('Danh mục đã bị từ chối', 'warning');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("VoucherApproved", function (data) {
+                        if (typeof showToast === 'function') showToast('Voucher đã được duyệt', 'success');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("VoucherRejected", function (data) {
+                        if (typeof showToast === 'function') showToast('Voucher đã bị từ chối', 'warning');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("PendingProductCreated", function (data) {
+                        if (typeof showToast === 'function') showToast('Có sản phẩm mới chờ duyệt', 'info');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("PendingCategoryCreated", function (data) {
+                        if (typeof showToast === 'function') showToast('Có danh mục mới chờ duyệt', 'info');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.on("PendingVoucherCreated", function (data) {
+        if (typeof showToast === 'function') showToast('Có voucher mới chờ duyệt', 'info');
+                        refreshApprovalsPage();
+                    });
+
+                    approvalConnection.start()
+                        .then(() => console.log('Approvals: Connected to pending-approval-hub'))
+                        .catch(err => console.error('Approvals SignalR error:', err));
+                })();
     </script>
 }

@@ -43,78 +43,72 @@ namespace MVCApplication.Areas.Admin.DTOs
     // Create staff form
     public class CreateStaffViewModel
     {
-        [Required(ErrorMessage = "Full name is required")]
-        [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be 3-100 characters")]
+        [Required(ErrorMessage = "Họ và tên là bắt buộc")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Họ và tên phải từ 3 đến 100 ký tự")]
         public string FullName { get; set; } = null!;
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
         public string Email { get; set; } = null!;
 
-        [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string Phone { get; set; } = null!;
 
-        [Required(ErrorMessage = "Password is required")]
+        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
         [DataType(DataType.Password)]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$",
-            ErrorMessage = "Password must contain uppercase, lowercase, number and special character")]
+            ErrorMessage = "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt")]
         public string Password { get; set; } = null!;
 
-        [Required(ErrorMessage = "Role is required")]
+        [Required(ErrorMessage = "Vai trò là bắt buộc")]
         public int RoleID { get; set; }
 
-        // ✅ Address (bắt buộc + độ dài)
-        [Required(ErrorMessage = "Address is required")]
-        [StringLength(200, MinimumLength = 5, ErrorMessage = "Address must be 5-200 characters")]
+        [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
+        [StringLength(200, MinimumLength = 5, ErrorMessage = "Địa chỉ phải từ 5 đến 200 ký tự")]
         public string Address { get; set; } = null!;
 
-        // ✅ Gender (bắt buộc)
-        [Required(ErrorMessage = "Gender is required")]
-        public string Gender { get; set; } = null!;
+        [Required(ErrorMessage = "Giới tính là bắt buộc")] public string Gender { get; set; } = null!;
 
-        // ✅ CCCD
-        [Required(ErrorMessage = "Citizen ID is required")]
-        [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "Citizen ID must be 9 or 12 digits")]
+        [Required(ErrorMessage = "CCCD/CMND là bắt buộc")]
+        [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "CCCD/CMND phải có 9 hoặc 12 chữ số")]
         public string CitizenId { get; set; } = null!;
 
-        // ✅ DOB
-        [Required(ErrorMessage = "Date of birth is required")]
+        [Required(ErrorMessage = "Ngày sinh là bắt buộc")]
         [DataType(DataType.Date)]
         public DateOnly? DateOfBirth { get; set; }
 
-        // 🖼 Avatar (optional)
         public IFormFile? AvatarFile { get; set; }
         public string? Avatar { get; set; }
     }
 
     public class EditStaffViewModel
     {
-        [Required(ErrorMessage = "Staff ID is required")]
+        [Required(ErrorMessage = "Mã nhân viên là bắt buộc")]
         public string StaffId { get; set; } = null!;
 
-        [Required(ErrorMessage = "Full name is required")]
-        [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters")]
+        [Required(ErrorMessage = "Họ và tên là bắt buộc")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Họ và tên phải từ 3 đến 100 ký tự")]
         public string FullName { get; set; } = null!;
 
-        // Not editable (readonly in UI) -> no validation rules here
+        // Không cho chỉnh sửa (readonly trên UI)
         public string Email { get; set; } = null!;
 
-        [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string Phone { get; set; } = null!;
 
-        [Required(ErrorMessage = "Address is required")]
-        [StringLength(200, MinimumLength = 5, ErrorMessage = "Address must be 5-200 characters")]
+        [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
+        [StringLength(200, MinimumLength = 5, ErrorMessage = "Địa chỉ phải từ 5 đến 200 ký tự")]
         public string Address { get; set; } = null!;
 
-        [Required(ErrorMessage = "Gender is required")]
+        [Required(ErrorMessage = "Giới tính là bắt buộc")]
         public string Gender { get; set; } = null!;
 
-        // Not editable (readonly in UI) -> no validation rules here
+        // Không cho chỉnh sửa (readonly trên UI)
         public string CitizenId { get; set; } = null!;
 
-        [Required(ErrorMessage = "Date of birth is required")]
+        [Required(ErrorMessage = "Ngày sinh là bắt buộc")]
         [DataType(DataType.Date)]
         public DateOnly? DateOfBirth { get; set; }
 

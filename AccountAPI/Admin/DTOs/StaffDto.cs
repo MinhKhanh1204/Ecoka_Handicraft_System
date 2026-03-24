@@ -61,37 +61,36 @@ namespace AccountAPI.Admin.DTOs
 
         public class CreateStaffDto
         {
-            [Required(ErrorMessage = "Full name is required")]
-            [StringLength(100, MinimumLength = 3)]
+            [Required(ErrorMessage = "Họ và tên là bắt buộc")]
+            [StringLength(100, MinimumLength = 3, ErrorMessage = "Họ và tên phải từ 3 đến 100 ký tự")]
             public string FullName { get; set; } = null!;
 
-            [Required]
-            [EmailAddress(ErrorMessage = "Invalid email format")]
+            [Required(ErrorMessage = "Email là bắt buộc")]
+            [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
             public string Email { get; set; } = null!;
 
-            [Required]
-            [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
+            [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+            [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
             public string Phone { get; set; } = null!;
 
-            [Required]
+            [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
             [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$",
-                ErrorMessage = "Password must contain uppercase, lowercase, number and special character")]
+                ErrorMessage = "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt")]
             public string Password { get; set; } = null!;
 
-            [Required(ErrorMessage = "Role is required")]
+            [Required(ErrorMessage = "Vai trò là bắt buộc")]
             public int RoleID { get; set; }
 
-            [Required(ErrorMessage = "Address is required")]
+            [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
             public string Address { get; set; } = null!;
 
-            [Required(ErrorMessage = "Gender is required")]
+            [Required(ErrorMessage = "Giới tính là bắt buộc")]
             public string Gender { get; set; } = null!;
-
-            [Required(ErrorMessage = "Citizen ID is required")]
-            [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "Invalid Citizen ID")]
+            [Required(ErrorMessage = "CCCD/CMND là bắt buộc")]
+            [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "CCCD/CMND không hợp lệ")]
             public string CitizenId { get; set; } = null!;
 
-            [Required(ErrorMessage = "Date of birth is required")]
+            [Required(ErrorMessage = "Ngày sinh là bắt buộc")]
             public DateOnly? DateOfBirth { get; set; }
 
             public string? Avatar { get; set; }
@@ -99,27 +98,27 @@ namespace AccountAPI.Admin.DTOs
 
         public class UpdateStaffDto
         {
-            [Required(ErrorMessage = "StaffId is required")]
+            [Required(ErrorMessage = "Mã nhân viên là bắt buộc")]
             public string StaffId { get; set; } = null!;
 
-            [Required(ErrorMessage = "Full name is required")]
-            [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters")]
+            [Required(ErrorMessage = "Họ và tên là bắt buộc")]
+            [StringLength(100, MinimumLength = 3, ErrorMessage = "Họ và tên phải từ 3 đến 100 ký tự")]
             public string FullName { get; set; } = null!;
 
-            [EmailAddress(ErrorMessage = "Invalid email address")]
+            [EmailAddress(ErrorMessage = "Email không hợp lệ")]
             public string Email { get; set; } = null!;
 
-            [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Invalid phone number")]
+            [RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
             public string Phone { get; set; } = null!;
 
-            [Required(ErrorMessage = "Address is required")]
-            [StringLength(200, ErrorMessage = "Address max length is 200 characters")]
+            [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
+            [StringLength(200, ErrorMessage = "Địa chỉ tối đa 200 ký tự")]
             public string Address { get; set; } = null!;
 
-            [Required(ErrorMessage = "Gender is required")]
+            [Required(ErrorMessage = "Giới tính là bắt buộc")]
             public string Gender { get; set; } = null!;
 
-            [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "Invalid Citizen ID")]
+            [RegularExpression(@"^\d{9}(\d{3})?$", ErrorMessage = "CCCD/CMND không hợp lệ")]
             public string CitizenId { get; set; } = null!;
 
             public DateOnly? DateOfBirth { get; set; }
