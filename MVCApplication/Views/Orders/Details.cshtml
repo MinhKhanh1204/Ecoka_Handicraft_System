@@ -2,6 +2,25 @@
 
 @{
     Layout = null; // Since it's often in a modal
+    
+    string PaymentStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "paid" => "Đã thanh toán",
+        "pending" => "Chờ thanh toán",
+        "failed" => "Thất bại",
+        "refunded" => "Đã hoàn tiền",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
+    };
+
+    string ShippingStatusVi(string? status) => (status ?? "").Trim().ToLower() switch
+    {
+        "pending" => "Chờ xử lý",
+        "approved" => "Đã xác nhận",
+        "shipping" => "Đang giao hàng",
+        "delivered" => "Đã giao hàng",
+        "cancelled" => "Đã hủy",
+        _ => string.IsNullOrWhiteSpace(status) ? "-" : status
+    };
 }
 
 <div class="order-details-premium p-1">
@@ -15,12 +34,12 @@
         <div class="col-md-6 text-md-end">
             <div class="mb-2">
                 <span class="badge @(Model.PaymentStatus == "Paid" ? "bg-success" : "bg-warning text-dark") rounded-pill px-3 py-2">
-                    <i class="fas fa-credit-card me-1"></i> @Model.PaymentStatus
+                    <i class="fas fa-credit-card me-1"></i> @PaymentStatusVi(Model.PaymentStatus)
                 </span>
             </div>
             <div>
                 <span class="badge @(Model.ShippingStatus == "Pending" ? "bg-warning text-dark" : "bg-dark") rounded-pill px-3 py-2">
-                    <i class="fas fa-truck me-1"></i> @Model.ShippingStatus
+                    <i class="fas fa-truck me-1"></i> @ShippingStatusVi(Model.ShippingStatus)
                 </span>
             </div>
         </div>
