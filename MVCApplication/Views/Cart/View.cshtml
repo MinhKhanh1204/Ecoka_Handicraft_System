@@ -27,16 +27,16 @@
         margin-bottom: 25px;
     }
 
-    .section-title::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 50px;
-        height: 4px;
-        background: var(--primary-gradient);
-        border-radius: 2px;
-    }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
 
     .product-img-cart {
         width: 70px;
@@ -84,10 +84,10 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
-    .btn-qty:hover {
-        background: #81c408;
-        color: #fff;
-    }
+        .btn-qty:hover {
+            background: #81c408;
+            color: #fff;
+        }
 
     .qty-input {
         width: 45px;
@@ -104,6 +104,7 @@
         -webkit-appearance: none;
         margin: 0;
     }
+
     input[type=number] {
         -moz-appearance: textfield;
     }
@@ -128,10 +129,10 @@
         transition: var(--transition-base);
     }
 
-    .btn-delete-item:hover {
-        background: #ff4d4f;
-        color: #fff;
-    }
+        .btn-delete-item:hover {
+            background: #ff4d4f;
+            color: #fff;
+        }
 
     .summary-card {
         background: #fdfdfd;
@@ -154,11 +155,11 @@
         margin-top: 20px;
     }
 
-    .btn-checkout:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 30px rgba(129, 196, 8, 0.4);
-        color: #fff;
-    }
+        .btn-checkout:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(129, 196, 8, 0.4);
+            color: #fff;
+        }
 
     .custom-checkbox {
         width: 20px;
@@ -177,7 +178,6 @@
     </ol>
 </div>
 <!-- Single Page Header End -->
-
 <!-- Cart Page Start -->
 <div class="container-fluid py-5 bg-light">
     <div class="container py-5">
@@ -226,9 +226,9 @@
                                         var itemTotal = item.Price * item.Quantity;
                                         <tr>
                                             <td>
-                                                <input type="checkbox" class="form-check-input custom-checkbox chk-item" 
-                                                       data-id="@item.CartItemId" 
-                                                       data-price="@item.Price" 
+                                                <input type="checkbox" class="form-check-input custom-checkbox chk-item"
+                                                       data-id="@item.CartItemId"
+                                                       data-price="@item.Price"
                                                        data-qty="@item.Quantity">
                                             </td>
                                             <td>
@@ -254,7 +254,7 @@
                                                             <i class="fa fa-plus small"></i>
                                                         </button>
                                                     </div>
-                                                    <button class="btn btn-link btn-update-cart text-primary p-0 fw-bold" 
+                                                    <button class="btn btn-link btn-update-cart text-primary p-0 fw-bold"
                                                             type="button"
                                                             onclick="performUpdate(@item.CartItemId, @item.StockQuantity, @item.Price)">
                                                         <i class="fa fa-sync-alt me-1"></i>Cập nhật
@@ -281,13 +281,13 @@
                 <div class="col-xl-4">
                     <div class="cart-card sticky-top" style="top: 2rem; z-index: 10;">
                         <h4 class="section-title">Tóm tắt đơn hàng</h4>
-                        
+
                         <div class="summary-card mt-4">
                             <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
                                 <span class="text-muted">Sản phẩm đã chọn</span>
                                 <span class="fw-bold" id="lblSelectedCount">0</span>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between mb-4">
                                 <span class="h5 fw-bold mb-0">Tổng cộng</span>
                                 <div class="text-end">
@@ -306,114 +306,136 @@
     </div>
 </div>
 <!-- Cart Page End -->
-
 @section Scripts {
     <script>
-        function calculateTotal() {
-            let total = 0;
-            let count = 0;
-            $('.chk-item:checked').each(function() {
-                let p = parseFloat($(this).data('price'));
-                let q = parseInt($(this).data('qty'));
-                total += (p * q);
-                count++;
-            });
-            $('#lblSelectedCount').text(count);
-            
-            let formatter = new Intl.NumberFormat('vi-VN');
-            $('#lblFinalTotal').text(formatter.format(total) + " ₫");
-        }
-
-        $('#selectAll').change(function() {
-            $('.chk-item').prop('checked', $(this).prop('checked'));
-            calculateTotal();
-        });
-
-        $(document).on('change', '.chk-item', function() {
-            if (!$(this).prop('checked')) {
-                $('#selectAll').prop('checked', false);
-            }
-            if ($('.chk-item:checked').length === $('.chk-item').length) {
-                $('#selectAll').prop('checked', true);
-            }
-            calculateTotal();
-        });
-
-        function changeQtyValue(id, change, maxStock) {
-            let input = $('.qty-input_' + id);
-            let currentQty = parseInt(input.val()) || 1;
-            let newQty = currentQty + change;
-            
-            if (newQty < 1) newQty = 1;
-            if (maxStock > 0 && newQty > maxStock) {
-                newQty = maxStock;
-            }
-            input.val(newQty);
-        }
-
-        function performUpdate(id, maxStock, price) {
-            let input = $('.qty-input_' + id);
-            let newQty = parseInt(input.val()) || 1;
-
-            if (newQty < 1) {
-                toastr.warning("Số lượng phải ít nhất là 1");
-                input.val(1);
-                return;
-            }
-            if (maxStock > 0 && newQty > maxStock) {
-                toastr.warning("Số lượng yêu cầu vượt quá tồn kho (" + maxStock + ")!");
-                input.val(maxStock);
-                return;
-            }
-
-            $.ajax({
-                url: `/Cart/UpdateItem?cartItemId=${id}&quantity=${newQty}`,
-                type: "PUT",
-                success: function() {
-                    let chk = $(`.chk-item[data-id="${id}"]`);
-                    chk.data('qty', newQty);
-                    chk.attr('data-qty', newQty);
+                function calculateTotal() {
+                    let total = 0;
+                    let count = 0;
+                    $('.chk-item:checked').each(function() {
+                        let p = parseFloat($(this).data('price'));
+                        let q = parseInt($(this).data('qty'));
+                        total += (p * q);
+                        count++;
+                    });
+                    $('#lblSelectedCount').text(count);
 
                     let formatter = new Intl.NumberFormat('vi-VN');
-                    let newRowTotal = newQty * price;
-                    $('.row-total_' + id).text(formatter.format(newRowTotal) + " ₫");
+                    $('#lblFinalTotal').text(formatter.format(total) + " ₫");
+                }
+
+                $('#selectAll').change(function() {
+                    $('.chk-item').prop('checked', $(this).prop('checked'));
                     calculateTotal();
-                    
-                    toastr.success("Cart updated successfully!");
-                },
-                error: function(xhr) {
-                    if (xhr.status === 401) window.location.href = '/Account/Login';
-                    else toastr.error("Failed to update cart. Please try again!");
-                }
-            });
-        }
+                });
 
-        function deleteCartItem(id) {
-            if (!confirm('Are you sure you want to remove this item?')) return;
-            $.ajax({
-                url: `/Cart/DeleteItem?cartItemId=${id}`,
-                type: "DELETE",
-                success: function() {
-                    toastr.success("Item removed from cart.");
-                    setTimeout(() => location.reload(), 1000);
-                },
-                error: function(xhr) {
-                    if (xhr.status === 401) window.location.href = '/Account/Login';
-                    else toastr.error("Failed to delete item!");
-                }
-            });
-        }
+                $(document).on('change', '.chk-item', function() {
+                    if (!$(this).prop('checked')) {
+                        $('#selectAll').prop('checked', false);
+                    }
+                    if ($('.chk-item:checked').length === $('.chk-item').length) {
+                        $('#selectAll').prop('checked', true);
+                    }
+                    calculateTotal();
+                });
 
-        function checkoutSelected() {
-            let selectedIds = [];
-            $('.chk-item:checked').each(function() {
-                selectedIds.push($(this).data('id'));
-            });
-            if (selectedIds.length === 0) {
-                toastr.info('Please select at least 1 item to proceed to checkout!');
-                return;
-            }
-            window.location.href = `/customer/orders/checkout?cartItemIds=${selectedIds.join(',')}`;
-        }
+                function changeQtyValue(id, change, maxStock) {
+                    let input = $('.qty-input_' + id);
+                    let currentQty = parseInt(input.val()) || 1;
+                    let newQty = currentQty + change;
+
+                    if (newQty < 1) newQty = 1;
+                    if (maxStock > 0 && newQty > maxStock) {
+                        newQty = maxStock;
+                    }
+                    input.val(newQty);
+                }
+
+                function performUpdate(id, maxStock, price) {
+                    let input = $('.qty-input_' + id);
+                    let newQty = parseInt(input.val()) || 1;
+
+                    if (newQty < 1) {
+                        toastr.warning("Số lượng phải ít nhất là 1");
+                        input.val(1);
+                        return;
+                    }
+                    if (maxStock > 0 && newQty > maxStock) {
+                        toastr.warning("Số lượng yêu cầu vượt quá tồn kho (" + maxStock + ")!");
+                        input.val(maxStock);
+                        return;
+                    }
+
+                    $.ajax({
+                        url: `/Cart/UpdateItem?cartItemId=${id}&quantity=${newQty}`,
+                        type: "PUT",
+                        success: function() {
+                            let chk = $(`.chk-item[data-id="${id}"]`);
+                            chk.data('qty', newQty);
+                            chk.attr('data-qty', newQty);
+        let formatter = new Intl.NumberFormat('vi-VN');
+                            let newRowTotal = newQty * price;
+                            $('.row-total_' + id).text(formatter.format(newRowTotal) + " ₫");
+                            calculateTotal();
+
+                            toastr.success("Cart updated successfully!");
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401) window.location.href = '/Account/Login';
+                            else toastr.error("Failed to update cart. Please try again!");
+                        }
+                    });
+                }
+
+                function deleteCartItem(id) {
+                    Swal.fire({
+                        title: 'Xác nhận xóa?',
+                        text: "Bạn có chắc chắn muốn bỏ sản phẩm này khỏi giỏ hàng không?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#81c408',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Đồng ý',
+                        cancelButtonText: 'Hủy',
+                        customClass: {
+                            popup: 'rounded-20'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/Cart/DeleteItem?cartItemId=${id}`,
+                                type: "DELETE",
+                                success: function() {
+                                    Swal.fire({
+                                        title: 'Đã xóa!',
+                                        text: 'Sản phẩm đã được bỏ khỏi giỏ hàng.',
+                                        icon: 'success',
+                                        showConfirmButton: false,
+                                        timer: 1500,
+                                        customClass: {
+                                            popup: 'rounded-20'
+                                        }
+                                    });
+                                    setTimeout(() => location.reload(), 1500);
+                                },
+                                error: function(xhr) {
+                                    if (xhr.status === 401) window.location.href = '/Account/Login';
+                                    else toastr.error("Không thể xóa sản phẩm. Vui lòng thử lại!");
+                                }
+                            });
+                        }
+                    });
+                }
+
+                function checkoutSelected() {
+                    let selectedIds = [];
+                    $('.chk-item:checked').each(function() {
+                        selectedIds.push($(this).data('id'));
+                    });
+                    if (selectedIds.length === 0) {
+                        toastr.info('Please select at least 1 item to proceed to checkout!');
+                        return;
+                    }
+                    window.location.href = `/customer/orders/checkout?cartItemIds=${selectedIds.join(',')}`;
+                }
     </script>
 }
