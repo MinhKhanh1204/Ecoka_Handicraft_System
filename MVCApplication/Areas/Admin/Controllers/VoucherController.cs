@@ -73,11 +73,11 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create voucher. Please try again.");
+                ModelState.AddModelError("", result.ErrorMessage ?? "Tao voucher that bai. Vui long thu lai.");
                 return View(dto);
             }
 
-            // Tìm l?i voucher v?a t?o ?? g?i ?? d? li?u realtime
+            // Tim voucher vua tao de gui du lieu realtime
             var paged = await _voucherAdminService.GetPagedAsync(dto.VoucherName, null, "id_desc", 1, 10);
             var createdVoucher = paged.Items.FirstOrDefault(v =>
                 string.Equals(v.VoucherName, dto.VoucherName, StringComparison.OrdinalIgnoreCase) &&
@@ -100,8 +100,8 @@ namespace MVCApplication.Areas.Admin.Controllers
 
             TempData["ToastType"] = "success";
             TempData["ToastMessage"] = createdByAdmin
-                ? "Voucher created successfully."
-                : "Voucher created successfully and is pending approval.";
+                ? "Tao voucher thanh cong."
+                : "Tao voucher thanh cong. Voucher dang cho phep duyet.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -150,13 +150,13 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!result.Success)
             {
                 // Show the specific server error message
-                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to update voucher. Please try again.");
+                ModelState.AddModelError("", result.ErrorMessage ?? "Cap nhat voucher that bai. Vui long thu lai.");
                 ViewBag.VoucherId = id;
                 return View(dto);
             }
 
             TempData["ToastType"] = "success";
-            TempData["ToastMessage"] = "Voucher updated successfully.";
+            TempData["ToastMessage"] = "Cap nhat voucher thanh cong.";
             await _voucherHub.Clients.All.SendAsync("VoucherUpdated", new
             {
                 voucherId = id
@@ -175,12 +175,12 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!result.Success)
             {
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = result.ErrorMessage ?? "Failed to delete voucher.";
+                TempData["ToastMessage"] = result.ErrorMessage ?? "Xoa voucher that bai.";
             }
             else
             {
                 TempData["ToastType"] = "success";
-                TempData["ToastMessage"] = "Voucher deleted successfully.";
+                TempData["ToastMessage"] = "Xoa voucher thanh cong.";
             }
             return RedirectToAction(nameof(Index));
         }

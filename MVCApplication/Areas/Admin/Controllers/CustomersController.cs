@@ -84,15 +84,15 @@ namespace MVCApplication.Areas.Admin.Controllers
             if (!result)
             {
                 TempData["ToastType"] = "error";
-                TempData["ToastMessage"] = "Failed to update status";
+                TempData["ToastMessage"] = "Cập nhật trạng thái thất bại.";
             }
             else
             {
                 // Active = xanh lá, Inactive = đỏ
                 TempData["ToastType"] = status == "Active" ? "success" : "error";
-                TempData["ToastMessage"] = status == "Active" 
-                    ? $"Customer activated successfully" 
-                    : $"Customer deactivated successfully";
+                TempData["ToastMessage"] = status == "Active"
+                    ? "Đã kích hoạt khách hàng thành công."
+                    : "Đã vô hiệu hóa khách hàng thành công.";
             }
             return RedirectToAction(nameof(Index));
         }
